@@ -1,0 +1,31 @@
+---
+description: Multi-tenancy, RLS, and Drizzle data-access rules — always follow when touching code or SQL
+alwaysApply: false
+globs: ["**/*.ts", "**/*.tsx", "**/*.sql", "**/drizzle.config.*", "**/package.json"]
+---
+
+# Database Rules (non-negotiable)
+
+Canonical reference: `docs/architecture/data-access.md`.
+
+## Multi-tenancy invariants
+
+- Every tenant table has a `school_id` column, indexed, with **RLS enabled** and policies filtering by caller's school membership + role.
+- Every new table ships in the same change as its RLS policies and a policy test. No exceptions.
+- Cross-tenant reads exist **only** in platform-owner console views (`security definer`). Any other cross-tenant query is an automatic reject.
+- Tenant context is never trusted from client input — resolve from the session via `getSessionContext()`.
+
+## Data access layer
+
+- **Drizzle ORM is the only way app code touches tables.** Schema-as-code lives in `packages/db`; migrations via `drizzle-kit`.
+- **No raw SQL strings** in components, actions, or route handlers. (RLS policies and migrations are SQL — that is expected and correct.)
+- **Supabase client** is used for auth flows, storage, and realtime only — not for table CRUD.
+- Queries run inside `withTenant(schoolId, userId, tx => ...)` so RLS sees the tenant context per transaction.
+- Server-side role check in every action **before** the query (UX); RLS is the backstop (security).
+- DB access is server-only: server components, server actions, route handlers. Never from client components.
+
+## Performance (Supabase Postgres best practices)
+
+- Index every FK and every `school_id`.
+- RLS policies use `(select auth.jwt() ...)` / `set_config`-based claims (plan-cache friendly), not per-row function re-evaluation.
+- Avoid N+1: use Drizzle relational queries / joins instead of per-row fetches in loops.

@@ -1,0 +1,30 @@
+---
+description: Core EduBridge repo facts and documentation reading order — always follow
+alwaysApply: true
+---
+
+# EduBridge Core Rules
+
+## Repo facts (never guess)
+
+- Monorepo: Turborepo + **pnpm only** (npm/yarn blocked via `only-allow`). Run all commands from repo root.
+- Node `>=22.13.0` (see `.nvmrc`).
+- Apps: `apps/edubridge` (primary Next.js 16, port 3000), `apps/web` (Mastra demo, 3002), `apps/docs` (3001), `apps/agent` (Mastra, 4111).
+- Packages: `packages/db` (`@repo/db`, Drizzle), `packages/ui` (`@repo/ui`, ShadCN + theme), `packages/ai-ui`, plus shared eslint/ts configs.
+- Shared dependency versions live in `pnpm-workspace.yaml` `catalog:` — reference as `"catalog:"`.
+
+## Documentation reading order
+
+Stop as soon as you have enough context; never bulk-read docs.
+
+1. `README.md` (root) — orientation + documentation map
+2. `docs/roadmap/README.md` — which phase is **active** + cross-phase standards
+3. The **active phase file** in `docs/roadmap/` — the only scope you may implement
+4. Task-specific doc (from the documentation map): feature blueprint, data-access, guides, `docs/design/MASTER.md` (any UI work)
+
+## Scope and behavior rules
+
+- **Never implement scope from a future phase** unless the user explicitly asks.
+- **Docs move with code.** If a change contradicts a doc in `docs/`, update that doc in the same change.
+- Product is **EduBridge** (multi-tenant school platform). "Aria" is the legacy starter name — do not reuse it in new code/docs.
+- Six platform roles: `platform_owner`, `school_admin`, `teacher`, `staff`, `student`, `parent`. Every read/write is role-checked server-side.

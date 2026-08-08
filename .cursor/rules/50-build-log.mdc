@@ -1,0 +1,25 @@
+---
+description: Append a short build-log entry after each milestone; keep docs/build-log index in sync
+alwaysApply: true
+---
+
+# Build log
+
+Canonical folder: `docs/build-log/`. Index: `docs/build-log/README.md`.
+
+## When to write
+
+After finishing a **milestone or PR-sized chunk** (new package/app, schema land, Phase exit, significant wiring), append an entry. Do not write an entry for tiny typo fixes.
+
+## How
+
+1. Create `docs/build-log/NNNN-short-slug.md` (next 4-digit number).
+2. Use the template in `docs/build-log/README.md`: date, one-line goal, bullets, 3–8 commands, key paths, next step.
+3. Update the Index table in `docs/build-log/README.md` in the **same** change.
+4. Keep entries short — no full diffs, no pasted secrets, no `DATABASE_URL` passwords.
+
+## Don't
+
+- Don't skip the index update.
+- Don't dump architecture essays here — link to `docs/architecture/` or phase files instead.
+- Don't invent entry numbers; always take the next unused `NNNN`.

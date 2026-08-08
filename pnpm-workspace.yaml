@@ -1,0 +1,39 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+
+overrides:
+  "typescript-eslint>typescript": "6.0.3"
+  "@typescript-eslint/parser>typescript": "6.0.3"
+  "@typescript-eslint/eslint-plugin>typescript": "6.0.3"
+  "@typescript-eslint/typescript-estree>typescript": "6.0.3"
+  "@typescript-eslint/utils>typescript": "6.0.3"
+  "@typescript-eslint/type-utils>typescript": "6.0.3"
+  "@typescript-eslint/project-service>typescript": "6.0.3"
+  "@typescript-eslint/tsconfig-utils>typescript": "6.0.3"
+  "ts-api-utils>typescript": "6.0.3"
+
+catalog:
+  react: ^19.2.0
+  react-dom: ^19.2.0
+  next: 16.3.0
+  typescript: 7.0.2
+  tailwindcss: ^4.3.0
+  "@tailwindcss/postcss": ^4.3.0
+  "@tailwindcss/cli": ^4.3.0
+  ai: ^6.0.198
+  "@ai-sdk/react": ^3.0.200
+  "@mastra/ai-sdk": ^1.4.3
+  "@mastra/client-js": ^1.23.2
+  lucide-react: ^0.469.0
+  eslint: ^9.39.1
+  "@types/node": ^22.15.3
+  "@types/react": 19.2.2
+  "@types/react-dom": 19.2.2
+  drizzle-orm: ^0.44.5
+  drizzle-kit: ^0.31.4
+  postgres: ^3.4.7
+  tsx: ^4.23.9
+  "@supabase/ssr": ^0.12.4
+  "@supabase/supabase-js": ^2.112.2
+  zod: ^4.3.6

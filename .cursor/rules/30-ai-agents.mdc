@@ -1,0 +1,33 @@
+---
+description: Agent harness ecosystem rules — orchestrator/sub-agents, scoping, memory, token economy — always follow when working in apps/agent
+alwaysApply: false
+globs: ["apps/agent/**"]
+---
+
+# Agent Harness Rules (non-negotiable)
+
+Canonical references: `docs/architecture/agent-ecosystem.md` (topology, memory, token rules) and `docs/architecture/auth/agent-auth.md` (service tokens).
+
+## Boundary
+
+- Agents execute only in `apps/agent`. `apps/web` imports **contracts (types/schemas) + the typed client** — never agent modules, prompts, or LLM SDK calls.
+- No LLM calls from the browser or with secrets in client code — server routes/actions only, via the service-token client.
+
+## Auth and scope
+
+- Every entry point validates the HMAC service token (`MastraJwtAuth`); the token's `scope` claim must match the workflow/sub-agent being invoked.
+- SQL tools execute inside `withTenant` using the token's claims — RLS is the backstop; tenant context never comes from caller input.
+- **Agents never write tenant records directly.** They draft (commentary, papers, summaries); humans approve, and writes happen through `apps/web` server actions with role checks.
+- OwnerOps is read-only and queries only the dedicated owner views — the single sanctioned cross-tenant path.
+
+## Memory
+
+- Threads/messages via `PostgresStore`; semantic recall via `PgVector`, **resource-scoped per user** — recall must never leak across users or tenants.
+- Memory holds conversational context only, never copies of school records (marks/attendance are fetched fresh by tools).
+
+## Token economy
+
+- SQL tools over RAG for numbers/aggregates; embeddings only for unstructured text.
+- Cache generated summaries keyed by data hash — unchanged data means no regeneration.
+- Small model for routing; larger models only where prose quality matters; `topK` ≤ 5 on vector search; compact tool projections.
+- WhatsApp/parent messages are templates with variables, not per-message LLM generation.

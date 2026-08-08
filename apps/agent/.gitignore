@@ -1,0 +1,13 @@
+# App-local ignores (root .gitignore covers node_modules, dist, logs, most envs).
+# Keep this file for Mastra-specific paths when working inside apps/agent alone.
+
+output.txt
+.mastra
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.db
+*.db-*
+.netlify
+.vercel

@@ -1,0 +1,46 @@
+---
+description: Documentation rules — where docs live, when to write/update them, format standards, index maintenance
+alwaysApply: false
+globs: ["docs/**", "**/*.md", "**/*.mdc"]
+---
+
+# Documentation Rules
+
+Canonical placement tables: `docs/README.md` (documentation philosophy) — this file enforces the behavior.
+
+## Where docs live
+
+- `docs/roadmap/` — phase plans + product vision. Edited only when the plan itself changes, never casually during implementation.
+- `docs/architecture/` — cross-app concerns and platform choices (data access, auth, AI, mobile).
+- `docs/features/<name>/` — one product capability's implementation detail.
+- `docs/guides/` — conventions and how-tos (e.g. feature-folder blueprint).
+- `docs/decisions/` — ADRs; one significant choice per file.
+- `docs/agents/` — AI-agent context strategy.
+- `docs/build-log/` — short chronological “how we built it” journal (commands + paths). Agents must append entries per `.cursor/rules/50-build-log.mdc`.
+- App/package `README.md` — code-local orientation (ports, scripts, layout), not product docs.
+
+## When to write
+
+- **Docs move with code** — a change that contradicts a doc updates that doc in the same change.
+- New significant decision → new ADR in `docs/decisions/` (never silently contradict an accepted ADR).
+- New module in `apps/edubridge/features/<module>/` → its 15–30 line README per the blueprint.
+- Prefer **extending the existing doc** in the right folder over creating a new file; new top-level docs need a clear gap in the documentation map.
+
+## Format
+
+- Every doc opens with 1–2 lines: what it is + when to read it.
+- Tables for matrices/comparisons, mermaid for flows, relative links between docs.
+- Concise and factual — no marketing tone, no restating code line-by-line.
+- Size discipline: feature READMEs 15–30 lines; architecture docs stay focused on one concern.
+
+## Index maintenance
+
+- Adding a doc → add its row to that folder's `README.md` table in the same change.
+- Cross-cutting doc → also add a row to the root `README.md` documentation map.
+- One fact lives in exactly one place — link to it, never restate it (the map gists, the doc holds detail).
+
+## Don't
+
+- Don't duplicate content across docs (single source of truth + links).
+- Don't write future-phase implementation detail into active-phase docs.
+- Don't leave dead links after moving/renaming a doc.

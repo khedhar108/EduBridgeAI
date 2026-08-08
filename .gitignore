@@ -1,0 +1,127 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+#
+# Intentionally TRACKED (do not add ignore rules for these):
+#   .agents/          — project agent skills (shared with the team)
+#   .cursor/rules/    — Cursor rules (mirrors AGENTS.md conventions)
+#   AGENTS.md         — portable agent instructions
+#   skills-lock.json  — locked skill installs from skills.sh
+#   docs/             — product/architecture documentation
+#   *.env.example     — safe env templates (never real secrets)
+
+# ---------------------------------------------------------------------------
+# Dependencies
+# ---------------------------------------------------------------------------
+node_modules
+.pnp
+.pnp.js
+.pnpm-store
+.pnpm-store-local
+
+# ---------------------------------------------------------------------------
+# Local env / secrets (keep *.env.example tracked)
+# ---------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+
+# ---------------------------------------------------------------------------
+# Testing / coverage
+# ---------------------------------------------------------------------------
+coverage
+test-results/
+playwright-report/
+blob-report/
+
+# ---------------------------------------------------------------------------
+# Turbo / Vercel / Netlify
+# ---------------------------------------------------------------------------
+.turbo
+.vercel
+.netlify
+
+# ---------------------------------------------------------------------------
+# Build outputs
+# ---------------------------------------------------------------------------
+.next/
+out/
+build
+dist
+*.tsbuildinfo
+
+# ---------------------------------------------------------------------------
+# Debug / runtime logs
+# ---------------------------------------------------------------------------
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+logs/
+
+# ---------------------------------------------------------------------------
+# Python
+# ---------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+ENV/
+
+# ---------------------------------------------------------------------------
+# Packaging / build
+# ---------------------------------------------------------------------------
+*.egg
+*.egg-info/
+.eggs/
+*.whl
+
+# ---------------------------------------------------------------------------
+# Test & lint caches
+# ---------------------------------------------------------------------------
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+htmlcov/
+.hypothesis/
+
+# ---------------------------------------------------------------------------
+# Jupyter
+# ---------------------------------------------------------------------------
+.ipynb_checkpoints/
+
+# ---------------------------------------------------------------------------
+# Local architecture notes (not the tracked docs/ tree)
+# ---------------------------------------------------------------------------
+docs-architecture/
+
+# ---------------------------------------------------------------------------
+# Agent / IDE local scratch (skills themselves live under .agents/ — keep those)
+# ---------------------------------------------------------------------------
+.wayfinder/
+one-person-ai/
+.scratch/
+.mastra/
+
+# ---------------------------------------------------------------------------
+# Local DB files (Mastra / SQLite scratch)
+# ---------------------------------------------------------------------------
+*.db
+*.db-*
+
+# ---------------------------------------------------------------------------
+# OS / editor junk
+# ---------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/

@@ -1,0 +1,57 @@
+---
+description: EduBridge premium light-only UI system — tokens, library ladder, a11y, anti-slop — follow for any UI/CSS work
+alwaysApply: false
+globs: ["apps/**/*.tsx", "apps/**/*.css", "packages/ui/**", "packages/ai-ui/**", "docs/design/**"]
+---
+
+# EduBridge UI Design Rules
+
+Canonical docs: `docs/design/MASTER.md`. Read MASTER before inventing layout, color, or component choices.
+
+## Theme (locked)
+
+- **Light only.** Do not ship a dark-mode toggle or ThemeProvider that flips product chrome.
+- Do not apply `class="dark"` for product theming. Existing `.dark` tokens in `packages/ui` are dormant.
+- Marketing and app share the same `:root` tokens.
+
+## Tokens and CSS ownership
+
+- Change design tokens only in `packages/ui/src/styles/globals.css`.
+- Use semantic classes (`bg-background`, `text-muted-foreground`, `border-border`) — never ad-hoc hex / `bg-blue-500` for brand color in features.
+- Follow the two-compilation Tailwind model in `TAILWIND_SHADCN_GUIDE.md`.
+- Prefer `gap-*` over `space-y-*` / `space-x-*`; use `size-*` for equal dimensions; `cn()` for conditional classes.
+
+## Library ladder
+
+1. Compose `@repo/ui` (shadcn) first.
+2. Add shadcn via `pnpm ui:add` into `packages/ui`.
+3. AI chat / voice / streaming → `@repo/ai-ui` + CopilotKit slots themed to tokens (`docs/design/ai-surfaces.md`).
+4. Aceternity (`@aceternity`) → **marketing / public landing only**. Never Background Beams, Spotlight, Glare, infinite marquees, or glassmorphism stacks inside `apps/web/features/**` tenant modules.
+5. Icons: `lucide-react` only — no emoji-as-icons.
+
+## Product shell and density
+
+- Workspace UI sits under the unified shell (logo, module menu, active-module pill, search, profile).
+- Cards are rare — only when they hold interaction; prefer flat sections + Separator in the shell.
+- Motion is meaningful (150–300ms, transform/opacity); honor `prefers-reduced-motion`.
+
+## AI surfaces
+
+- AI summaries are first-class components (narrative above charts), not a glowing chat orb alone.
+- Agents draft; humans approve; writes go through server actions — show Draft / Confirm UI.
+- CopilotKit dock uses sidebar/muted tokens — composed contrast, not a second theme.
+
+## Accessibility (minimum)
+
+- Contrast ≥4.5:1 text; visible focus rings; ~44px touch targets.
+- Visible labels (not placeholder-only); status not by color alone.
+- Dialog/Sheet/Drawer need Titles; charts need a text summary.
+- Checklist: `docs/design/accessibility.md`.
+
+## Anti-patterns (reject)
+
+- Purple-on-white / purple-indigo “AI” gradients as brand identity.
+- Cream + terracotta + generic serif spa look.
+- Dual light+dark as the default product offering.
+- Local color systems inside feature folders.
+- Unstyled default shadcn zinc left as “good enough” brand without token intent.

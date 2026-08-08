@@ -1,0 +1,44 @@
+---
+description: Git commits, branches, and PRs — Conventional Commits + main/development/feature flow
+alwaysApply: true
+---
+
+# EduBridge Git Workflow
+
+Full guide: `docs/guides/git-and-release-strategy.md`. Skill: `.agents/skills/edubridge-git/`. Message style aligns with `caveman-commit`.
+
+## Branches
+
+| Branch | Role | Deploy |
+|--------|------|--------|
+| `main` | Production only | End users |
+| `development` | Integration / staging | Test URLs |
+| `feature/<short-name>` | One change | PR previews optional |
+| `hotfix/<short-name>` | Prod fix from `main` | Then sync into `development` |
+
+Flow: `feature/*` → PR → `development` (test) → PR → `main` (release).
+
+Never push feature work straight to `main`. Do not use `master`.
+
+## When the user asks to commit (or Cursor generates a commit)
+
+1. Confirm branch: feature work on `feature/*` (or `development` only for tiny chore/docs). Never commit product work on `main` unless hotfix.
+2. Stage only intended files. Never stage `.env`, secrets, `*.log`, `node_modules`, `.wayfinder/`.
+3. Message = Conventional Commits, caveman-commit terse style:
+   - `<type>(<scope>): <imperative summary>`
+   - Types: `feat` `fix` `refactor` `perf` `docs` `test` `chore` `build` `ci` `style` `revert`
+   - Scopes (prefer): `web` `agent` `docs` `ui` `ai-ui` `db` `auth` `shell` `student-dashboard` `report-cards` `test-papers` `repo` `ci`
+   - Imperative, ≤72 chars subject, no trailing period, no AI attribution fluff
+   - Body only for why / breaking / migration / `Closes #N`
+4. Only commit when the user explicitly asks. Follow the user rule for git safety (no force push, no amend unless allowed).
+
+## PRs
+
+- Feature → `development`: squash merge preferred.
+- `development` → `main`: only after staging verification; clear release summary.
+- PR title matches the squash commit subject when possible.
+
+## Changelog
+
+- Dev: update `CHANGELOG.md` under `[Unreleased]` when merging meaningful work to `development` / releasing to `main`.
+- User-facing in-app “What’s new” is separate — never dump raw commit subjects into the product UI.

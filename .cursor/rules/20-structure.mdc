@@ -1,0 +1,33 @@
+---
+description: Feature-folder structure, module registry, and package boundaries — always follow when touching apps/packages code
+alwaysApply: false
+globs: ["apps/**", "packages/**"]
+---
+
+# Code Structure Rules
+
+Canonical blueprint: `docs/guides/feature-folder-structure.md`.
+
+## Feature folders
+
+- Module code lives in `apps/edubridge/features/<module>/` with: `components/`, `hooks/`, `queries/`, `actions/`, `lib/`, `types.ts`, `index.ts`, `README.md`.
+- Other code imports a module **only** via its `index.ts` public surface. Deep imports into another module are forbidden.
+- Modules never import other modules. Shared needs go up: UI → `packages/ui`, DB schema → `packages/db`, helpers → `apps/edubridge/lib/`.
+- Promote something to a shared package only when 2+ modules consume it.
+- Route files in `apps/edubridge/app/` stay thin — compose feature exports only.
+
+## Navigation
+
+- All navigation is defined in the shell module registry (`features/shell/modules.ts`): `{ id, title, href, icon, allowedRoles }`. Never hard-code nav links elsewhere.
+- Menu items for forbidden roles are filtered **server-side** — never sent to the client.
+
+## Boundaries
+
+- AI logic lives only in `apps/agent` (Mastra workflows). The product app calls it through the typed client in `apps/edubridge/lib/` — never embeds LLM calls/prompts in the app.
+- `apps/web` is the Mastra starter/demo only (port 3002) — do not add product modules there.
+- `packages/ui` and `packages/ai-ui` contain **no school-domain logic** — domain-agnostic primitives only.
+- ShadCN components are added via `pnpm ui:add <name>` at repo root (into `packages/ui`), never inside an app.
+
+## Styling trigger
+
+Before UI/visual work, read `docs/design/MASTER.md` (light-only system). Before changing Tailwind/ShadCN configuration, read `TAILWIND_SHADCN_GUIDE.md` — the two-compilation model (packages/ui + per-app) is deliberate. Component ladder: `docs/design/component-policy.md`.
