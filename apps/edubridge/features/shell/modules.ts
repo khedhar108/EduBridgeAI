@@ -38,6 +38,13 @@ export const modules: ModuleNavItem[] = [
       "parent",
     ],
   },
+  {
+    id: "team",
+    title: "Team",
+    href: "/settings/team",
+    icon: "users",
+    allowedRoles: ["school_admin"],
+  },
 ];
 
 export function modulesForRole(role: PlatformRole): ModuleNavItem[] {

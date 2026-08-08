@@ -20,6 +20,17 @@ Rules for agents:
 - **Skills for deep domains.** Load the matching `.agents/skills/<name>` skill (mastra, shadcn, supabase-postgres-best-practices, ...) when the task touches that domain, instead of guessing APIs.
 - **Writing docs?** Follow `.cursor/rules/40-documentation.mdc` — where docs live, when to write them, format, and index updates.
 
+## EduBridge-local skills (slash attach in Cursor)
+
+| Skill | Slash name | Load when |
+|-------|------------|-----------|
+| [edubridge-shell](../../.agents/skills/edubridge-shell/SKILL.md) | `edubridge-shell` | Workspace shell, `features/shell`, `modules.ts`, `[workspace]/layout` |
+| [dotmatrix](../../.agents/skills/dotmatrix/SKILL.md) | `dotmatrix` | Dotmatrix loaders, `AppLoader`, async Suspense fallbacks |
+| [canvas-ui](../../.agents/skills/canvas-ui/SKILL.md) | `canvas-ui` | Canvas UI on marketing `/` only |
+| [edubridge-git](../../.agents/skills/edubridge-git/SKILL.md) | `edubridge-git` | Commits, branches, PRs to `development` / `main` |
+
+Also in repo: shadcn, mastra, aceternity-ui, ui-ux-pro-max, ponytail, caveman-commit, etc. under `.agents/skills/`.
+
 ## Load order
 
 1. `AGENTS.md` (root) — hard rules

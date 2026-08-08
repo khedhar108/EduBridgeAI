@@ -11,7 +11,7 @@
 | **0.1** Schema + migration  | **Done**        | `0000_phase0_core.sql` + pilot seed                                   |
 | **0.2** RLS baseline        | **Done**        | Isolation SQL ready; two-school live test deferred to 0.5             |
 | **0.3** Auth wiring         | **Partial**     | Three-role login verified; invite/domain e2e + family UI still open   |
-| **0.4** Unified shell       | **Not started** | Minimal header only; Header/AppMenu chrome pending                    |
+| **0.4** Unified shell       | **Done**        | Adaptive header shell; marketing motion + Dotmatrix install deferred    |
 | **0.5** Full seed + folders | **Partial**     | Pilot school + 3 Auth users; not all six roles                        |
 
 ### Done vs next (checkboxes)
@@ -39,7 +39,7 @@
 **Next**
 
 - [ ] Smoke-test invite outsider + domain staff join → activate (paths exist; do later)
-- [ ] Shell chrome (0.4)
+- [x] Shell chrome (0.4) — see sub-checklists below
 - [ ] Full role seed + RLS two-school test
 - [ ] `pnpm lint` / `check-types` / `build` green at Phase 0 exit
 
@@ -147,6 +147,55 @@ A user can sign in, land in their school workspace under the unified header (log
 - [ ] Smoke-test: invite outsider + domain staff activate (paths ready — do later)
 
 ### 0.4 Unified shell
+
+Architecture: [shell-layout.md](../design/shell-layout.md), [loaders.md](../design/loaders.md), [marketing-motion.md](../design/marketing-motion.md) (marketing deferred).
+
+#### 0.4a Architecture docs
+
+- [x] `shell-layout.md` written (adaptive hybrid shell + AI action contract)
+- [x] `marketing-motion.md` written (Canvas UI + brand SVG plan)
+- [x] `loaders.md` written (Dotmatrix policy)
+- [x] `component-policy.md` + design README updated
+
+#### 0.4b Agent skills
+
+- [x] `edubridge-shell` skill
+- [x] `dotmatrix` skill
+- [x] `canvas-ui` skill
+- [x] `docs/agents/README.md` skills table updated
+
+#### 0.4c Shell components (`apps/edubridge/features/shell/`)
+
+- [x] `Header` — logo, school context
+- [x] `AppMenu` — role-filtered dropdown
+- [x] `ModulePill` — route-aware active module
+- [x] `SearchBar` — disabled placeholder
+- [x] `ProfileMenu` — email, role badge, sign out
+- [x] `ShellLayout` composes header + `{children}`
+- [x] `AppLoader` — Dotmatrix-style grid loader + reduced-motion `Spinner` fallback
+
+#### 0.4d Wiring
+
+- [x] `app/[workspace]/layout.tsx` thin — imports from `features/shell`
+- [x] `app/[workspace]/page.tsx` — role-relevant module cards
+- [x] `features/shell/index.ts` public exports only
+
+#### 0.4e Verify
+
+- [x] Teacher / school_admin: menu items match role (Team admin-only)
+- [x] Forbidden module URL blocked server-side (`/settings/team` → `notFound` for teacher)
+- [x] `pnpm lint`, `pnpm check-types`, `pnpm --filter edubridge build` green
+- [x] Build-log entry `0011-shell-chrome.md` + index update
+
+#### Deferred (documented, not 0.4)
+
+- Canvas UI homepage build
+- Brand SVG asset pack
+- 21st.dev MCP (local Cursor config only)
+- Left module sidebar implementation
+- AI dock (Phase 2)
+
+Legacy single-line items (superseded by checklists above):
 
 - [ ] `apps/edubridge/features/shell/`: `Header`, `AppMenu`, `ModulePill`, `SearchBar` (placeholder), `ProfileMenu`
 - [ ] Layout `app/[workspace]/layout.tsx` renders the shell; module pages render inside

@@ -56,3 +56,4 @@ One line.
 | 0008 | [Domain join pending](./0008-domain-join-pending.md)            | 2026-08-08 | School-domain pending queue; admin activate on team dashboard       |
 | 0009 | [Multi-role test users](./0009-multi-role-test-users.md)        | 2026-08-08 | Seeded admin/teacher/owner logins; how to start multi-role testing  |
 | 0010 | [Git bootstrap first push](./0010-git-bootstrap-first-push.md)  | 2026-08-08 | First commit; `main` + `development` on GitHub; git workflow docs     |
+| 0011 | [Workspace shell chrome](./0011-shell-chrome.md)                | 2026-08-08 | Phase 0.4 docs, skills, adaptive header shell on workspace routes       |

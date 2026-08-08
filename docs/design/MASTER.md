@@ -109,6 +109,8 @@ Every workspace page shares one header (product vision):
 
 Homepage under the header: role-relevant module entry points. Modules are feature folders; they inherit shell + tokens — they do not invent nav or themes.
 
+**Layout architecture:** Phase 0.4 ships a **top header only** (no permanent left sidebar). Module-local sidebars and the right AI dock are phased — see [shell-layout.md](./shell-layout.md).
+
 Density:
 
 | Density | Use |

@@ -4,4 +4,4 @@ Unified application chrome for EduBridge: header, role-filtered app menu, module
 
 **Routes:** workspace layouts (Phase 0.4)  
 **Roles:** all school roles (menu filtered server-side)  
-**Key files:** `modules.ts` (nav registry), components land in Phase 0.4
+**Key files:** `modules.ts` (nav registry), `components/` (Header chrome), [shell-layout.md](../../../docs/design/shell-layout.md)

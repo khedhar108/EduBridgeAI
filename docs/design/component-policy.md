@@ -8,7 +8,9 @@ Layered ownership so EduBridge stays consistent as AI chat, voice, and charts la
 2. **Add via shadcn CLI** into `packages/ui` — `pnpm ui:add <name>` from repo root.
 3. **`@repo/ai-ui` + CopilotKit slots** — chat, streaming markdown, voice affordances, tool UIs.
 4. **Aceternity** (`@aceternity` registry) — **marketing / public landing only**.
-5. **Hand-roll last** — only when nothing above fits; still use semantic tokens + `cn()`.
+5. **Canvas UI** (`@canvas-ui` registry) — **marketing `/` only** — see [marketing-motion.md](./marketing-motion.md).
+6. **Dotmatrix** (`@dotmatrix` registry) — loaders via `AppLoader` — see [loaders.md](./loaders.md).
+7. **Hand-roll last** — only when nothing above fits; still use semantic tokens + `cn()`.
 
 ## Ownership matrix
 
@@ -17,6 +19,8 @@ Layered ownership so EduBridge stays consistent as AI chat, voice, and charts la
 | Product chrome | `@repo/ui` (shadcn New York, neutral base, CSS variables) | Shell, forms, tables, dialogs, navigation, charts | School-domain business logic |
 | AI surfaces | `@repo/ai-ui`, CopilotKit, Mastra client wiring | Chat, stream-in text, voice UI, AI insight cards, human-in-the-loop tools | Raw LLM calls / prompts in the web app |
 | Marketing motion | Aceternity (`pnpm dlx shadcn@latest add @aceternity/...`) | Public landing, pricing, waitlist heroes | Tenant workspace modules, mark entry, admin tables |
+| Marketing canvas | Canvas UI (`@canvas-ui/*`) | Public landing heroes, trust sections | Workspace `/[workspace]/` routes |
+| Loaders | Dotmatrix (`@dotmatrix/*`) via `AppLoader` | Suspense fallbacks, marketing async | Replacing button `Spinner` on submits |
 | Icons | `lucide-react` (catalog) | All UI | Emoji as structural icons |
 | Motion | `motion` + shared presets (when added) | Meaningful transitions | Decorative beams inside data screens |
 
@@ -51,6 +55,22 @@ pnpm dlx shadcn@latest add @aceternity/background-beams -c ./packages/ui
 ```
 
 Prefer installing marketing-only components under the **web marketing route tree** or a clearly named marketing components folder — not as default exports of `@repo/ui` consumed by every module.
+
+### Canvas UI (marketing only)
+
+See [marketing-motion.md](./marketing-motion.md). Install into `packages/ui` then consume from `apps/edubridge/features/marketing/components/`.
+
+```bash
+pnpm dlx shadcn@latest add @canvas-ui/particle-scroll-react -c ./packages/ui
+```
+
+### Dotmatrix (loaders)
+
+See [loaders.md](./loaders.md). Wrap in `features/shell/components/app-loader.tsx`; remap tokens; reduced-motion → `Spinner`.
+
+```bash
+pnpm dlx shadcn@latest add @dotmatrix/dotm-square-3 -c ./packages/ui
+```
 
 ### `@repo/ai-ui`
 
@@ -94,5 +114,6 @@ Mirror the shadcn skill critical rules:
 | Button, dialog, table, form | `@repo/ui` |
 | Analytics chart | shadcn Chart in `@repo/ui` + AI summary block |
 | In-app assistant | CopilotKit sidebar themed to tokens + `@repo/ai-ui` pieces |
-| Landing hero animation | Aceternity (marketing route) |
+| Landing hero animation | Aceternity or Canvas UI (marketing route) |
+| Async page / section load | `AppLoader` (Dotmatrix) or `Skeleton` |
 | School mark entry grid | Quiet shadcn Table / inputs — no Aceternity |
