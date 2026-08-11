@@ -2,7 +2,7 @@ import { sql } from "drizzle-orm";
 import { getDb, type Db } from "./client";
 import type { SchoolRole } from "./schema";
 
-type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
+export type TenantTx = Parameters<Parameters<Db["transaction"]>[0]>[0];
 
 export interface TenantClaims {
   /** Auth user id (maps to auth.uid() expectations). */
@@ -22,7 +22,7 @@ export interface TenantClaims {
  */
 export function withTenant<T>(
   claims: TenantClaims,
-  fn: (tx: Tx) => Promise<T>,
+  fn: (tx: TenantTx) => Promise<T>,
 ): Promise<T> {
   return getDb().transaction(async (tx) => {
     const jwtClaims = {

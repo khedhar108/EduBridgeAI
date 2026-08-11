@@ -17,7 +17,7 @@ If you are an AI coding agent working in this repository, follow these rules bef
    4. The **active phase file** in `docs/roadmap/` — the only phase whose scope you may implement
 2. **Never implement scope from a future phase** unless the user explicitly asks.
 3. **Non-negotiable conventions** (details in [docs/roadmap/README.md](./docs/roadmap/README.md#cross-phase-standards)):
-   - Every tenant table carries `school_id` with Supabase **RLS enabled**; role checks are server-side (six roles: `platform_owner`, `school_admin`, `teacher`, `staff`, `student`, `parent`).
+   - Every tenant table carries `school_id` with Supabase **RLS enabled**; role checks are server-side (seven roles: `platform_owner`, `school_admin`, `accountant`, `teacher`, `staff`, `student`, `parent`).
    - **Feature-based folders**: module code lives in `apps/web/features/<module>/`; route files in `apps/web/app/` stay thin. Navigation is defined only in the module registry.
    - AI logic lives only in `apps/agent` (Mastra); the web app calls it through a typed client with scope-claimed service tokens. Agents draft — they never write tenant data directly; writes go through web server actions (see [agent-ecosystem.md](./docs/architecture/agent-ecosystem.md)).
    - Shared, domain-agnostic UI in `packages/ui`; nothing school-specific in shared packages.

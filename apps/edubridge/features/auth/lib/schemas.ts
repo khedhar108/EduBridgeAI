@@ -9,6 +9,7 @@ export type SignInInput = z.infer<typeof signInSchema>;
 
 const schoolInviteRoles = [
   "school_admin",
+  "accountant",
   "teacher",
   "staff",
   "student",
@@ -29,10 +30,10 @@ export const acceptInviteSchema = z.object({
 
 export type AcceptInviteInput = z.infer<typeof acceptInviteSchema>;
 
-/** Domain join activates as teacher/staff (admin may also choose school_admin). */
+/** Domain join activates as teacher/staff/accountant (admin may also choose school_admin). */
 export const activateMemberSchema = z.object({
   requestId: z.string().uuid(),
-  role: z.enum(["school_admin", "teacher", "staff"]),
+  role: z.enum(["school_admin", "accountant", "teacher", "staff"]),
 });
 
 export type ActivateMemberInput = z.infer<typeof activateMemberSchema>;

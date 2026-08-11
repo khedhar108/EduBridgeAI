@@ -1,81 +1,116 @@
 # Marketing motion (public site)
 
-> Plan for premium motion on **`/` only**. Workspace routes (`/[workspace]/…`) stay calm per [MASTER.md](./MASTER.md).
+> Premium motion on public marketing routes only. Workspace routes (`/[workspace]/…`) stay calm per [MASTER.md](./MASTER.md).
 
-## Status
+## Status (current)
 
-**Documented in Phase 0.4; implemented after shell PR** on branch `feature/marketing-motion`.
+| Piece | Status | Library |
+|-------|--------|---------|
+| Homepage `/` scroll + section enter | **Live** — document scroll + `Reveal` / `Stagger` / `HeroEntrance` | **framer-motion** |
+| `particle-object` hero mark | Live via `ParticleObjectBrandLazy` | Canvas UI (Three.js; no flag) |
+| Module **cards** → `/modules/[slug]` | Live (`MarketingModuleCards`) | framer-motion hover |
+| Security / trust band | Live via `MarketingSecurityReveal` (Motion only) | framer-motion |
+| `particle-scroll` page shell | Optional / legacy — still used on `/modules` showcase pages | Canvas UI (**needs HTML-in-Canvas flag**) |
+| `decrypt-reveal` | Available in packages; **not** primary homepage UX | Canvas UI (flag) |
+
+**Preference:** scroll storytelling = `framer-motion`. Keep Canvas UI **particle-object** for the brand hero. Do not rely on particle-scroll / decrypt-reveal as the default landing experience (most browsers never enable the experimental flag).
+
+## Framer Motion vs `motion/react`
+
+Same library, two package names. Framer Motion rebranded to Motion; APIs match.
+
+**EduBridge marketing uses `framer-motion`** (`import from "framer-motion"`). Do not mix `motion/react` in `features/marketing/`.
+
+Install:
+
+```bash
+pnpm --filter edubridge add framer-motion
+```
+
+Skill: `.agents/skills/edubridge-framer-motion/SKILL.md`.
+
+## Reusable primitives
+
+Source: `apps/edubridge/features/marketing/components/marketing-motion.tsx`  
+Re-exported from `features/marketing` `index.ts`.
+
+| Export | Use |
+|--------|-----|
+| `HeroEntrance` | First-paint hero (not scroll-triggered) |
+| `Reveal` | Section enter on document scroll (`direction`: `"up"` \| `"down"`) |
+| `Stagger` + `StaggerItem` | Staggered lists / grids |
+
+All honor `useReducedMotion`. Client components only.
+
+Homepage pattern:
+
+- Root: `min-h-dvh` normal document scroll (**not** `h-dvh` + ParticleScroll)
+- Hero: `HeroEntrance` + particle-object / brand preview
+- Below fold: `Reveal` / `Stagger` on modules, security, shell, CTA
+
+## Browser note (Canvas UI flag-gated effects)
+
+`particle-scroll` and `decrypt-reveal` need experimental **HTML-in-Canvas** (`drawElementImage` / `layoutsubtree`). Sites cannot enable `chrome://flags` for visitors.
+
+Local preview only:
+
+```bash
+pnpm dev:edubridge   # terminal 1
+pnpm canvas:preview  # terminal 2 — Chromium with CanvasDrawElement
+```
+
+Without the flag, wrappers fall back to plain UI. **Particle-object does not need the flag.**
 
 ## Libraries
 
-| Library | Registry | Allowed surfaces |
-|---------|----------|------------------|
-| **Canvas UI** | `@canvas-ui/*` via shadcn CLI | `apps/edubridge/features/marketing/` |
-| **Aceternity** | `@aceternity/*` | Same — see [component-policy.md](./component-policy.md) |
-| **Dotmatrix** | `@dotmatrix/*` | Marketing loaders + workspace async states — [loaders.md](./loaders.md) |
+| Library | Allowed surfaces |
+|---------|------------------|
+| **framer-motion** | Public marketing scroll / entrance / card hover |
+| **Canvas UI** particle-object | Marketing hero brand mark |
+| **Canvas UI** particle-scroll / decrypt | Optional; prefer Framer for production scroll |
+| **Aceternity** | Marketing only — [component-policy.md](./component-policy.md) |
 
-**Forbidden:** Canvas UI, Aceternity beams/spotlight, particle heroes inside tenant workspace modules.
+**Forbidden:** Canvas UI / Aceternity beams inside tenant workspace modules.
 
-## Canvas UI integration plan
-
-Install from repo root (targets `packages/ui` via `pnpm ui:add`, then move or re-export into marketing feature folder):
+## Canvas UI vendor (optional effects)
 
 ```bash
 pnpm dlx shadcn@latest add @canvas-ui/particle-scroll-react -c ./packages/ui
+pnpm dlx shadcn@latest add @canvas-ui/particle-object-react -c ./packages/ui
+pnpm dlx shadcn@latest add @canvas-ui/decrypt-reveal-react -c ./packages/ui
 ```
 
-Candidate components and section mapping:
+Vendored under `packages/ui/src/components/canvasui/`. Thin wrappers in `features/marketing/components/`.
 
-| Component | Marketing section | Message |
-|-----------|-------------------|---------|
-| [particle-scroll](https://canvasui.dev/docs/components/particle-scroll) | Hero background | Premium, alive platform |
-| [particle-object](https://canvasui.dev/docs/components/particle-object) | Hero accent | Brand focal object |
-| [decrypt-reveal](https://canvasui.dev/docs/components/decrypt-reveal) | Security / trust strip | Tenant isolation, RLS |
-| [laser](https://canvasui.dev/docs/components/laser) | Feature divider | Section transition |
-| [asciify](https://canvasui.dev/docs/components/asciify) | Optional dev/AI teaser | AI-native (use sparingly) |
-| [blaze](https://canvasui.dev/docs/components/blaze) | CTA band | High-energy close |
-
-### Install workflow
-
-1. Add registry entries to `packages/ui/components.json` when Canvas UI documents them (mirror Aceternity `registries` block).
-2. Run `pnpm dlx shadcn@latest add @canvas-ui/<name> -c ./packages/ui`.
-3. Copy or re-export into `apps/edubridge/features/marketing/components/` — keep marketing-only imports out of `@repo/ui` default barrel if the effect is heavy.
-4. Fix imports: `@/` → `@repo/ui/...` or `@/features/marketing/...` per monorepo aliases.
-5. Remap hard-coded colors to semantic tokens (`bg-background`, `text-primary`, `border-border`).
-6. Wrap in `dynamic(..., { ssr: false })` for canvas/WebGL effects.
+Calm particle-scroll preset (when used on `/modules`): see `particle-scroll-page.tsx` (`point` 0.75, lower drift/swirl). Do **not** stack Framer `Reveal` inside an active ParticleScroll shell — they fight.
 
 ## Effect budget
 
-- **Max 1–2** motion-heavy effects visible per viewport.
-- Honor `prefers-reduced-motion`: static fallback (gradient + typography only).
-- Lazy-load below-the-fold effects.
-- No layout shift: reserve aspect ratio / min-height for hero.
+- Max **1–2** motion-heavy effects per viewport (e.g. particle-object + one scroll beat)
+- Honor `prefers-reduced-motion`
+- Lazy-load WebGL / Canvas UI (`*Lazy` wrappers, `ssr: false`)
 
-## Brand SVG guidelines
+## Brand SVG
 
-Assets live under `apps/edubridge/public/brand/` (create in marketing-motion branch):
+| Asset | Use |
+|-------|-----|
+| `public/brand/logo-mark-drop.svg` | **Default** hero mark + root icon — Drop of Education (purple/teal bands, amber core) |
+| `public/brand/logo-mark-ring.svg` | Ring of Education (concentric rings) |
+| `public/brand/EduBridge_logo.svg` | Book + pencil + circle variant |
+| `public/brand/logo-mark.svg` | Legacy eye (archive) |
+| Wordmark / module icons | Per MASTER |
 
-| Asset | Use | Rules |
-|-------|-----|-------|
-| `logo-mark.svg` | Favicon, app icon source, header compact | Single-color or two-tone from `--primary` / `--foreground` |
-| `wordmark.svg` | Marketing header, OG images | Pair with MASTER display font (serif) in HTML where possible |
-| `module-icons/` | Future module cards | Lucide-aligned stroke; 24px grid; no emoji |
+Preview-only: `brand-mark-preview.tsx` cycles `BRAND_MARK_VARIANTS`. Remove by replacing `<BrandMarkPreview />` with `<ParticleObjectBrandLazy src={DEFAULT_BRAND_MARK} />` in `marketing-home.tsx`.
 
-- SVGs use `currentColor` or CSS variables — no embedded neon hex.
-- Workspace shell uses **wordmark text or mark** at small sizes — no animated SVG in header.
-- Export favicon set (`favicon.ico`, `apple-touch-icon`) from mark.
+Leave particle-object `color=""`; put brand colors in the SVG.
 
-## Current marketing baseline
+## Module cards + showcases
 
-[marketing-home.tsx](../../apps/edubridge/features/marketing/components/marketing-home.tsx) uses token-only gradient + grid (no third-party motion). Canvas UI replaces or augments **hero only** in the motion branch.
+Bento cards → `/modules/[slug]`. Content under `features/marketing/modules/`. `/blog` = product notes. Public in `proxy.ts`.
 
-## Phase gate
+## Agent skills
 
-1. Merge Phase 0.4 shell (`feature/shell-chrome` → `development`).
-2. Branch `feature/marketing-motion` from `development`.
-3. Implement one hero effect first (particle-scroll or decrypt-reveal), then add sections incrementally.
-4. Run `pnpm lint`, `check-types`, `build`; verify Lighthouse / CLS on `/`.
-
-## Agent skill
-
-Load `.agents/skills/canvas-ui/SKILL.md` (slash: **canvas-ui**) when adding or reviewing Canvas UI components.
+| Skill | When |
+|-------|------|
+| `edubridge-framer-motion` | Scroll / Reveal / Stagger on marketing |
+| `canvas-ui` | Adding or reviewing Canvas UI vendor components |

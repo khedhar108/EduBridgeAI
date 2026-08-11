@@ -57,3 +57,5 @@ One line.
 | 0009 | [Multi-role test users](./0009-multi-role-test-users.md)        | 2026-08-08 | Seeded admin/teacher/owner logins; how to start multi-role testing  |
 | 0010 | [Git bootstrap first push](./0010-git-bootstrap-first-push.md)  | 2026-08-08 | First commit; `main` + `development` on GitHub; git workflow docs     |
 | 0011 | [Workspace shell chrome](./0011-shell-chrome.md)                | 2026-08-08 | Phase 0.4 docs, skills, adaptive header shell on workspace routes       |
+| 0012 | [Canvas UI particle + 3D object](./0012-canvas-ui-particle-object.md) | 2026-08-09 | Particle-scroll page shell + ParticleObject brand mark on `/` |
+| 0013 | [Accountant + fee ledger](./0013-accountant-fee-ledger.md) | 2026-08-11 | `accountant` role, versioned fees, register/collect/audit UI |

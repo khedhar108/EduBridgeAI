@@ -24,6 +24,17 @@ Canonical reference: `docs/architecture/data-access.md`.
 - Server-side role check in every action **before** the query (UX); RLS is the backstop (security).
 - DB access is server-only: server components, server actions, route handlers. Never from client components.
 
+## Migration workflow (mandatory)
+
+1. Modify only `packages/db/src/schema/*.ts`; never create a migration SQL file or metadata entry manually.
+2. Generate from repo root with a descriptive kebab-case name: `pnpm db:generate -- --name=<short-change-name>`.
+3. Review the generated SQL before applying it. If it recreates an existing table/type, stop: snapshot history is stale.
+4. Editing the **generated** SQL is allowed only for required RLS policies, grants, auth FKs, or reviewed data migration SQL that Drizzle cannot generate.
+5. **Never run `pnpm db:migrate` without first asking the user for explicit permission.**
+6. After migration, run `pnpm db:check`; then `pnpm lint`, `pnpm check-types`, and `pnpm build`.
+7. `pnpm db:check` is read-only. If it reports healthy, do not run generate or migrate.
+8. Never use `pnpm db:push` on shared/dev/production databases.
+
 ## Performance (Supabase Postgres best practices)
 
 - Index every FK and every `school_id`.

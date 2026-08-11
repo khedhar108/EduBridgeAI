@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- Drop of Education: stroke bands (particle-friendly, like the ring) -->
+  <!-- Outer purple drop -->
+  <path
+    fill="none"
+    stroke="#5b21b6"
+    stroke-width="12"
+    stroke-linejoin="round"
+    d="M100 22
+       C142 62 168 98 168 130
+       C168 160 138 178 100 178
+       C62 178 32 160 32 130
+       C32 98 58 62 100 22
+       Z"
+  />
+  <!-- Mid purple -->
+  <path
+    fill="none"
+    stroke="#7c3aed"
+    stroke-width="8"
+    stroke-linejoin="round"
+    d="M100 38
+       C134 72 154 100 154 126
+       C154 150 130 164 100 164
+       C70 164 46 150 46 126
+       C46 100 66 72 100 38
+       Z"
+  />
+  <!-- Teal drop -->
+  <path
+    fill="none"
+    stroke="#0d9488"
+    stroke-width="10"
+    stroke-linejoin="round"
+    d="M100 54
+       C126 84 140 106 140 124
+       C140 142 122 154 100 154
+       C78 154 60 142 60 124
+       C60 106 74 84 100 54
+       Z"
+  />
+  <!-- Soft mint drop -->
+  <path
+    fill="none"
+    stroke="#5eead4"
+    stroke-width="7"
+    stroke-linejoin="round"
+    d="M100 72
+       C118 96 128 110 128 122
+       C128 136 116 144 100 144
+       C84 144 72 136 72 122
+       C72 110 82 96 100 72
+       Z"
+  />
+  <!-- Center pulse (opaque fills sample well) -->
+  <circle cx="100" cy="120" r="16" fill="#0d9488"/>
+  <circle cx="100" cy="120" r="8" fill="#fbbf24"/>
+</svg>

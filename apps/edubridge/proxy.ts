@@ -39,12 +39,18 @@ export async function proxy(request: NextRequest) {
     path.startsWith("/auth/") ||
     path.startsWith("/accept-invite/");
   const isPlatform = path === "/platform" || path.startsWith("/platform/");
+  const isPublicMarketing =
+    path === "/blog" ||
+    path.startsWith("/blog/") ||
+    path === "/modules" ||
+    path.startsWith("/modules/");
   const isWorkspace =
     path.length > 1 &&
     !path.startsWith("/api") &&
     !path.startsWith("/_next") &&
     !isAuthSurface &&
     !isPlatform &&
+    !isPublicMarketing &&
     path !== "/" &&
     path !== "/db-check" &&
     path !== "/choose-workspace" &&

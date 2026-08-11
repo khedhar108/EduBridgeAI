@@ -10,7 +10,7 @@ export {
   formatRoleLabel,
   moduleHref,
 } from "./nav-utils";
-export { AppLoader } from "./components/app-loader";
+export { AppLoader, type AppLoaderVariant } from "./components/app-loader";
 export { AppMenu } from "./components/app-menu";
 export { ModulePill } from "./components/module-pill";
 export { ProfileMenu } from "./components/profile-menu";

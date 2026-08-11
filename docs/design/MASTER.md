@@ -103,7 +103,7 @@ Every workspace page shares one header (product vision):
 ```
 
 - **Application Menu** — role-filtered modules (never show forbidden items to the client)
-- **Active module pill** — current module; click returns to module home
+- **Active module pill** — non-interactive indicator of the current module (`aria-current="page"`); module switching happens via the Application Menu
 - **Search** — module-scoped first, then workspace
 - **Profile** — account, role badge, school switcher, sign out
 

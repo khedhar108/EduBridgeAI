@@ -20,6 +20,7 @@ Portable rules for AI coding agents (Cursor, Claude Code, Codex, Copilot, etc.).
 10. **Primary app:** `apps/edubridge` (port 3000). `apps/web` is Mastra starter/demo (port 3002) — see ADR-005.
 11. **Git:** Conventional Commits (terse); branches `feature/*` → `development` (staging) → `main` (production). Never push features straight to `main`. Full guide: `docs/guides/git-and-release-strategy.md`. Cursor mirror: `.cursor/rules/50-git-workflow.mdc`. Skill: `.agents/skills/edubridge-git/`.
 12. **Build log:** After milestones, append `docs/build-log/NNNN-*.md` and update its index (`.cursor/rules/50-build-log.mdc`).
+13. **Database migrations:** Edit only `packages/db/src/schema/*.ts`, then run `pnpm db:generate -- --name=<short-kebab-name>`. Never create migration SQL or metadata manually; generated SQL may only be extended for reviewed RLS/grants/auth FKs/data migration needs. Always ask the user before `pnpm db:migrate`. `pnpm db:check` is the read-only health check.
 
 ## Where to look (reading order)
 

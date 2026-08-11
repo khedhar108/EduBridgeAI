@@ -1,5 +1,6 @@
 "use client";
 
+import { ChevronDownIcon, LogOutIcon } from "lucide-react";
 import { Avatar, AvatarFallback } from "@repo/ui/components/avatar";
 import { Badge } from "@repo/ui/components/badge";
 import { Button } from "@repo/ui/components/button";
@@ -36,22 +37,39 @@ export function ProfileMenu({ email, role, schoolSlug }: ProfileMenuProps) {
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="h-11 gap-2 px-2"
+          className="h-10 gap-2 px-2"
           aria-label="Open profile menu"
         >
           <Avatar size="sm">
-            <AvatarFallback>{initialsFromEmail(email)}</AvatarFallback>
+            <AvatarFallback className="bg-primary/10 font-semibold text-primary">
+              {initialsFromEmail(email)}
+            </AvatarFallback>
           </Avatar>
           <span className="hidden max-w-[10rem] truncate text-sm font-medium lg:inline">
             {email ?? "Account"}
           </span>
+          <ChevronDownIcon
+            data-icon="inline-end"
+            className="hidden opacity-50 lg:inline"
+          />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
+      <DropdownMenuContent align="end" className="w-64">
         <DropdownMenuLabel className="font-normal">
-          <div className="flex flex-col gap-1">
-            <p className="truncate text-sm font-medium">{email ?? "Signed in"}</p>
-            <p className="truncate text-xs text-muted-foreground">{schoolSlug}</p>
+          <div className="flex items-center gap-3 py-1">
+            <Avatar size="default">
+              <AvatarFallback className="bg-primary/10 font-semibold text-primary">
+                {initialsFromEmail(email)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex min-w-0 flex-col gap-1">
+              <p className="truncate text-sm font-medium">
+                {email ?? "Signed in"}
+              </p>
+              <p className="truncate text-xs text-muted-foreground">
+                {schoolSlug}
+              </p>
+            </div>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
@@ -67,7 +85,11 @@ export function ProfileMenu({ email, role, schoolSlug }: ProfileMenuProps) {
         <DropdownMenuGroup>
           <DropdownMenuItem asChild>
             <form action={signOutAction} className="w-full">
-              <button type="submit" className="w-full cursor-pointer text-left">
+              <button
+                type="submit"
+                className="flex w-full cursor-pointer items-center gap-2 text-left"
+              >
+                <LogOutIcon data-icon="inline-start" />
                 Sign out
               </button>
             </form>

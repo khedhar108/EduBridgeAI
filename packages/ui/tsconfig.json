@@ -6,5 +6,11 @@
     }
   },
   "include": ["src"],
-  "exclude": ["node_modules", "dist"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/components/canvasui/ParticleScroll.tsx",
+    "src/components/canvasui/ParticleObject.tsx",
+    "src/components/canvasui/DecryptReveal.tsx"
+  ]
 }

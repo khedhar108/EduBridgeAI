@@ -42,7 +42,7 @@ Every workspace page under `app/[workspace]/` shares:
 |------|-----------|----------|
 | Logo | `Header` | EduBridge wordmark; links to workspace home `/{workspace}` |
 | Application Menu | `AppMenu` | Dropdown of role-filtered modules from `modules.ts` |
-| Active module pill | `ModulePill` | Current module title; click → module home route |
+| Active module pill | `ModulePill` | Non-interactive current-module indicator (`Badge`, `aria-current="page"`); never a link |
 | Search | `SearchBar` | Phase 0: disabled placeholder; Phase 1+: command palette |
 | Profile | `ProfileMenu` | Email, role badge, sign out; school switcher when multi-school |
 
@@ -64,7 +64,7 @@ Platform owners authenticate at `/platform/sign-in`. School staff at `/sign-in`.
 1. **Single registry** — `apps/edubridge/features/shell/modules.ts` is the only place module nav is defined.
 2. **Server-side filter** — `modulesForRole(ctx.role)` runs in Server Components / layouts; never trust client-only menu filtering.
 3. **Forbidden access** — Direct URL to a module the role cannot use → `403` or `notFound()` after server check (same rule as menu visibility).
-4. **Roles** — Six platform roles in product docs; `school_members` never stores `platform_owner` (DB constraint). Workspace shell uses `SchoolRole` from session context.
+4. **Roles** — Seven platform roles in product docs (`accountant` for money flow); `school_members` never stores `platform_owner` (DB constraint). Workspace shell uses `SchoolRole` from session context.
 
 ## Responsive behavior
 

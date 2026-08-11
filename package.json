@@ -18,6 +18,7 @@
     "build:ui": "turbo run build --filter=@repo/ui",
     "db:generate": "pnpm --filter @repo/db db:generate",
     "db:migrate": "pnpm --filter @repo/db db:migrate",
+    "db:check": "pnpm --filter @repo/db db:check",
     "db:push": "pnpm --filter @repo/db db:push",
     "seed:dev": "pnpm --filter @repo/db seed:dev",
     "start:edubridge": "pnpm --filter edubridge start",
@@ -31,7 +32,8 @@
     "clean": "turbo run clean && rimraf node_modules",
     "clean:cache": "rimraf .turbo apps/**/.turbo packages/**/.turbo apps/**/.next apps/**/.mastra node_modules/.cache",
     "clean:turbo": "rimraf .turbo && rimraf apps/**/.turbo && rimraf packages/**/.turbo",
-    "ui:add": "pnpm dlx shadcn@latest add -c ./packages/ui"
+    "ui:add": "pnpm dlx shadcn@latest add -c ./packages/ui",
+    "canvas:preview": "node ./scripts/open-marketing-canvas.mjs"
   },
   "devDependencies": {
     "prettier": "^3.7.4",

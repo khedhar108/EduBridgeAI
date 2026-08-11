@@ -8,8 +8,8 @@ import {
 
 export function SearchBar() {
   return (
-    <div className="hidden min-w-0 flex-1 md:block md:max-w-xs lg:max-w-sm">
-      <InputGroup className="h-11 bg-muted/40">
+    <div className="hidden min-w-0 flex-1 md:mx-auto md:block md:max-w-md">
+      <InputGroup className="h-10 border-transparent bg-muted/60 shadow-none transition-colors focus-within:border-input focus-within:bg-background">
         <InputGroupAddon align="inline-start">
           <SearchIcon />
         </InputGroupAddon>
@@ -17,9 +17,14 @@ export function SearchBar() {
           disabled
           readOnly
           aria-label="Search workspace (coming soon)"
-          placeholder="Search workspace (soon)"
+          placeholder="Search people, classes, reports…"
           className="bg-transparent"
         />
+        <InputGroupAddon align="inline-end">
+          <kbd className="pointer-events-none inline-flex h-5 items-center rounded border border-border bg-background px-1.5 font-sans text-[11px] font-medium text-muted-foreground">
+            ⌘K
+          </kbd>
+        </InputGroupAddon>
       </InputGroup>
     </div>
   );
@@ -32,7 +37,7 @@ export function SearchBarMobile() {
       type="button"
       variant="ghost"
       size="icon"
-      className="size-11 md:hidden"
+      className="size-10 md:hidden"
       disabled
       aria-label="Search workspace (coming soon)"
     >

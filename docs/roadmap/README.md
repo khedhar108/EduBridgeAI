@@ -30,8 +30,8 @@ Supporting document: [product-vision.md](./product-vision.md) — the full brain
 Deliberately unscheduled — they enter the phase table only after the current phases ship. Their requirements are already captured so earlier phases don't paint us into a corner:
 
 - **Parent App** — mobile-first PWA; parents **and** students enter with admission number + student DOB; multi-child parent wrapper ([family-access.md](../architecture/auth/family-access.md), [mobile-app.md](../architecture/mobile-app.md)). PWA-readiness is a Phase 0–1 habit (manifest, mobile-first CSS), not a big-bang project.
-- **Admissions** — enquiry → application → admission records. Depends on Phase 1 student records.
-- **Fees & Spending** — fee structure, collection, expense tracking. Max-plan module.
+- **Admissions (enquiry pipeline)** — enquiry → application → review. Depends on student records; **direct registration + fee pin** already ships early via [`features/fees`](../../apps/edubridge/features/fees/) ([feature docs](../features/fees/README.md)).
+- **Fees & Spending (full)** — expense tracking, analytics, online payments. Builds on the early versioned fee ledger. Max-plan module.
 - **Activities** — events/achievements feed for dashboard + parent app.
 
 ## Phase dependencies
@@ -77,12 +77,13 @@ These apply to **all** phases and are non-negotiable.
 
 ### Roles (RBAC)
 
-Six platform roles, checked server-side on every read and write:
+Seven platform roles, checked server-side on every read and write:
 
 | Role             | Scope                 | Summary                                                                                                        |
 | ---------------- | --------------------- | -------------------------------------------------------------------------------------------------------------- |
 | `platform_owner` | Global (cross-tenant) | You. Billing/aggregates console only. Never a `school_members` row; workspace entry only via audited support grants (Phase 6). |
-| `school_admin`   | One school            | Created the workspace. Manages staff, subscriptions, approves report cards.                                    |
+| `school_admin`   | One school            | Created the workspace. Manages staff, subscriptions, approves report cards; may also manage fees.              |
+| `accountant`     | One school            | Money flow only: fee structures, scholarships, collections, fee audit. No Team/settings.                       |
 | `teacher`        | One school            | Enters student activity/marks, creates report cards and test papers.                                           |
 | `staff`          | One school            | Limited data entry (attendance, activities) as delegated by admin.                                             |
 | `student`        | One school            | Read-only view of own dashboard.                                                                               |

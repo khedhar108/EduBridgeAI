@@ -20,11 +20,26 @@ Add Dotmatrix registry to `packages/ui/components.json` when upstream documents 
 
 Single entry point in `apps/edubridge/features/shell/components/app-loader.tsx`:
 
-- Renders Dotmatrix loader with semantic token colors (`text-primary`, `bg-background`).
-- **`prefers-reduced-motion`:** fall back to `@repo/ui` `Spinner` or `Skeleton`.
-- Props: `label` (aria), optional `size` (`sm` | `md`).
+- Renders Dotmatrix loader with semantic token colors (`text-primary`).
+- **`variant`:** `"square-3"` | `"circular-5"` | `"triangle-2"` — change the name to swap the animation design.
+- **`prefers-reduced-motion`:** fall back to `@repo/ui` `Spinner`.
+- Props: `label` (aria), optional `size` (`sm` | `md` | `lg`), optional `variant`.
+
+```tsx
+import { AppLoader } from "@/features/shell";
+
+<AppLoader label="Loading workspace" variant="square-3" />
+```
 
 Do not import Dotmatrix directly from feature modules — use `AppLoader` from `@/features/shell`.
+
+Installed variants (packages/ui):
+
+| Name | Component |
+|------|-----------|
+| `square-3` | `DotmSquare3` (default) |
+| `circular-5` | `DotmCircular5` |
+| `triangle-2` | `DotmTriangle2` |
 
 ## Where to use
 

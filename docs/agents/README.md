@@ -57,7 +57,7 @@ Also in repo: shadcn, mastra, aceternity-ui, ui-ux-pro-max, ponytail, caveman-co
 | Visual system | Light-only — `docs/design/MASTER.md` (no product dark-mode toggle) |
 | DB layer | Drizzle ORM, schema in `packages/db` (Phase 0), RLS in SQL migrations |
 | Auth | Supabase Auth (SSR), roles in `school_members` |
-| Roles | `platform_owner`, `school_admin`, `teacher`, `staff`, `student`, `parent` |
+| Roles | `platform_owner`, `school_admin`, `accountant`, `teacher`, `staff`, `student`, `parent` |
 | LLM provider switch | `LLM_PROVIDER` env in `apps/agent/.env` |
 | Version pinning | `pnpm-workspace.yaml` `catalog:` |
 
