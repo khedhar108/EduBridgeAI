@@ -1,4 +1,7 @@
 export { MarketingHome } from "./components/marketing-home";
+export { BlackholeHero } from "./components/hero/blackhole-hero";
+export { DropOfEducation } from "./components/hero/drop-of-education";
+export { DropMark } from "./components/brand/drop-mark";
 export {
   Reveal,
   Stagger,
