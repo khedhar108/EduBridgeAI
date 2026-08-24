@@ -77,15 +77,16 @@ export function BlackholeHero() {
             </HeroEntrance>
           </div>
 
-          {/* orbit stage over the well */}
-          <div className="relative hidden aspect-square w-full max-w-[64vmin] justify-self-center lg:block">
+          {/* orbit stage over the well — the drop sits at the singularity
+              center, modules orbit around it */}
+          <div className="relative hidden aspect-square w-full max-w-[78vmin] justify-self-center lg:block">
             <BlackholeCore className="absolute inset-0" />
+            <DropOfEducation
+              className="absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2"
+            />
             <ModuleOrbit className="absolute inset-0 m-auto" />
           </div>
         </div>
-
-        {/* the drop emerges from the well, dripping toward the next section */}
-        <DropOfEducation className="mx-auto -mt-4" />
       </main>
     </section>
   );

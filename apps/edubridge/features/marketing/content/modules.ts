@@ -20,8 +20,8 @@ export type MarketingModule = {
   /** Asymmetric bento span hint */
   span: "wide" | "tall" | "default";
   Icon: LucideIcon;
-  /** Soft surface tint using semantic tokens only */
-  tint: "primary" | "muted" | "accent";
+  /** Curated light-theme pastel surface tint (marketing-only) */
+  tint: "mint" | "sky" | "amber" | "rose" | "violet" | "stone";
 };
 
 /**
@@ -39,7 +39,7 @@ export const MARKETING_MODULES: MarketingModule[] = [
     href: "/modules/student-dashboard",
     span: "wide",
     Icon: LayoutDashboardIcon,
-    tint: "primary",
+    tint: "sky",
   },
   {
     id: "ai-assist",
@@ -51,7 +51,7 @@ export const MARKETING_MODULES: MarketingModule[] = [
     href: "/modules/ai-assist",
     span: "tall",
     Icon: SparklesIcon,
-    tint: "accent",
+    tint: "violet",
   },
   {
     id: "timetable-maker",
@@ -63,7 +63,7 @@ export const MARKETING_MODULES: MarketingModule[] = [
     href: "/modules/timetable-maker",
     span: "default",
     Icon: CalendarDaysIcon,
-    tint: "muted",
+    tint: "mint",
   },
   {
     id: "report-card-designer",
@@ -75,7 +75,7 @@ export const MARKETING_MODULES: MarketingModule[] = [
     href: "/modules/report-card-designer",
     span: "default",
     Icon: ClipboardListIcon,
-    tint: "primary",
+    tint: "amber",
   },
   {
     id: "fee-structure",
@@ -87,7 +87,7 @@ export const MARKETING_MODULES: MarketingModule[] = [
     href: "/modules/fee-structure",
     span: "default",
     Icon: WalletIcon,
-    tint: "muted",
+    tint: "rose",
   },
   {
     id: "receipt-creation",
@@ -99,7 +99,7 @@ export const MARKETING_MODULES: MarketingModule[] = [
     href: "/modules/receipt-creation",
     span: "default",
     Icon: ReceiptIcon,
-    tint: "accent",
+    tint: "stone",
   },
   {
     id: "test-paper-creator",
@@ -111,7 +111,7 @@ export const MARKETING_MODULES: MarketingModule[] = [
     href: "/modules/test-paper-creator",
     span: "wide",
     Icon: FileTextIcon,
-    tint: "muted",
+    tint: "sky",
   },
 ];
 

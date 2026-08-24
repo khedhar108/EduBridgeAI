@@ -19,13 +19,13 @@ export function BlackholeCore({ className }: { className?: string }) {
       <div className="absolute left-1/2 top-1/2 size-[80%] -translate-x-1/2 -translate-y-1/2 opacity-[0.5] [background-image:linear-gradient(to_right,oklch(0.5_0.04_200)_1px,transparent_1px),linear-gradient(to_bottom,oklch(0.5_0.04_200)_1px,transparent_1px)] [background-size:28px_28px] [mask-image:radial-gradient(circle,transparent_20%,black_44%,transparent_78%)] [transform:perspective(900px)_rotateX(62deg)_scale(1.35)]" />
 
       {/* accretion glow ring (teal) */}
-      <div className="absolute left-1/2 top-1/2 size-[72%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,transparent_54%,oklch(0.55_0.1_195/0.28)_58%,oklch(0.55_0.1_195/0.08)_66%,transparent_74%)]" />
+      <div className="absolute left-1/2 top-1/2 size-[78%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,transparent_50%,oklch(0.55_0.1_195/0.30)_58%,oklch(0.55_0.1_195/0.08)_68%,transparent_76%)]" />
 
-      {/* event horizon disc */}
-      <div className="absolute left-1/2 top-1/2 size-[48%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,oklch(0.16_0.012_205)_0%,oklch(0.16_0.012_205)_62%,oklch(0.2_0.02_205_0.6)_82%,transparent_100%)] shadow-[0_0_60px_8px_oklch(0.2_0.02_205/0.5)]" />
+      {/* event horizon disc — sized so the centered drop is framed, not buried */}
+      <div className="absolute left-1/2 top-1/2 size-[58%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,oklch(0.16_0.012_205)_0%,oklch(0.16_0.012_205)_58%,oklch(0.2_0.02_205_0.6)_82%,transparent_100%)] shadow-[0_0_70px_10px_oklch(0.2_0.02_205/0.55)]" />
 
       {/* thin teal photon ring */}
-      <div className="absolute left-1/2 top-1/2 size-[50%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-primary/30" />
+      <div className="absolute left-1/2 top-1/2 size-[60%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-primary/35" />
     </div>
   );
 }

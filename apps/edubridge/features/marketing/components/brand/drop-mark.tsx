@@ -24,14 +24,14 @@ export function DropMark({ className, ...rest }: DropMarkProps) {
     >
       <path
         fill="none"
-        stroke="oklch(0.28 0.04 200)"
+        stroke="oklch(0.45 0.2 290)"
         strokeWidth="12"
         strokeLinejoin="round"
         d="M100 22 C142 62 168 98 168 130 C168 160 138 178 100 178 C62 178 32 160 32 130 C32 98 58 62 100 22 Z"
       />
       <path
         fill="none"
-        stroke="oklch(0.42 0.08 205)"
+        stroke="oklch(0.55 0.22 295)"
         strokeWidth="8"
         strokeLinejoin="round"
         d="M100 38 C134 72 154 100 154 126 C154 150 130 164 100 164 C70 164 46 150 46 126 C46 100 66 72 100 38 Z"

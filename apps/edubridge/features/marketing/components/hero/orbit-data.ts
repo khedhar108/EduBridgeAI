@@ -10,11 +10,20 @@ export type OrbitRing = {
   direction: 1 | -1;
 };
 
+/** Curated multi-hue accents (token-based, light theme). */
+export type ModuleAccent =
+  | "chart-1"
+  | "chart-2"
+  | "chart-3"
+  | "chart-4"
+  | "chart-5";
+
 export type OrbitSlot = {
   module: MarketingModule;
   ring: number;
   /** Initial position angle in degrees. */
   angle: number;
+  accent: ModuleAccent;
 };
 
 /**
@@ -22,9 +31,9 @@ export type OrbitSlot = {
  * deeper modules pulled closer to the well. Directions alternate for depth.
  */
 export const ORBIT_RINGS: readonly OrbitRing[] = [
-  { id: 0, radius: 30, duration: 48, direction: 1 },
-  { id: 1, radius: 21, duration: 36, direction: -1 },
-  { id: 2, radius: 13, duration: 26, direction: 1 },
+  { id: 0, radius: 34, duration: 48, direction: 1 },
+  { id: 1, radius: 24, duration: 36, direction: -1 },
+  { id: 2, radius: 15, duration: 26, direction: 1 },
 ];
 
 /** Resolve a marketing module by id, failing loud if content drifts. */
@@ -39,13 +48,13 @@ function pick(id: string): MarketingModule {
  * Angles within a ring are spaced so chips never overlap across rings.
  */
 export const ORBIT_SLOTS: readonly OrbitSlot[] = [
-  { module: pick("student-dashboard"), ring: 0, angle: 0 },
-  { module: pick("report-card-designer"), ring: 0, angle: 120 },
-  { module: pick("fee-structure"), ring: 0, angle: 240 },
-  { module: pick("ai-assist"), ring: 1, angle: 60 },
-  { module: pick("test-paper-creator"), ring: 1, angle: 240 },
-  { module: pick("timetable-maker"), ring: 2, angle: 150 },
-  { module: pick("receipt-creation"), ring: 2, angle: 330 },
+  { module: pick("student-dashboard"), ring: 0, angle: 0, accent: "chart-2" },
+  { module: pick("report-card-designer"), ring: 0, angle: 120, accent: "chart-4" },
+  { module: pick("fee-structure"), ring: 0, angle: 240, accent: "chart-3" },
+  { module: pick("ai-assist"), ring: 1, angle: 60, accent: "chart-5" },
+  { module: pick("test-paper-creator"), ring: 1, angle: 240, accent: "chart-1" },
+  { module: pick("timetable-maker"), ring: 2, angle: 150, accent: "chart-4" },
+  { module: pick("receipt-creation"), ring: 2, angle: 330, accent: "chart-3" },
 ];
 
 export function slotsForRing(ringId: number): readonly OrbitSlot[] {

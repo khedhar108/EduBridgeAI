@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { Button } from "@repo/ui/components/button";
+import { cn } from "@repo/ui/lib/utils";
 import { ArrowLeftIcon } from "lucide-react";
 import { ParticleScrollLazy } from "../../components/particle-scroll-lazy";
 import { HeroEntrance } from "../../components/marketing-motion";
+import { MODULE_TINT_CLASSES, getModuleTint } from "../../components/module-tints";
 import { listModulePages } from "../content";
 import { getModuleIcon } from "../lib/icons";
 
@@ -57,20 +59,28 @@ function ModuleIndexContent() {
         <ul className="grid gap-4 sm:grid-cols-2">
           {pages.map((page) => {
             const Icon = getModuleIcon(page.icon);
+            const tint = getModuleTint(page.slug);
             return (
               <li key={page.slug}>
                 <Link
                   href={`/modules/${page.slug}`}
-                  className="group flex h-full cursor-pointer flex-col gap-4 rounded-xl border border-border bg-muted/40 p-5 transition-colors hover:bg-muted sm:p-6"
+                  className={cn(
+                    "group relative flex h-full cursor-pointer flex-col gap-4 overflow-hidden rounded-xl border border-border p-5 transition-colors hover:border-current/30 sm:p-6",
+                    MODULE_TINT_CLASSES[tint],
+                  )}
                 >
-                  <span className="flex size-10 items-center justify-center rounded-lg bg-background text-primary shadow-[0_1px_0_oklch(0_0_0/0.04)]">
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute -right-10 -top-10 size-32 rounded-full bg-current opacity-10 blur-2xl"
+                  />
+                  <span className="relative z-10 flex size-10 items-center justify-center rounded-lg bg-background/70 text-current shadow-[0_1px_0_oklch(0_0_0/0.04)]">
                     <Icon className="size-5" aria-hidden strokeWidth={1.75} />
                   </span>
-                  <span className="flex flex-col gap-2">
-                    <span className="font-serif text-xl tracking-tight text-foreground group-hover:text-primary">
+                  <span className="relative z-10 flex flex-col gap-2">
+                    <span className="font-serif text-xl tracking-tight text-current">
                       {page.title}
                     </span>
-                    <span className="text-sm leading-relaxed text-muted-foreground">
+                    <span className="text-sm leading-relaxed text-foreground/75">
                       {page.tagline}
                     </span>
                   </span>

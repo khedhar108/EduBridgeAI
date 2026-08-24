@@ -4,11 +4,34 @@ import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import { cn } from "@repo/ui/lib/utils";
 import { type MarketingModule } from "../../content/modules";
-import { ORBIT_RINGS, slotsForRing, type OrbitRing } from "./orbit-data";
+import {
+  ORBIT_RINGS,
+  slotsForRing,
+  type OrbitRing,
+  type ModuleAccent,
+} from "./orbit-data";
+
+// Literal class strings so Tailwind's compiler detects each chart tint.
+const ACCENT_TILE: Record<ModuleAccent, string> = {
+  "chart-1": "bg-chart-1/12 text-chart-1",
+  "chart-2": "bg-chart-2/12 text-chart-2",
+  "chart-3": "bg-chart-3/12 text-chart-3",
+  "chart-4": "bg-chart-4/12 text-chart-4",
+  "chart-5": "bg-chart-5/12 text-chart-5",
+};
+
+const ACCENT_HOVER: Record<ModuleAccent, string> = {
+  "chart-1": "hover:border-chart-1/45",
+  "chart-2": "hover:border-chart-2/45",
+  "chart-3": "hover:border-chart-3/45",
+  "chart-4": "hover:border-chart-4/45",
+  "chart-5": "hover:border-chart-5/45",
+};
 
 function OrbitChip({
   ring,
   angle,
+  accent,
   Icon,
   title,
   summary,
@@ -16,6 +39,7 @@ function OrbitChip({
 }: {
   ring: OrbitRing;
   angle: number;
+  accent: ModuleAccent;
   Icon: MarketingModule["Icon"];
   title: string;
   summary: string;
@@ -46,9 +70,17 @@ function OrbitChip({
             <Link
               href={href}
               aria-label={title}
-              className="flex w-[7.5rem] cursor-pointer flex-col items-center gap-2 rounded-xl border border-border/80 bg-background/85 p-3 text-center backdrop-blur-sm transition-colors hover:border-primary/40 hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className={cn(
+                "flex w-[7.5rem] cursor-pointer flex-col items-center gap-2 rounded-xl border border-border/80 bg-background/85 p-3 text-center backdrop-blur-sm transition-colors hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                ACCENT_HOVER[accent],
+              )}
             >
-              <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <span
+                className={cn(
+                  "flex size-9 items-center justify-center rounded-lg",
+                  ACCENT_TILE[accent],
+                )}
+              >
                 <Icon className="size-4" aria-hidden strokeWidth={1.75} />
               </span>
               <span className="text-xs font-medium leading-tight text-foreground">
@@ -77,11 +109,12 @@ function Ring({ ring }: { ring: OrbitRing }) {
       animate={reduce ? undefined : { rotate: spin }}
       transition={{ repeat: Infinity, ease: "linear", duration: ring.duration }}
     >
-      {slots.map(({ module, angle }) => (
+      {slots.map(({ module, angle, accent }) => (
         <OrbitChip
           key={module.id}
           ring={ring}
           angle={angle}
+          accent={accent}
           Icon={module.Icon}
           title={module.title}
           summary={module.summary}
@@ -101,7 +134,7 @@ export function ModuleOrbit({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "pointer-events-none relative hidden aspect-square w-full max-w-[64vmin] lg:block",
+        "pointer-events-none relative hidden aspect-square w-full max-w-[72vmin] lg:block",
         className,
       )}
       aria-hidden

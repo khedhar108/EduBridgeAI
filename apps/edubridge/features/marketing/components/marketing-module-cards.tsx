@@ -8,12 +8,7 @@ import {
   MARKETING_MODULES,
   type MarketingModule,
 } from "../content/modules";
-
-const TINT: Record<MarketingModule["tint"], string> = {
-  primary: "bg-primary/8 hover:bg-primary/12",
-  muted: "bg-muted/80 hover:bg-muted",
-  accent: "bg-accent/70 hover:bg-accent",
-};
+import { MODULE_TINT_CLASSES } from "./module-tints";
 
 const SPAN: Record<MarketingModule["span"], string> = {
   wide: "md:col-span-2",
@@ -35,27 +30,31 @@ function ModuleCard({ mod }: { mod: MarketingModule }) {
       <Link
         href={mod.href}
         className={cn(
-          "group relative flex h-full min-h-44 cursor-pointer flex-col justify-between gap-6 overflow-hidden rounded-xl border border-border p-5 transition-colors duration-200 sm:min-h-52 sm:p-6",
-          TINT[mod.tint],
+          "group relative flex h-full min-h-44 cursor-pointer flex-col justify-between gap-6 overflow-hidden rounded-xl border border-border p-5 transition-colors duration-200 hover:border-current/30 sm:min-h-52 sm:p-6",
+          MODULE_TINT_CLASSES[mod.tint],
           mod.span === "tall" && "md:min-h-full",
         )}
       >
-        <div className="flex items-start justify-between gap-3">
-          <span className="flex size-10 items-center justify-center rounded-lg bg-background/80 text-primary shadow-[0_1px_0_oklch(0_0_0/0.04)]">
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -right-10 -top-10 size-32 rounded-full bg-current opacity-10 blur-2xl"
+        />
+        <div className="relative z-10 flex items-start justify-between gap-3">
+          <span className="flex size-10 items-center justify-center rounded-lg bg-background/70 text-current shadow-[0_1px_0_oklch(0_0_0/0.04)]">
             <Icon className="size-5" aria-hidden strokeWidth={1.75} />
           </span>
-          <span className="flex size-9 items-center justify-center rounded-full border border-border/80 bg-background/60 text-muted-foreground transition-colors duration-200 group-hover:border-primary/30 group-hover:text-primary">
+          <span className="flex size-9 items-center justify-center rounded-full border border-border/80 bg-background/60 text-muted-foreground transition-colors duration-200 group-hover:border-current/40 group-hover:text-current">
             <ArrowUpRightIcon className="size-4" aria-hidden />
           </span>
         </div>
-        <div className="flex flex-col gap-2">
-          <h3 className="font-serif text-xl tracking-tight text-foreground sm:text-2xl">
+        <div className="relative z-10 flex flex-col gap-2">
+          <h3 className="font-serif text-xl tracking-tight text-current sm:text-2xl">
             {mod.title}
           </h3>
-          <p className="max-w-prose text-sm leading-relaxed text-muted-foreground">
+          <p className="max-w-prose text-sm leading-relaxed text-foreground/75">
             {mod.summary}
           </p>
-          <p className="text-xs text-muted-foreground/80">
+          <p className="text-xs text-foreground/70">
             Read the overview
             <span className="sr-only">: {mod.title}</span>
           </p>
