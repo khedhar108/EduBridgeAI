@@ -10,14 +10,14 @@ Canonical references: `docs/architecture/agent-ecosystem.md` (topology, memory, 
 
 ## Boundary
 
-- Agents execute only in `apps/agent`. `apps/web` imports **contracts (types/schemas) + the typed client** — never agent modules, prompts, or LLM SDK calls.
+- Agents execute only in `apps/agent`. The product app (`apps/edubridge`) imports **contracts (types/schemas) + the typed client** — never agent modules, prompts, or LLM SDK calls.
 - No LLM calls from the browser or with secrets in client code — server routes/actions only, via the service-token client.
 
 ## Auth and scope
 
 - Every entry point validates the HMAC service token (`MastraJwtAuth`); the token's `scope` claim must match the workflow/sub-agent being invoked.
 - SQL tools execute inside `withTenant` using the token's claims — RLS is the backstop; tenant context never comes from caller input.
-- **Agents never write tenant records directly.** They draft (commentary, papers, summaries); humans approve, and writes happen through `apps/web` server actions with role checks.
+- **Agents never write tenant records directly.** They draft (commentary, papers, summaries); humans approve, and writes happen through `apps/edubridge` server actions with role checks.
 - OwnerOps is read-only and queries only the dedicated owner views — the single sanctioned cross-tenant path.
 
 ## Memory

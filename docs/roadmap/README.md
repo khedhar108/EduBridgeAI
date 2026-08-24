@@ -15,7 +15,7 @@
 
 | #   | Phase                   | What it delivers                                                                                                                           | Status                                        | File                                                                   |
 | --- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------- | ---------------------------------------------------------------------- |
-| 0   | Foundation              | Supabase multi-tenant baseline, auth + RBAC, unified app shell, feature-folder structure                                                   | **Active** (0.1–0.2 done; 0.3 partial; **next: 0.4 shell**) | [phase-0-foundation.md](./phase-0-foundation.md)                       |
+| 0   | Foundation              | Supabase multi-tenant baseline, auth + RBAC, unified app shell, feature-folder structure                                                   | **Active** (0.1/0.2/0.4 done; RLS two-school test green per [0014](../build-log/0014-phase0-exit.md); closing 0.3/0.5 e2e smoke) | [phase-0-foundation.md](./phase-0-foundation.md)                       |
 | 1   | Student Dashboard (MVP) | Role-based activity data entry, charts, parent/student read views                                                                          | Not started                                   | [phase-1-student-dashboard-mvp.md](./phase-1-student-dashboard-mvp.md) |
 | 2   | AI Integration          | Mastra workflows, report summarization, WhatsApp report sharing                                                                            | Not started                                   | [phase-2-ai-integration.md](./phase-2-ai-integration.md)               |
 | 3   | Report Card Maker       | Periodic/half-yearly/annual report cards, approval flow, PDF export                                                                        | Not started                                   | [phase-3-report-card-maker.md](./phase-3-report-card-maker.md)         |
@@ -97,7 +97,7 @@ Seven platform roles, checked server-side on every read and write:
 
 ### Code organization
 
-- Feature-based folders: module code lives in `apps/web/features/<module>/` (components, hooks, queries, types per module). Route files in `apps/web/app/` stay thin and import from features.
+- Feature-based folders: module code lives in `apps/edubridge/features/<module>/` (components, hooks, queries, types per module). Route files in `apps/edubridge/app/` stay thin and import from features.
 - Shared, module-agnostic UI goes to `packages/ui`; AI chat UI primitives to `packages/ai-ui`; nothing school-domain-specific in shared packages.
 - **UI visual system is light-only** ([docs/design/MASTER.md](../design/MASTER.md)): semantic tokens in `packages/ui`, Aceternity for marketing only, AI surfaces via `@repo/ai-ui` + CopilotKit — no product dark-mode toggle.
 - Mastra agents/workflows live only in `apps/agent`; the web app talks to it through a typed client, never embeds AI logic.

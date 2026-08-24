@@ -33,6 +33,7 @@
     "clean:cache": "rimraf .turbo apps/**/.turbo packages/**/.turbo apps/**/.next apps/**/.mastra node_modules/.cache",
     "clean:turbo": "rimraf .turbo && rimraf apps/**/.turbo && rimraf packages/**/.turbo",
     "ui:add": "pnpm dlx shadcn@latest add -c ./packages/ui",
+    "registry:add": "pnpm dlx shadcn@latest add -c ./apps/edubridge",
     "canvas:preview": "node ./scripts/open-marketing-canvas.mjs"
   },
   "devDependencies": {

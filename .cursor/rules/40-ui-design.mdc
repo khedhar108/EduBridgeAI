@@ -27,13 +27,22 @@ Canonical docs: `docs/design/MASTER.md`. Read MASTER before inventing layout, co
 2. Add shadcn via `pnpm ui:add` into `packages/ui`.
 3. AI chat / voice / streaming → `@repo/ai-ui` + CopilotKit slots themed to tokens (`docs/design/ai-surfaces.md`).
 4. Aceternity (`@aceternity`) → **marketing / public landing only**. Never Background Beams, Spotlight, Glare, infinite marquees, or glassmorphism stacks inside `apps/web/features/**` tenant modules.
-5. Icons: `lucide-react` only — no emoji-as-icons.
+5. Third-party registry components (threeui, 21st.dev, MagicUI, …) → vendored into `apps/edubridge/components/registry/` via `pnpm registry:add` **after passing the audit gate** (`docs/guides/third-party-components.md`, skill `.agents/skills/registry-components/`). Heavy 3D (`three`, `@react-three/*`) marketing/public only. Never a runtime npm dep on a niche animation lib.
+6. Icons: `lucide-react` only — no emoji-as-icons.
+
+## Vendored third-party components (rule 14)
+
+- Registry installs copy source into the repo — that copy is **frozen**; do not re-sync upstream without re-auditing.
+- Every vendored file carries a provenance header (source URL, date, license) and a row in the `docs/guides/third-party-components.md` inventory.
+- Re-theme to semantic tokens / brand slate-blue; light-only — strip emitted `dark:*` classes; reduced-motion fallback required.
+- Approved runtime deps only: `framer-motion` / `motion` / `three`.
 
 ## Product shell and density
 
 - Workspace UI sits under the unified shell (logo, module menu, active-module pill, search, profile).
 - Cards are rare — only when they hold interaction; prefer flat sections + Separator in the shell.
 - Motion is meaningful (150–300ms, transform/opacity); honor `prefers-reduced-motion`.
+- Marketing module/bento cards are the one color exception: a curated six-hue pastel family (mint, sky, amber, rose, violet, stone) as surface tints, light-theme only, one hue per module, deep hue-matched ink for ≥4.5:1. Inline arbitrary oklch in `features/marketing` (hero precedent) — never added to `:root` tokens; product chrome stays single-accent.
 
 ## AI surfaces
 

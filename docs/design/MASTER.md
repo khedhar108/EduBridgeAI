@@ -61,6 +61,8 @@ When tokens are retuned from the starter neutral palette:
 - One **teal or ink accent** for primary actions and AI “alive” affordances — not rainbow accents
 - Success / warn / danger stay semantic and accessible (≥4.5:1 on text, ≥3:1 for large UI glyphs)
 - Color means **status or brand**, never decoration
+- **Marketing module/bento cards are the one exception:** they may use a curated six-hue pastel family (mint, sky, amber, rose, violet, stone) as **surface tints** — light-theme only, one hue per module, with a deep hue-matched ink for title/icon so text stays ≥4.5:1. This is wayfinding colour across modules, **not a second brand accent**; product chrome stays single-accent. Tints live inline in `features/marketing` (arbitrary oklch, same precedent as the hero radial washes) — do **not** add them to `:root` tokens.
+- **Auth surfaces are the one product-side gradient exception:** sign-in/join screens (`features/auth`) use a centered two-part card over a drifting mesh gradient (`MeshGradient`, token-derived `--accent`/`--primary`/`--ring`/`--chart-2`), with an animated gradient bar on the card top. Motion lives in `app/globals.css` and honors `prefers-reduced-motion`. Gradients never appear inside the tenant workspace.
 
 Marketing and app **share the same `:root`**. Do not fork a second palette for landing.
 

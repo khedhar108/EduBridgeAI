@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Shell(pnpm:*)",
+      "powershell"
+    ],
+    "ask": [
+      "Shell(pnpm *build*)"
+    ],
+    "deny": [],
+    "defaultMode": "default"
+  }
+}
