@@ -59,3 +59,5 @@ One line.
 | 0011 | [Workspace shell chrome](./0011-shell-chrome.md)                | 2026-08-08 | Phase 0.4 docs, skills, adaptive header shell on workspace routes       |
 | 0012 | [Canvas UI particle + 3D object](./0012-canvas-ui-particle-object.md) | 2026-08-09 | Particle-scroll page shell + ParticleObject brand mark on `/` |
 | 0013 | [Accountant + fee ledger](./0013-accountant-fee-ledger.md) | 2026-08-11 | `accountant` role, versioned fees, register/collect/audit UI |
+| 0014 | [Phase 0 exit](./0014-phase0-exit.md) | 2026-08-15 | `db:rls-test` runner green, ADR-007 recorded, second school seeded |
+| 0015 | [Auth shell + feral-blob mascot](./0015-auth-shell-blob.md) | 2026-08-23 | Split-screen auth layout, form-reactive mascot, docs audit fixes |

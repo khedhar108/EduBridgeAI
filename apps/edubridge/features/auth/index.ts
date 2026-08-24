@@ -1,4 +1,7 @@
 export { SignInForm } from "./components/sign-in-form";
+export { AuthShell } from "./components/auth-shell";
+export { AuthHeader } from "./components/auth-header";
+export { DemoAccountsModal } from "./components/demo-accounts-modal";
 export { InviteMemberForm } from "./components/invite-member-form";
 export { AcceptInviteForm } from "./components/accept-invite-form";
 export { SchoolDomainSignUpForm } from "./components/school-domain-sign-up-form";

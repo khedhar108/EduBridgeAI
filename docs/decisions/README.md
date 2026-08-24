@@ -12,6 +12,7 @@ Lightweight log of significant technical decisions.
 | [ADR-004](./ADR-004-drizzle-data-access.md) | Drizzle ORM over Supabase Postgres (schema in `packages/db`, RLS in SQL) | Accepted |
 | [ADR-005](./ADR-005-primary-app-edubridge.md) | Primary product app is `apps/edubridge`; `apps/web` is Mastra demo | Accepted |
 | [ADR-006](./ADR-006-workspace-subdomains.md) | Production school subdomains; path fallback in local; `proxy.ts` host rewrite | Accepted |
+| [ADR-007](./ADR-007-email-auth-password.md) | Email + password as the Phase 0 auth method | Accepted |
 
 ## ADR template
 

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth/get-user";
 import { listMembershipsForUser } from "@/lib/tenancy/session-context";
+import { AuthHeader } from "@/features/auth";
 
 export default async function ChooseWorkspacePage() {
   const user = await requireUser();
@@ -14,9 +15,12 @@ export default async function ChooseWorkspacePage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center gap-6 px-4">
-      <h1 className="text-2xl font-semibold tracking-tight">Choose workspace</h1>
-      <ul className="flex flex-col gap-2">
+    <>
+      <AuthHeader
+        title="Choose workspace"
+        description="You belong to more than one school. Pick the workspace to open."
+      />
+      <ul className="flex w-full flex-col gap-2">
         {memberships.map((m) => (
           <li key={m.schoolId}>
             <Link
@@ -31,6 +35,6 @@ export default async function ChooseWorkspacePage() {
           </li>
         ))}
       </ul>
-    </main>
+    </>
   );
 }

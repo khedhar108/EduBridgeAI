@@ -1,0 +1,77 @@
+// Local-development demo accounts. Mirrors docs/guides/auth-local-vs-prod.md.
+// Never exposed in production: the modal that renders these is gated by
+// process.env.NODE_ENV !== "production".
+
+export type DemoAccount = {
+  id: string;
+  role: string;
+  description: string;
+  email: string;
+  password: string;
+  surface: "school" | "platform";
+  path: string;
+};
+
+export const DEMO_ACCOUNTS: DemoAccount[] = [
+  {
+    id: "admin",
+    role: "School admin",
+    description: "Full school workspace",
+    email: "admin@pilot-school.edu",
+    password: "TestLogin123!",
+    surface: "school",
+    path: "/sign-in",
+  },
+  {
+    id: "teacher",
+    role: "Teacher",
+    description: "Staff workspace",
+    email: "teacher@pilot-school.edu",
+    password: "TestLogin123!",
+    surface: "school",
+    path: "/sign-in",
+  },
+  {
+    id: "owner",
+    role: "Platform owner",
+    description: "Operator console",
+    email: "owner@edubridge.app",
+    password: "TestLogin123!",
+    surface: "platform",
+    path: "/platform/sign-in",
+  },
+];
+
+export const DEMO_PREFILL_EVENT = "edubridge:demo-prefill";
+
+const STORAGE_KEY = "edubridge.demo-prefill";
+
+/** Same-page fill: the sign-in form listens for this event. */
+export function dispatchDemoPrefill(email: string, password: string) {
+  window.dispatchEvent(
+    new CustomEvent<{ email: string; password: string }>(DEMO_PREFILL_EVENT, {
+      detail: { email, password },
+    }),
+  );
+}
+
+/** Cross-surface fill (e.g. owner → /platform/sign-in). */
+export function stashDemoPrefill(email: string, password: string) {
+  sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ email, password }));
+}
+
+/** Read + clear any pending cross-surface prefill. */
+export function consumeDemoPrefill(): { email: string; password: string } | null {
+  const raw = sessionStorage.getItem(STORAGE_KEY);
+  if (!raw) return null;
+  sessionStorage.removeItem(STORAGE_KEY);
+  try {
+    const parsed = JSON.parse(raw) as { email?: string; password?: string };
+    if (typeof parsed.email === "string" && typeof parsed.password === "string") {
+      return { email: parsed.email, password: parsed.password };
+    }
+  } catch {
+    // ignore malformed stash
+  }
+  return null;
+}
