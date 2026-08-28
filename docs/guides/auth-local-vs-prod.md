@@ -2,17 +2,17 @@
 
 Supabase Auth + Postgres is the same project for local Next and “prod-like” flows right now — your app on `localhost:3000` talks to **EduDatabase**. Difference is mostly **URLs and how you create the first admin**.
 
-## Three ways people get in
+## Two ways people get in
 
 | Path | Who | What |
 |------|-----|------|
-| **Staff sign-in** | Teachers, staff, school admin | Email + password (`/sign-in`). Domain join or invite first. |
-| **Invite** | Anyone admin picks (often Gmail / guest staff) | One-time link with a **fixed role** → active `school_members` immediately. **Not** for thousands of students. |
-| **Family (admission + DOB)** | Parents **and** students | `/[workspace]/family` — read-only session; parent multi-child wrapper. See [family-access.md](../architecture/auth/family-access.md). **Phase 1** (needs `students` table). |
+| **Staff sign-in** | Teachers, staff, school admin | Email + password, or username on `/{slug}/sign-in` (school from the URL). Global `/sign-in` still works (optional slug for username-from-bookmark). Office create or domain join first. |
+| **Add member** | Anyone the office picks (often Gmail / guest staff) | Coordinator or admin sets username, email, password, and role in the staff directory → active `school_members` immediately. **Not** for thousands of students. |
+| **Family (admission + DOB)** | Parents **and** students | `/[workspace]/family` — read-only session; parent multi-child wrapper. See [family-access.md](../architecture/auth/family-access.md). |
 
-## Invite = what?
+## Add member = what?
 
-Admin sends a **one-time link** with a role already chosen. For **staff** (and rare edge cases) — not the primary path for parents/students.
+Office creates the account (name, email, username, password, role). The person signs in with what they were given. No link. For **staff** only — not the primary path for parents/students.
 
 ## Domain join = what?
 
@@ -28,7 +28,7 @@ Admission number + student DOB → read-only family cookie. No mass passwords. P
 |-------|----------|
 | Auth users | Supabase Auth (staff) |
 | Membership | `school_members` only (RLS) |
-| Invite | `invitations` → `/accept-invite/<token>` |
+| Add member | `auth.admin.createUser` + `profiles` + `school_members` |
 | Domain queue | `membership_requests` → Team activate |
 | Pilot school | slug `edubridge-pilot-bridge`, domain `pilot-school.edu` |
 
@@ -37,9 +37,8 @@ Admission number + student DOB → read-only family cookie. No mass passwords. P
 | | Local (now) | Production (later) |
 |--|-------------|-------------------|
 | App URL | `http://localhost:3000` | `https://…` / `*.edubridge.app` |
-| Invite link host | `localhost:3000` (or set `NEXT_PUBLIC_APP_URL`) | Real public origin |
 | First admin | Manual (below) | School registration (Phase 6) creates admin |
-| Email delivery | Copy invite URL from Team UI | Send email (not built yet) |
+| Email delivery | Office tells the person the password | Same until self-serve recovery ships |
 | Host routing | Path `/edubridge-pilot-bridge` | Subdomain rewrite (ADR-006) |
 | Family entry | Phase 1: `/edubridge-pilot-bridge/family` | Same path on workspace host |
 
@@ -56,7 +55,7 @@ The sign-in form accepts **email or username** (see
 | `admin@pilot-school.edu` | `pilot-admin` | school_admin | `/sign-in` | `/edubridge-pilot-bridge` |
 | `coordinator@pilot-school.edu` | `pilot-coordinator` | coordinator | `/sign-in` | `/edubridge-pilot-bridge` |
 | `accountant@pilot-school.edu` | `pilot-accountant` | accountant | `/sign-in` | `/edubridge-pilot-bridge` |
-| `teacher@pilot-school.edu` | `pilot-teacher` | teacher | `/sign-in` | `/edubridge-pilot-bridge` |
+| `teacher@pilot-school.edu` | `pilot-teacher` | teacher | `/edubridge-pilot-bridge/sign-in` or `/sign-in` | `/edubridge-pilot-bridge` |
 | `staff@pilot-school.edu` | `pilot-staff` | staff | `/sign-in` | `/edubridge-pilot-bridge` |
 | `vikram@pilot-school.edu` | `pilot-vikram` | teacher | `/sign-in` | `/edubridge-pilot-bridge` |
 | `meera@pilot-school.edu` | `pilot-meera` | teacher | `/sign-in` | `/edubridge-pilot-bridge` |
@@ -76,7 +75,7 @@ Live check (2026-08-08): workspace shows role badge + email; platform console sh
 - [x] Teacher login
 - [x] School admin login
 - [x] Platform owner login
-- [ ] Invite outsider path (do later)
+- [ ] Add member outsider path (do later)
 - [ ] Domain join → activate (do later)
 - [ ] Family admission + DOB (Phase 1)
 - [ ] New school registration (Phase 6)
@@ -89,8 +88,8 @@ pnpm --filter edubridge dev
 
 ### New staff on existing school
 
-1. As admin → `/edubridge-pilot-bridge/settings/team`
-2. **Invite** a Gmail (outsider) **or** ask them to `/join-school` with `*@pilot-school.edu`
+1. As admin → `/edubridge-pilot-bridge` staff directory → **Add member**
+2. Or ask them to `/join-school` with `*@pilot-school.edu`
 3. Domain path: pending until admin **Activate**
 
 ### Brand-new school (first-time registration)
@@ -101,9 +100,9 @@ pnpm --filter edubridge dev
 
 **Not built yet** (Phase 1). No student rows / `/family` UI to test.
 
-### Extra: invite outsider / domain pending
+### Extra: add outsider / domain pending
 
-1. As admin → Team → Invite (e.g. Gmail) → copy link → incognito accept  
+1. As admin → directory → Add member (e.g. Gmail) → tell them the password  
 2. Or `/join-school` with `someone@pilot-school.edu` → admin Activate  
 
 Gmail cannot domain-join.
@@ -115,6 +114,6 @@ Gmail cannot domain-join.
 - `DATABASE_URL` (pooler)
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- optional: `NEXT_PUBLIC_APP_URL=http://localhost:3000` (invite link host)
+- `SUPABASE_SERVICE_ROLE_KEY` (required to add staff and reset passwords)
 
-Migrations on DB: `0000`, `0001` invitations, `0002` membership_requests. Auth test users seeded in EduDatabase (see table above).
+Migrations on DB: `0000` core, `0002` membership_requests, later fees/admin/archive. Auth test users seeded in EduDatabase (see table above). Drop `invitations` with `0011_drop-invitations` when permitted.

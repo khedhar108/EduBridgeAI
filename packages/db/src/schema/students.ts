@@ -16,8 +16,8 @@ import { schools } from "./schools";
 
 /**
  * Core student record. Admission number is the human key per school;
- * internal FKs use `id`. Full academic structure (classes, enrollments)
- * lands with Phase 1 dashboard — this table is enough to pin fees.
+ * internal FKs use `id`. Class membership is `class_enrollments`;
+ * `class_label` stays as a denormalized display string.
  */
 export const students = pgTable(
   "students",
@@ -99,7 +99,44 @@ export const studentGuardians = pgTable(
   ],
 );
 
+/**
+ * Sibling group for a parent family session. `family_id` is an opaque UUID
+ * stored on the HMAC cookie — not an `auth.users` parent. Admin CRUD on
+ * staff `/students` can list these later. Family writes use privileged `getDb()`.
+ */
+export const parentLinks = pgTable(
+  "parent_links",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    schoolId: uuid("school_id")
+      .notNull()
+      .references(() => schools.id, { onDelete: "cascade" }),
+    familyId: uuid("family_id").notNull(),
+    studentId: uuid("student_id")
+      .notNull()
+      .references(() => students.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "date",
+    })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("parent_links_family_student_unique").on(
+      table.schoolId,
+      table.familyId,
+      table.studentId,
+    ),
+    index("parent_links_school_id_idx").on(table.schoolId),
+    index("parent_links_family_id_idx").on(table.familyId),
+    index("parent_links_student_id_idx").on(table.studentId),
+  ],
+);
+
 export type Student = typeof students.$inferSelect;
 export type NewStudent = typeof students.$inferInsert;
 export type StudentGuardian = typeof studentGuardians.$inferSelect;
 export type NewStudentGuardian = typeof studentGuardians.$inferInsert;
+export type ParentLink = typeof parentLinks.$inferSelect;
+export type NewParentLink = typeof parentLinks.$inferInsert;

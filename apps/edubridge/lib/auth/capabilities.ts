@@ -7,35 +7,48 @@ import type { SessionContext } from "../tenancy/session-context";
  * `assertCapability()` instead of scattered `assertRole` lists, so future
  * per-module permission overrides extend the map without touching callers.
  *
- * RLS remains the backstop (re-checks school_members + is_active); this is
- * the friendly first line.
+ * RLS remains the backstop (re-checks school_members + is_active +
+ * archived_at IS NULL); this is the friendly first line.
  */
 
 export type Capability =
   | "members.viewDirectory"
-  | "members.invite"
+  | "members.provision"
+  | "members.resetPassword"
   | "members.activate"
   | "members.deactivate"
   | "members.reactivate"
+  | "members.archive"
   | "members.changeRole"
   | "members.impersonate"
-  | "team.view";
+  | "team.view"
+  | "students.view"
+  | "students.recordAttendance"
+  | "students.recordActivities"
+  | "students.manageStructure";
 
 const ADMIN_ONLY: SchoolRole[] = ["school_admin"];
 const MANAGERS: SchoolRole[] = ["school_admin", "coordinator"];
+const CLASS_ENTRY: SchoolRole[] = ["school_admin", "teacher", "staff"];
 
 /** Roles a coordinator must never touch (privilege escalation guard). */
 const PROTECTED_ROLES: SchoolRole[] = ["school_admin", "coordinator"];
 
 export const CAPABILITIES: Record<Capability, SchoolRole[]> = {
   "members.viewDirectory": MANAGERS,
-  "members.invite": MANAGERS,
+  "members.provision": MANAGERS,
+  "members.resetPassword": MANAGERS,
   "members.activate": MANAGERS,
   "members.deactivate": MANAGERS,
   "members.reactivate": MANAGERS,
+  "members.archive": ADMIN_ONLY,
   "members.changeRole": ADMIN_ONLY,
   "members.impersonate": ADMIN_ONLY,
   "team.view": MANAGERS,
+  "students.view": CLASS_ENTRY,
+  "students.recordAttendance": CLASS_ENTRY,
+  "students.recordActivities": CLASS_ENTRY,
+  "students.manageStructure": ADMIN_ONLY,
 };
 
 /**

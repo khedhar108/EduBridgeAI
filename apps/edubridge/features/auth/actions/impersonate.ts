@@ -23,8 +23,9 @@ import {
  * session stays intact — a signed cookie swaps the tenant identity in
  * getSessionContext + withTenant claims. RLS then sees the target user.
  *
- * Guards: admin only, same school, target is active, target is NOT admin or
- * coordinator, target is not self. Every session is audited.
+ * Guards: admin only, same school, target is active, target is NOT
+ * school_admin, target is not self. Coordinators can be viewed-as. Every
+ * session is audited.
  */
 export async function startImpersonationAction(
   workspace: string,
@@ -51,6 +52,7 @@ export async function startImpersonationAction(
           .select({
             role: schoolMembers.role,
             isActive: schoolMembers.isActive,
+            archivedAt: schoolMembers.archivedAt,
             email: profiles.email,
             fullName: profiles.fullName,
           })
@@ -66,8 +68,9 @@ export async function startImpersonationAction(
 
         const target = rows[0];
         if (!target) throw new Error("NOT_FOUND");
+        if (target.archivedAt) throw new Error("ARCHIVED");
         if (!target.isActive) throw new Error("INACTIVE");
-        if (target.role === "school_admin" || target.role === "coordinator") {
+        if (target.role === "school_admin") {
           throw new Error("PROTECTED");
         }
 

@@ -42,8 +42,8 @@ export default async function AwaitingInvitationPage() {
         </div>
       ) : (
         <p className="text-sm leading-relaxed text-muted-foreground">
-          Signed in as {user.email}, but no school membership yet. Ask your
-          school admin for an invite link, or register with your official school
+          Signed in as {user.email}, but no school membership yet. Ask the
+          office to create your account, or register with your official school
           email if the school domain is already set up.
         </p>
       )}

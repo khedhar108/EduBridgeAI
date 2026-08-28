@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { Button } from "@repo/ui/components/button";
 import { Input } from "@repo/ui/components/input";
 import { Spinner } from "@repo/ui/components/spinner";
+import { useActionToast } from "@repo/ui/hooks/use-action-toast";
 import {
   schoolDomainSignUpAction,
   type SchoolDomainSignUpState,
@@ -18,6 +19,7 @@ export function SchoolDomainSignUpForm() {
     schoolDomainSignUpAction,
     initial,
   );
+  useActionToast(state);
   const [email, setEmail] = useState("");
 
   return (
@@ -76,9 +78,7 @@ export function SchoolDomainSignUpForm() {
       </div>
 
       {state.error ? (
-        <p className="text-sm text-destructive" role="alert">
-          {state.error}
-        </p>
+        <p className="text-sm text-destructive">{state.error}</p>
       ) : null}
 
       <Button type="submit" className="h-11" disabled={pending}>

@@ -81,7 +81,7 @@ function MarketingHomeContent() {
               Ready when your school is.
             </h2>
             <p className="max-w-md text-muted-foreground leading-relaxed">
-              Sign in to an invited workspace, or open the platform console if
+              Sign in to a school workspace, or open the platform console if
               you operate EduBridge.
             </p>
             <Button

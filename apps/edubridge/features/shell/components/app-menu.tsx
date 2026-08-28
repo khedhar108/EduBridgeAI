@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   CheckIcon,
   ChevronDownIcon,
+  GraduationCapIcon,
   HomeIcon,
   LayoutGridIcon,
   UsersIcon,
@@ -26,6 +27,7 @@ import { findActiveModule, moduleHref } from "../nav-utils";
 const MODULE_ICONS: Record<string, LucideIcon> = {
   home: HomeIcon,
   users: UsersIcon,
+  "graduation-cap": GraduationCapIcon,
 };
 
 type AppMenuProps = {

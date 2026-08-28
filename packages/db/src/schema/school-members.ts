@@ -35,6 +35,18 @@ export const schoolMembers = pgTable(
      */
     isActive: boolean("is_active").notNull().default(true),
     /**
+     * Terminal archive. Distinct from is_active: archived members are never
+     * reactivated through the toggle, stay in the directory for audit, and
+     * fail RLS helpers (archived_at IS NULL required). No hard DELETE.
+     */
+    archivedAt: timestamp("archived_at", {
+      withTimezone: true,
+      mode: "date",
+    }),
+    archivedBy: uuid("archived_by").references(() => profiles.id, {
+      onDelete: "set null",
+    }),
+    /**
      * Per-school sign-in handle. Unique only within a school, so the same
      * handle can exist across different tenants. NULL until the user picks one.
      */
@@ -63,6 +75,9 @@ export const schoolMembers = pgTable(
     uniqueIndex("school_members_school_username_unique")
       .on(table.schoolId, table.username)
       .where(sql`${table.username} is not null`),
+    uniqueIndex("school_members_one_admin_per_school")
+      .on(table.schoolId)
+      .where(sql`${table.role} = 'school_admin' AND ${table.archivedAt} is null`),
     check(
       "school_members_username_format",
       sql`${table.username} is null or ${table.username} ~ '^[a-z0-9](?:[a-z0-9._-]{1,30}[a-z0-9])$'`,
@@ -70,6 +85,10 @@ export const schoolMembers = pgTable(
     check(
       "school_members_platform_owner_forbidden",
       sql`${table.role} <> 'platform_owner'::app_role`,
+    ),
+    check(
+      "school_members_archive_actor_required",
+      sql`${table.archivedAt} is null or ${table.archivedBy} is not null`,
     ),
   ],
 );

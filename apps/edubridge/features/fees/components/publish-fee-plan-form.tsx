@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { Button } from "@repo/ui/components/button";
 import { Input } from "@repo/ui/components/input";
 import { Spinner } from "@repo/ui/components/spinner";
+import { useActionToast } from "@repo/ui/hooks/use-action-toast";
 import {
   publishFeePlanAction,
   type PublishFeePlanState,
@@ -39,6 +40,7 @@ export function PublishFeePlanForm({
 }: Props) {
   const bound = publishFeePlanAction.bind(null, workspace);
   const [state, formAction, pending] = useActionState(bound, initial);
+  useActionToast(state, "Fee plan version published.");
 
   return (
     <form action={formAction} className="flex max-w-xl flex-col gap-4">
@@ -122,15 +124,6 @@ export function PublishFeePlanForm({
           placeholder="Why this version changed"
         />
       </div>
-
-      {state.error ? (
-        <p className="text-sm text-destructive" role="alert">
-          {state.error}
-        </p>
-      ) : null}
-      {state.ok ? (
-        <p className="text-sm text-muted-foreground">Fee plan version published.</p>
-      ) : null}
 
       <Button type="submit" className="h-11" disabled={pending}>
         {pending ? <Spinner className="size-4" /> : null}

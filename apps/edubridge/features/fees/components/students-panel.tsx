@@ -1,3 +1,4 @@
+import { InfoHint } from "@repo/ui/components/info-hint";
 import type { SchoolStudentRow } from "../queries/fees";
 
 type StudentsPanelProps = {
@@ -8,8 +9,14 @@ type StudentsPanelProps = {
 export function StudentsPanel({ students }: StudentsPanelProps) {
   return (
     <section className="flex flex-col gap-3">
-      <div className="flex items-baseline justify-between">
-        <h2 className="text-lg font-medium">Students</h2>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1">
+          <h2 className="text-lg font-medium">Students</h2>
+          <InfoHint label="About the student list" title="Students">
+            Enrolled students in this school. Guardian contact is for office
+            use.
+          </InfoHint>
+        </div>
         <p className="text-xs text-muted-foreground">
           {students.length} enrolled
         </p>

@@ -17,8 +17,8 @@ pnpm -v
 git clone <repo-url>
 cd aria
 pnpm install
-pnpm dev:web    # http://localhost:3000
-pnpm dev:docs   # http://localhost:3001
+pnpm kill:dev            # optional: free leftover :3000 / :4111 / :4983
+pnpm dev                 # edubridge + agent → http://localhost:3000
 ```
 
 ## Documentation map

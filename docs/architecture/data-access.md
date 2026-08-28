@@ -10,7 +10,7 @@
 | Schema + migrations       | **Drizzle ORM** (`packages/db`) + `drizzle-kit` | Type-safe schema-as-code, shared by `apps/edubridge` and `apps/agent` |
 | Table CRUD in app code    | Drizzle queries only                            | One query style, compile-time safety, portable SQL                    |
 | Tenant isolation backstop | **RLS policies in SQL migrations**              | Enforced by Postgres even if app code has a bug                       |
-| Authentication            | **Supabase Auth** via `@supabase/ssr`           | Session cookies, email/password + magic link, invite flows            |
+| Authentication            | **Supabase Auth** via `@supabase/ssr`           | Session cookies, email/password + magic link, office-created staff    |
 | Storage / realtime        | Supabase client                                 | Used at the edges only, never for table CRUD                          |
 
 ## Why Drizzle + Supabase (and not the alternatives)
@@ -47,7 +47,7 @@ flowchart LR
         migrations["drizzle-kit migrations"]
     end
     subgraph Supabase["Supabase"]
-        auth["Auth (sessions, invites)"]
+        auth["Auth (sessions, staff accounts)"]
         pg["Postgres + RLS policies"]
         storage["Storage / Realtime"]
     end

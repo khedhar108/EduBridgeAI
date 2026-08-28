@@ -10,7 +10,7 @@ System-wide architecture documentation. Use this for cross-app concerns and plat
 | [Multi-tenancy](./multi-tenancy.md)                                    | School schema, relationships, RLS boundary, platform-owner separation                     |
 | [Platform Boundaries](./platform-boundaries.md)                        | Three authz contexts, folder map, URL surface, Phase 0 vs 6 split                         |
 | [Support Access](./support-access.md)                                  | School-approved JIT support grants, scopes, audit, RLS contract (Phase 6)                 |
-| [Authentication](./auth/README.md)                                     | Auth folder: strategy, RBAC, family access, `features/auth/`, agent auth                  |
+| [Authentication](./auth/README.md)                                     | Auth folder: strategy, RBAC, family access, family surface routes, `features/auth/`       |
 | [AI / RAG](./ai-rag.md)                                                | Mastra RAG with pgvector vs. SQL tools, tenant-filtered retrieval                         |
 | [Agent Ecosystem](./agent-ecosystem.md)                                | Orchestrator + domain sub-agents: scoped tools, per-user memory, token-conservation rules |
 | [Mobile App](./mobile-app.md)                                          | PWA + TWA; family (parent/student) surface via admission + DOB                            |

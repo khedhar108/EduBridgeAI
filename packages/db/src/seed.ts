@@ -1,8 +1,28 @@
-import { sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { closeDb, getDb } from "./client";
-import { schools, profiles, schoolMembers, students, studentGuardians } from "./schema";
+import {
+  classEnrollments,
+  classes,
+  classStaffDelegations,
+  classSubjects,
+  profiles,
+  schoolMembers,
+  schools,
+  studentGuardians,
+  students,
+  subjects,
+  teacherAssignments,
+} from "./schema";
 
+const ACADEMIC_YEAR = "2024-25";
 const PASSWORD = "TestLogin123!";
+const SEED_SUBJECTS = [
+  "English",
+  "Mathematics",
+  "Science",
+  "Social Science",
+  "Hindi",
+] as const;
 
 type Account = {
   uuid: string;
@@ -202,6 +222,146 @@ function buildStudents(
 const pilotStudents = buildStudents(50, "EBS-2024");
 const oakwoodStudents = buildStudents(15, "OAK-2024", 5);
 
+async function seedAcademic(
+  database: ReturnType<typeof getDb>,
+  roster: Array<{ schoolId: string; studentId: string; classLabel: string }>,
+  ids: {
+    pilotTeacherId: string;
+    pilotStaffId: string;
+    oakTeacherId: string;
+    pilotSchoolId: string | undefined;
+    oakwoodSchoolId: string | undefined;
+  },
+): Promise<void> {
+  const schoolIds = [...new Set(roster.map((row) => row.schoolId))];
+
+  for (const schoolId of schoolIds) {
+    const labels = [
+      ...new Set(
+        roster
+          .filter((row) => row.schoolId === schoolId)
+          .map((row) => row.classLabel),
+      ),
+    ];
+
+    const classByLabel = new Map<string, string>();
+    for (const name of labels) {
+      const inserted = await database
+        .insert(classes)
+        .values({
+          schoolId,
+          name,
+          section: "A",
+          academicYear: ACADEMIC_YEAR,
+        })
+        .onConflictDoUpdate({
+          target: [
+            classes.schoolId,
+            classes.academicYear,
+            classes.name,
+            classes.section,
+          ],
+          set: { updatedAt: new Date() },
+        })
+        .returning({ id: classes.id, name: classes.name });
+      const row = inserted[0];
+      if (row) classByLabel.set(row.name, row.id);
+    }
+
+    const subjectIds: string[] = [];
+    for (const name of SEED_SUBJECTS) {
+      const inserted = await database
+        .insert(subjects)
+        .values({ schoolId, name })
+        .onConflictDoUpdate({
+          target: [subjects.schoolId, subjects.name],
+          set: { name },
+        })
+        .returning({ id: subjects.id });
+      if (inserted[0]) subjectIds.push(inserted[0].id);
+    }
+
+    const offeringIdsByClass = new Map<string, string[]>();
+    for (const classId of classByLabel.values()) {
+      const offeringIds: string[] = [];
+      for (const subjectId of subjectIds) {
+        const inserted = await database
+          .insert(classSubjects)
+          .values({ schoolId, classId, subjectId })
+          .onConflictDoNothing()
+          .returning({ id: classSubjects.id });
+        if (inserted[0]) {
+          offeringIds.push(inserted[0].id);
+        } else {
+          const existing = await database
+            .select({ id: classSubjects.id })
+            .from(classSubjects)
+            .where(
+              and(
+                eq(classSubjects.schoolId, schoolId),
+                eq(classSubjects.classId, classId),
+                eq(classSubjects.subjectId, subjectId),
+              ),
+            )
+            .limit(1);
+          if (existing[0]) offeringIds.push(existing[0].id);
+        }
+      }
+      offeringIdsByClass.set(classId, offeringIds);
+    }
+
+    for (const pupil of roster.filter((row) => row.schoolId === schoolId)) {
+      const classId = classByLabel.get(pupil.classLabel);
+      if (!classId) continue;
+      await database
+        .insert(classEnrollments)
+        .values({ schoolId, classId, studentId: pupil.studentId })
+        .onConflictDoNothing();
+    }
+
+    const class6 = classByLabel.get("Class 6");
+    const class7 = classByLabel.get("Class 7");
+
+    if (schoolId === ids.pilotSchoolId && class6) {
+      for (const offeringId of offeringIdsByClass.get(class6) ?? []) {
+        await database
+          .insert(teacherAssignments)
+          .values({
+            schoolId,
+            classSubjectId: offeringId,
+            teacherUserId: ids.pilotTeacherId,
+          })
+          .onConflictDoNothing();
+      }
+    }
+    if (schoolId === ids.pilotSchoolId && class7) {
+      await database
+        .insert(classStaffDelegations)
+        .values({
+          schoolId,
+          classId: class7,
+          userId: ids.pilotStaffId,
+        })
+        .onConflictDoNothing();
+    }
+    if (schoolId === ids.oakwoodSchoolId) {
+      const firstClassId = classByLabel.values().next().value;
+      if (firstClassId) {
+        for (const offeringId of offeringIdsByClass.get(firstClassId) ?? []) {
+          await database
+            .insert(teacherAssignments)
+            .values({
+              schoolId,
+              classSubjectId: offeringId,
+              teacherUserId: ids.oakTeacherId,
+            })
+            .onConflictDoNothing();
+        }
+      }
+    }
+  }
+}
+
 async function seed(): Promise<void> {
   if (process.env.NODE_ENV === "production") {
     throw new Error("The development seed is blocked in NODE_ENV=production.");
@@ -353,6 +513,12 @@ async function seed(): Promise<void> {
     { schoolId: oakwoodSchool?.id, batch: oakwoodStudents },
   ];
 
+  const seededRoster: Array<{
+    schoolId: string;
+    studentId: string;
+    classLabel: string;
+  }> = [];
+
   for (const { schoolId, batch } of studentBatches) {
     if (!schoolId || batch.length === 0) continue;
 
@@ -386,6 +552,12 @@ async function seed(): Promise<void> {
       const studentId = inserted[0]?.id;
       if (!studentId) continue;
 
+      seededRoster.push({
+        schoolId,
+        studentId,
+        classLabel: student.classLabel,
+      });
+
       await database.insert(studentGuardians).values({
         schoolId,
         studentId,
@@ -397,6 +569,14 @@ async function seed(): Promise<void> {
       });
     }
   }
+
+  await seedAcademic(database, seededRoster, {
+    pilotTeacherId: "a2222222-2222-4222-8222-222222222222",
+    pilotStaffId: "a5555555-5555-4555-8555-555555555555",
+    oakTeacherId: "a7777777-7777-4777-8777-777777777777",
+    pilotSchoolId: pilotSchool?.id,
+    oakwoodSchoolId: oakwoodSchool?.id,
+  });
 
   // 4. Verify every seeded auth user has an identity and a non-null
   //    instance_id (GoTrue requires both for password sign-in). Fails the seed

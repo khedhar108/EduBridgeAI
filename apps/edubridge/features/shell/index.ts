@@ -1,5 +1,6 @@
 export {
   modules,
+  familyModules,
   modulesForRole,
   PLATFORM_ROLES,
   type ModuleNavItem,

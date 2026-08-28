@@ -12,6 +12,28 @@ export function safeNextPath(next: string | null | undefined): string | null {
   return next;
 }
 
+function pathSegments(path: string): string[] {
+  return path.split("/").filter(Boolean);
+}
+
+/** Global `/sign-in` and workspace `/{slug}/sign-in` or `/{slug}/family`. */
+export function isAuthDoorPath(path: string): boolean {
+  const parts = pathSegments(path);
+  if (parts[0] === "sign-in") return true;
+  return parts[1] === "sign-in" || parts[1] === "family";
+}
+
+/** Default post-login path for the workspace sign-in form. */
+export function workspaceSignInNext(
+  workspace: string,
+  next?: string | null,
+): string {
+  const fallback = `/${workspace}`;
+  const safe = safeNextPath(next);
+  if (!safe || isAuthDoorPath(safe)) return fallback;
+  return safe;
+}
+
 export async function resolvePostLoginDestination(opts?: {
   preferPlatform?: boolean;
   next?: string | null;
@@ -35,7 +57,7 @@ export async function resolvePostLoginDestination(opts?: {
     }
   }
 
-  if (next && !next.startsWith("/platform") && !next.startsWith("/sign-in")) {
+  if (next && !next.startsWith("/platform") && !isAuthDoorPath(next)) {
     return next;
   }
 

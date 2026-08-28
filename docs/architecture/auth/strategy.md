@@ -21,9 +21,9 @@ School users range from tech-savvy admins to parents on low-end phones. Every pe
 | Method | Supabase support | Who it's for | Phase |
 |--------|------------------|--------------|-------|
 | Email + password | Built-in | Admins, teachers, staff (traditional baseline) | 0 |
-| Email OTP / magic link | Built-in (`signInWithOtp`) | Parents, students — no password to forget | 0 (enable), polish later |
+| Email OTP / magic link | Built-in (`signInWithOtp`) | Optional staff convenience — **not** mass family login | 0 (enable), polish later |
 | Phone OTP (SMS) | Built-in (`signInWithOtp` phone) via SMS provider (Twilio/MessageBird/Vonage...) | Parents/staff in phone-first contexts | 1–2 (per-SMS cost; configure provider in dashboard when the pilot demands) |
-| Admission no. + student DOB | Custom server action → session for the parent's read-only member record | Parents in the mobile app — zero-friction, no password/OTP | 5–6 ([feature-module.md](./feature-module.md#parent-access-admission-number--dob)) |
+| Admission no. + student DOB | **Not Supabase Auth.** Server match on `students` → HMAC cookie `edubridge.family` (never `auth.users`) | Parents and students — zero-friction, no password/OTP | Phase 0 form at `/{slug}/family`; dashboard Phase 1 ([family-access.md](./family-access.md)) |
 | Passkeys (fingerprint/Face ID/Windows Hello) | **Native beta (May 2026)** — WebAuthn | Everyone, as a fast re-entry method | Post-MVP (beta → GA watch) |
 | OAuth (Google) | Built-in | Optional convenience later | Not planned |
 | MFA (TOTP) | Built-in | `school_admin`, `platform_owner` — protect high-privilege accounts | 5 |
@@ -51,11 +51,13 @@ Beta constraints to design around: SSO-only and anonymous users can't register p
 
 ## Auth UI: custom, with shadcn + Tailwind
 
-Supabase ships **no production React UI kit** (`@supabase/auth-ui` is legacy). That's fine — our screens must match the unified shell and handle EduBridge extras (workspace slug, role-aware redirects, invite acceptance). Implementation lives in `apps/web/features/auth/` — see [feature-module.md](./feature-module.md).
+Supabase ships **no production React UI kit** (`@supabase/auth-ui` is legacy). That's fine — our screens must match the unified shell and handle EduBridge extras (workspace slug, role-aware redirects, office-created accounts). Implementation lives in `apps/edubridge/features/auth/` — see [feature-module.md](./feature-module.md).
 
-## Passwordless-first for parents
+## Family door is not a Supabase user
 
-Parents are the largest and least technical group. Default for them: **email OTP or phone OTP sign-in, no password** — later passkeys for one-tap re-entry. This eliminates password-reset support load, the #1 auth cost at school scale.
+Parents and students are the largest group. **Mass family access is admission number + student DOB** → a first-party HMAC cookie, **not** email OTP, **not** Phase 5–6, and **not** a row in `auth.users`. That keeps MAU and password-reset off the family blast radius. Staff stay on Supabase email+password / username. Optional later: phone OTP to bind a real `parent` membership (per-school opt-in). Passkeys remain a staff re-entry extra, not the family login.
+
+See [family-access.md](./family-access.md).
 
 ## Cost and scaling path
 

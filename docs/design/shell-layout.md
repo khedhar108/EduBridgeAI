@@ -53,11 +53,15 @@ Workspace home (`/{workspace}`) shows **role-relevant module cards** — entry p
 | Route | Shell | Notes |
 |-------|-------|-------|
 | `/` | Marketing only | [features/marketing/](../../apps/edubridge/features/marketing/) |
-| `/sign-in`, `/platform/sign-in` | Auth chrome | No workspace shell |
+| `/sign-in`, `/platform/sign-in`, `/[workspace]/sign-in` | Auth chrome | No workspace shell |
 | `/platform` | Platform console placeholder | Phase 6 owner console; not `ShellLayout` |
-| `/[workspace]/…` | **ShellLayout** | All tenant product pages |
+| `/[workspace]/family/…` | Family (Phase 1) | Not `ShellLayout`; no Supabase user |
+| `/[workspace]/…` (staff) | **ShellLayout** | Tenant product pages under `(staff)/` |
 
-Platform owners authenticate at `/platform/sign-in`. School staff at `/sign-in`. Workspace shell applies when the user has an active `school_members` row for that slug.
+Platform owners authenticate at `/platform/sign-in`. School staff at
+`/[workspace]/sign-in` (school from the URL) or global `/sign-in` (email, or
+username + optional slug). Workspace shell applies when the user has an
+active `school_members` row for that slug.
 
 ## RBAC and navigation
 

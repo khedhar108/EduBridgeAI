@@ -19,7 +19,7 @@
 | Generic error messages ("Invalid credentials", never "email not found") | All sign-in/OTP actions |
 | Rate limit OTP requests per phone/email + IP | Supabase dashboard + edge middleware |
 | Enable CAPTCHA on sign-up/OTP endpoints before public registration | Phase 5 launch requirement |
-| Invite tokens: single-use, 7-day expiry, role taken from the invitation record | `accept-invite` action (staff) |
+| Invite tokens: removed. Office sets username + password; reset is directory-only | `provisionMemberAction` / `resetMemberPasswordAction` |
 | Family access: admission + DOB, rate-limited, read-only session | [family-access.md](./family-access.md) (Phase 1) |
 | School admin registration requires official-domain email (block free providers) | Phase 6 |
 

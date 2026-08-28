@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { Button } from "@repo/ui/components/button";
 import { Input } from "@repo/ui/components/input";
 import { Spinner } from "@repo/ui/components/spinner";
+import { useActionToast } from "@repo/ui/hooks/use-action-toast";
 import {
   recordPaymentAction,
   type RecordPaymentState,
@@ -24,6 +25,7 @@ type Props = {
 export function RecordPaymentForm({ workspace, assignments }: Props) {
   const bound = recordPaymentAction.bind(null, workspace);
   const [state, formAction, pending] = useActionState(bound, initial);
+  useActionToast(state, "Payment recorded.");
 
   if (assignments.length === 0) {
     return (
@@ -109,15 +111,6 @@ export function RecordPaymentForm({ workspace, assignments }: Props) {
         </label>
         <Input id="note" name="note" disabled={pending} className="h-11" />
       </div>
-
-      {state.error ? (
-        <p className="text-sm text-destructive" role="alert">
-          {state.error}
-        </p>
-      ) : null}
-      {state.ok ? (
-        <p className="text-sm text-muted-foreground">Payment recorded.</p>
-      ) : null}
 
       <Button type="submit" className="h-11" disabled={pending}>
         {pending ? <Spinner className="size-4" /> : null}

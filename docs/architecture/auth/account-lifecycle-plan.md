@@ -1,9 +1,12 @@
 # Account Lifecycle Plan — Archive, Role Change, Toggle UI, Sign-up Login
 
-> Status: **Plan (no code or DB changes applied yet).** Every schema/migration step
-> below requires explicit user permission before `pnpm db:generate` / `pnpm db:migrate`
-> per AGENTS.md rule 13. This document is the working plan produced by the security
-> audit of the `feature/rbac-dashboard` branch.
+> Status: **Items 1–4 shipped** (migration `0008_member-archive`, archive +
+> change-role, one live `school_admin` per workspace via unique index). Invite
+> tokens were removed later — office Add member creates a confirmed auth user
+> and keeps the office session. Apply `0008` with
+> `pnpm db:migrate` before the new columns are live. Un-archive is intentionally
+> not provided (composite PK; archive is terminal). Ownership transfer of the
+> workspace admin is not built.
 
 Related: [rbac-model.md](./rbac-model.md) · [admin-controls.md](./admin-controls.md) ·
 [README.md](./README.md) · [multi-tenancy.md](../multi-tenancy.md)
@@ -19,8 +22,10 @@ single source of truth and preserving the "never hard-delete a member" rule.
    coordinator; coordinators can only manage non-admin roles (no escalation).
 3. **Toggle controls in the UI** — replace text-link form submits with real
    toggle/switch controls and confirmation for destructive actions.
-4. **Direct sign-up logs the new user in** — invite acceptance and domain join should
+4. **Direct sign-up logs the new user in** — domain join should
    establish the Supabase session instead of bouncing the user to sign-in.
+   Office Add member keeps the coordinator/admin session (does not sign in as
+   the new member).
 
 Out of scope (deferred): public self-registration (Phase 6), parent/student family
 access (Phase 1), platform console billing/aggregate writes (Phase 6).
@@ -34,9 +39,10 @@ access (Phase 1), platform console billing/aggregate writes (Phase 6).
 - No `members.changeRole` server action exists, even though the capability is defined.
 - `capabilities.ts` correctly blocks coordinators from `changeRole`, `impersonate`, and
   targeting admins/coordinators, but there is no archive capability yet.
-- `acceptInviteAction` and `schoolDomainSignUpAction` create the Supabase user via
-  `signUp` then `redirect`, but do not persist a signed-in session, so the new user is
-  not "logged in" on landing.
+- `schoolDomainSignUpAction` creates the Supabase user via
+  `signUp` then `redirect`, but does not persist a signed-in session, so the new user is
+  not "logged in" on landing. Office Add member uses `auth.admin.createUser` and
+  never steals the office cookie jar.
 
 ## Decision: archive vs. deactivate
 
@@ -107,17 +113,13 @@ account"), while coordinators can neither archive nor change roles on admins/coo
   (`if (member.archivedAt) throw ARCHIVED`).
 - Keeps the two-layer enforcement and audit row.
 
-### `acceptInviteAction` / `schoolDomainSignUpAction` (session fix)
+### `provisionMemberAction` / `schoolDomainSignUpAction` (session)
 
-- After a successful `signUp`, persist the session so the user is signed in. For Supabase
-  SSR this means writing the session cookies returned by `signUp` (the
-  `createServerSupabaseClient` cookie `setAll` path already does this on
-  `signInWithPassword`; mirror it for `signUp`).
-- `acceptInviteAction`: keep the redirect to the workspace only after the session is
-  established; if session persistence fails, fall back to `/sign-in?next=...` rather than
-  a broken landing.
-- `schoolDomainSignUpAction`: after session is established, redirect to
-  `/awaiting-invitation` (the user is now authenticated but still pending activation).
+- `provisionMemberAction` creates the auth user with `auth.admin.createUser`
+  (`email_confirm: true`) so the office session is never replaced. Password
+  is never audited.
+- `schoolDomainSignUpAction`: session persistence after domain join remains
+  deferred; that path still redirects to `/awaiting-invitation`.
 
 ## UI changes
 

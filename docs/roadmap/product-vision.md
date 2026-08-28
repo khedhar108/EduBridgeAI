@@ -21,7 +21,7 @@ Schools track student activity, report cards, and test creation across disconnec
 | Capability | platform_owner | school_admin | accountant | teacher | staff | student | parent |
 |---|---|---|---|---|---|---|---|
 | Register school / manage workspace | — | ✅ | — | — | — | — | — |
-| Invite/manage members and roles | — | ✅ | — | — | — | — | — |
+| Add/manage members and roles | — | ✅ | — | — | — | — | — |
 | Fee structures / scholarships / collections | — | ✅ | ✅ | — | — | — | — |
 | Register students (direct) + pin fee version | — | ✅ | ✅ | — | — | — | — |
 | Enter student activity/attendance | — | ✅ | — | ✅ | ✅ (delegated) | — | — |

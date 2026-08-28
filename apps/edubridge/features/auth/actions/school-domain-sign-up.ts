@@ -37,7 +37,7 @@ export async function schoolDomainSignUpAction(
   if (!domain || !isEligibleSchoolEmailDomain(domain)) {
     return {
       error:
-        "Use your official school email (not Gmail/Yahoo/etc.), or ask for an invite link.",
+        "Use your official school email (not Gmail/Yahoo/etc.), or ask the office to create your account.",
     };
   }
 
@@ -66,7 +66,7 @@ export async function schoolDomainSignUpAction(
   if (!join) {
     return {
       error:
-        "No school is registered for that email domain. Ask your admin for an invite.",
+        "No school is registered for that email domain. Ask the office to create your account.",
     };
   }
 

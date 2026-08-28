@@ -65,14 +65,14 @@ apps/edubridge/
 ├── proxy.ts                         # session refresh + host → route rewrite
 ├── app/
 │   ├── (marketing)/                 # public pages; registration routes (Phase 6)
-│   ├── (auth)/                      # shared sign-in, recovery, invite accept
+│   ├── (auth)/                      # shared sign-in, recovery, domain join
 │   ├── auth/callback/               # magic-link / OAuth code exchange
 │   ├── platform/                    # platform.edubridge.app thin routes
 │   └── [workspace]/                 # school subdomain/path thin routes
 ├── features/
 │   ├── auth/                        # identity UI/actions only
 │   ├── registration/                # school creation + provisioning (Phase 6)
-│   ├── memberships/                 # school member invites + role management
+│   ├── memberships/                 # school member + role management
 │   ├── billing/                     # school-facing plan, invoices, state (Phase 6)
 │   ├── platform-console/            # owner billing/funnel/tenant metadata (Phase 6)
 │   ├── support-access/              # request/approve/enter/revoke/audit (Phase 6)
@@ -100,7 +100,7 @@ Each feature follows [feature-folder-structure.md](../guides/feature-folder-stru
 | Concern | Feature folder | Phase |
 |---------|----------------|-------|
 | Sign-in / sign-out / password / magic link | `features/auth/` | 0 |
-| Member invite inside a school | `features/memberships/` | 0 |
+| Member create inside a school | `features/auth/` (directory Add member) | 0 |
 | Workspace chrome + nav registry | `features/shell/` | 0 |
 | Public school registration | `features/registration/` | 6 |
 | School subscription / invoices | `features/billing/` | 6 |
@@ -135,7 +135,7 @@ RLS helpers — never insert the owner into `school_members`.
 | Now (Phase 0) | Later (Phase 6) |
 |---------------|-----------------|
 | Identity + SSR clients + `getSessionContext` | Public registration + provisioning |
-| Invite-based membership | Plans, trials, payments, entitlements |
+| Office-created membership + domain join | Plans, trials, payments, entitlements |
 | Path/workspace shell for pilot | Wildcard DNS + production subdomains |
 | Platform enum / admin table reserved | Full platform console UI |
 | Architecture docs for support | `support_access_grants` + RLS + UI |

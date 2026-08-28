@@ -1,7 +1,8 @@
 # Admin Access Controls — Coordinator, Activation, Impersonation
 
 > How school admins delegate people-management to coordinators, deactivate
-> members instantly, view-as another user, and how username sign-in works.
+> members instantly, archive memberships (no hard delete), change roles, view-as
+> another user, and how username sign-in works.
 > The capability map in `apps/edubridge/lib/auth/capabilities.ts` is the
 > single source of truth for privileged actions; RLS remains the backstop.
 
@@ -13,10 +14,12 @@ Related: [rbac-model.md](./rbac-model.md) · [auth README](./README.md) ·
 | Capability               | school_admin | coordinator |
 | ------------------------ | :----------: | :---------: |
 | `members.viewDirectory`  |      ✓       |      ✓      |
-| `members.invite`         | ✓ (any role) | ✓ (non-admin roles only) |
-| `members.activate`       | ✓ (any role) | ✓ (non-admin roles only) |
+| `members.provision`      | ✓ (not school_admin) | ✓ (non-admin roles only) |
+| `members.resetPassword`  | ✓ (not school_admin / self / archived) | ✓ (non-admin roles only) |
+| `members.activate`       | ✓ (not school_admin) | ✓ (non-admin roles only) |
 | `members.deactivate`     | ✓ (all members) | ✓ (never admins/coordinators) |
 | `members.reactivate`     | ✓ (all members) | ✓ (never admins/coordinators) |
+| `members.archive`        |      ✓       |      ✗      |
 | `members.changeRole`     |      ✓       |      ✗      |
 | `members.impersonate`    |      ✓       |      ✗      |
 | `team.view` (Team page)  |      ✓       |      ✓      |
@@ -28,7 +31,16 @@ Rules encoded in `can(ctx, capability, targetRole?)`:
 - Coordinators are blocked from targeting `school_admin` / `coordinator` —
   **no privilege-escalation path** (they can neither create nor disable an
   admin-level account).
-- Nobody can deactivate or impersonate themselves.
+- Nobody can deactivate, archive, or impersonate themselves.
+- Archive is admin-only (including archiving a coordinator — there is no
+  hard DELETE on `school_members` for `authenticated`). The workspace
+  `school_admin` cannot be archived.
+- Role change is admin-only and cannot grant `school_admin`.
+- **One `school_admin` per workspace.** Partial unique index
+  `school_members_one_admin_per_school` (`role = school_admin` and
+  `archived_at IS NULL`). Seed / school-create is the only grant path.
+  Provision, activate, and change-role all refuse `school_admin`. Ownership
+  transfer is not built.
 - Every privileged mutation writes an `admin_audit_events` row
   (append-only; no UPDATE/DELETE grants to `authenticated`).
 
@@ -41,7 +53,7 @@ Indian schools (Fedena, Entab, MyClassCampus equivalents).
 
 - Enum value lives in `app_role` (migration `0005`, enum-only — must commit
   before any policy uses it, same pattern as `0003 accountant`).
-- RLS: `school_members`, `invitations`, and `membership_requests` policies
+- RLS: `school_members` and `membership_requests` policies
   accept admin **or** coordinator; coordinator writes are additionally
   restricted to non-admin roles at the row level.
 - Nav: Home + Team (admin actions hidden **and** server-blocked).
@@ -51,15 +63,44 @@ Indian schools (Fedena, Entab, MyClassCampus equivalents).
 
 - `school_members.is_active` (boolean, default true).
 - **Two enforcement layers:**
-  1. App: `getSessionContext` returns `null` for inactive memberships →
-     workspace routes 404 on the next request. No session revocation needed.
+  1. App: `getSessionContext` returns `null` for inactive **or archived**
+     memberships. Inactive members see a “disabled” screen; archived members
+     see a distinct “archived” variant (not “ask admin to re-enable”).
   2. RLS: `private.is_school_member` / `has_school_role` require
-     `is_active = true` — an inactive member is invisible to every tenant
-     policy even if app code regresses.
+     `is_active = true` **and** `archived_at IS NULL`.
 - Deactivated members remain visible in the admin directory (status badge
-  "Inactive") so they can be reactivated without re-inviting.
-- `shares_school_with` intentionally does **not** filter on `is_active` —
-  the directory needs to render deactivated profiles.
+  "Inactive") so they can be reactivated without creating a new account.
+- `shares_school_with` intentionally does **not** filter on `is_active` or
+  `archived_at` — the directory needs to render deactivated and archived
+  profiles.
+
+## Member archive (no hard delete)
+
+Terminal offboarding, distinct from `is_active`. Migration `0008`.
+
+- Columns: `archived_at` + `archived_by` (actor required when archived).
+- `archiveMemberAction` sets both plus `is_active = false` in one write.
+- Audit action: `member.archive`.
+- UI: admin-only **Archive** with confirm (shared `ConfirmDialog`). Hidden for
+  the workspace `school_admin`. Coordinators never see it and cannot write
+  archive columns (split UPDATE policy). Directory `InfoHint`s explain archive
+  vs inactive.
+- Archived rows render grey (`bg-muted`), show **Inactive** plus **Archived**,
+  and a disabled off Switch. No Login as, no role change, no reactivation.
+  Toggle refuses `ARCHIVED`.
+- `FOR DELETE` on `school_members` is dropped; `DELETE` is revoked from
+  `authenticated`. "Delete coordinator" means archive that coordinator.
+
+## Role change
+
+- `changeMemberRoleAction` (`members.changeRole`, admin only).
+- Grantable roles only (`grantableRoles` — no `school_admin`).
+- Refuses self-change, archived targets, and targeting the workspace admin.
+- Audit action: `member.role_change` with `{ from, to }` in `detail`.
+- Directory: admin-only role Select on live, non-self, non-admin rows. Changing
+  a role opens a confirm modal that names the new role's access. Managers can
+  **Add member** from the directory (username, email, and password set by the
+  office). **Reset password** is in Actions for the same managers.
 
 ## Login-as (impersonation)
 
@@ -67,14 +108,15 @@ Signed-cookie identity swap — the admin's Supabase session stays intact.
 
 1. Admin clicks **Login as** in the staff directory →
    `startImpersonationAction` (guards: `members.impersonate`, same school,
-   target active, target never admin/coordinator, not self).
+   target active, target never `school_admin`, not self). Coordinators can
+   be viewed-as so an admin can debug a staff account.
 2. A signed HttpOnly cookie (`edubridge.impersonation`, HMAC-SHA256,
    30-minute TTL) records `{ targetUserId, targetEmail, schoolId }`.
    `IMPERSONATION_SECRET` must be set in production.
-3. `getSessionContext` verifies: the **real** auth user is still an active
-   admin of that school, the target is still an active non-admin member —
-   then returns the target's `{ userId, role, email }` plus
-   `{ isImpersonating, realUserId, realEmail }`.
+3. `getSessionContext` verifies: the **real** auth user is still an active,
+   non-archived admin of that school, the target is still an active
+   non-archived non-`school_admin` member — then returns the target's
+   `{ userId, role, email }` plus `{ isImpersonating, realUserId, realEmail }`.
 4. `withTenant` claims (and therefore RLS) see the **target** identity —
    the admin experiences exactly the target's access, nothing more.
 5. Green banner (shell top): "Viewing as … — signed in as …" with **Exit**.
@@ -89,31 +131,31 @@ and the live membership rows.
 
 **Sign-in:** Supabase Auth is email-based; we keep it that way (bcrypt hashing
 and refresh-token rotation are handled by Supabase — never roll our own).
-`profiles.username` is **globally unique** (unique index), not per-school.
-Global uniqueness is what lets a bare username resolve to one account without
-asking which school it belongs to — and it trivially guarantees per-school
-uniqueness. Prefixing by tenant in seeds (`pilot-admin`, `oak-admin`) keeps
-human-friendly handles collision-free. The sign-in form accepts **email or
-username**; the server action treats any input without `@` as a username,
-resolves it against `profiles`, and calls the standard `signInWithPassword`
-with the real email.
+Username lives on **`school_members.username`** (unique **per school**, not a
+global `profiles.username`). Resolving a bare username therefore needs the
+school — from the workspace URL (`/{slug}/sign-in`) or the optional slug
+field on global `/sign-in`. The sign-in form accepts **email or username**;
+the server action treats any input without `@` as a username, looks up
+`school_members` for that school's slug (`is_active`, `archived_at IS NULL`),
+and calls the standard `signInWithPassword` with the member's email. Email
+never needs the school field.
 
-**Creation (never random):** both account-creation surfaces — invite
-acceptance (`/accept-invite/[token]`) and domain join (`/join-school`) —
-collect a username the **user picks**, prefilled with a deterministic
-suggestion derived from the email local part
+**Creation (never random):** office **Add member** (directory) and domain join
+(`/join-school`) collect a username. Add member is picked by the office;
+domain join is picked by the staff member. Prefill uses a deterministic
+suggestion from the email local part
 (`features/auth/lib/username.ts`, e.g. `vikram.s@pilot-school.edu` →
 `vikram.s`). No generated codes.
 
 **Availability check — one query:** the `UsernameField` component debounces
 400 ms after typing stops and calls `checkUsernameAction`, which runs a
-single `SELECT … WHERE username = $1 LIMIT 1` against the unique index and
+single `SELECT … WHERE username = $1` **scoped to the school slug** and
 renders ✓ (available) / ✗ (taken) inline. The same check runs server-side
 again at submit (before the Supabase account is created), and the
-`profiles_username_unique` index is the final race-safe backstop — a
-millisecond collision surfaces as a friendly "just taken" error. Note: the
-check endpoint can reveal which usernames exist (standard for public
-handles); rate-limiting is deferred to Phase 6 hardening.
+per-school unique index is the final race-safe backstop — a millisecond
+collision surfaces as a friendly "just taken" error. Note: the check
+endpoint can reveal which usernames exist in that school (standard for
+public handles).
 
 ## Seeded demo accounts (dev)
 
@@ -138,10 +180,17 @@ and 15 (Oakwood, `OAK-2024-###`) each with a primary guardian.
 ## Verification checklist
 
 - [x] Coordinator sees Team + directory; admin-only actions hidden and
-      server-blocked (cannot invite/activate admin roles)
+      server-blocked (cannot provision/activate admin roles)
 - [x] Coordinator deactivate on admin target → blocked (app + RLS)
 - [x] Deactivated member's next workspace request → 404
 - [x] Impersonation: banner, teacher nav while impersonated, audit rows,
       Exit restores admin
-- [x] Username and email sign-in both work
+- [x] Username and email sign-in both work (`/{slug}/sign-in` needs no slug
+      typed; global `/sign-in` still has the optional school field)
 - [x] Cross-tenant: pilot member opening `/oakwood-academy-bridge` → 404
+- [ ] Family match (headless): `pnpm --filter @repo/db test:family-match` — Pilot `EBS-2024-006`/`2013-06-06` hits; wrong DOB and Oakwood miss; family cookie does not satisfy staff context
+- [ ] Archive: admin archives a coordinator → archived screen, directory
+      badge, no reactivation; coordinator cannot archive or change roles
+      (apply `0008` then smoke)
+- [ ] One admin: provision/activate/role-change have no School admin option;
+      unique index rejects a second live `school_admin`

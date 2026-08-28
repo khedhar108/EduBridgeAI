@@ -72,6 +72,7 @@
     "radix-ui": "^1.5.0",
     "react-jsx-parser": "^2.4.1",
     "shiki": "^4.2.0",
+    "sonner": "catalog:",
     "streamdown": "^2.5.0",
     "tailwind-merge": "^3.6.0",
     "tailwindcss": "catalog:",

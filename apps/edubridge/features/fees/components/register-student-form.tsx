@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { Button } from "@repo/ui/components/button";
 import { Input } from "@repo/ui/components/input";
 import { Spinner } from "@repo/ui/components/spinner";
+import { useActionToast } from "@repo/ui/hooks/use-action-toast";
 import {
   registerStudentAction,
   type RegisterStudentState,
@@ -24,6 +25,7 @@ type Props = {
 export function RegisterStudentForm({ workspace, planVersions }: Props) {
   const bound = registerStudentAction.bind(null, workspace);
   const [state, formAction, pending] = useActionState(bound, initial);
+  useActionToast(state, "Student registered.");
 
   if (planVersions.length === 0) {
     return (
@@ -180,15 +182,6 @@ export function RegisterStudentForm({ workspace, planVersions }: Props) {
           />
         </div>
       </div>
-
-      {state.error ? (
-        <p className="text-sm text-destructive" role="alert">
-          {state.error}
-        </p>
-      ) : null}
-      {state.ok ? (
-        <p className="text-sm text-muted-foreground">Student registered.</p>
-      ) : null}
 
       <Button type="submit" className="h-11" disabled={pending}>
         {pending ? <Spinner className="size-4" /> : null}

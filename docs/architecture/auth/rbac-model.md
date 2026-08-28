@@ -50,7 +50,7 @@ flowchart TD
 | Role | Lives where | Can never |
 |------|-------------|-----------|
 | `platform_owner` | `platform_admins` (+ optional `app_metadata` cache), **never a `school_members` row** | Browse tenant data without a support grant; self-grant support; appear as a school member |
-| `school_admin` | `school_members` | Manage other schools; access platform console |
+| `school_admin` | `school_members` — **exactly one live (non-archived) row per school** | Manage other schools; access platform console |
 | `coordinator` | `school_members` | Grant admin/coordinator roles; impersonate; touch fees — delegated people-management only ([admin-controls.md](./admin-controls.md)) |
 | `accountant` | `school_members` | See fees outside their school; manage members |
 | `teacher` | `school_members` | Act outside assigned class-subjects; publish report cards |
@@ -58,7 +58,7 @@ flowchart TD
 | `student` | `school_members` | See anyone else's data |
 | `parent` | `school_members` | See children they aren't linked to; request shares to arbitrary numbers |
 
-Privileged actions (invite, activate, deactivate, impersonate, role change)
+Privileged actions (provision, password reset, activate, deactivate, impersonate, role change)
 route through the central capability map in
 `apps/edubridge/lib/auth/capabilities.ts` — see
 [admin-controls.md](./admin-controls.md) for the full matrix.
@@ -95,20 +95,28 @@ A parent with children in two schools, or a teacher who is also a parent, holds 
 ## Privileged-role hardening
 
 - `school_admin` and `platform_owner` are MFA (TOTP) eligible — enforced for owner in Phase 6, recommended for admins earlier.
-- Role changes (invite with role, promote, demote, remove) are admin-only mutations with audit rows (`created_by`/`updated_by` pattern).
-- Downgrade paths matter: removing a membership must immediately invalidate access — RLS reads live membership, so deletion takes effect on the next request with no session revocation needed.
+- Role changes (provision with role, promote, demote, archive) are admin-only
+  mutations with audit rows (`admin_audit_events`). Coordinators cannot
+  change roles or archive. `school_admin` is not a grantable role — the
+  workspace has one admin (unique index + refused on provision/activate/change-role).
+- Downgrade paths matter: archiving a membership must immediately invalidate
+  access — RLS reads live membership (`is_active` and `archived_at IS NULL`),
+  so the change takes effect on the next request with no session revocation.
+  There is no tenant `DELETE` on `school_members`.
 
 ## Membership grants (how roles are granted)
 
 Two paths. Both end in a `school_members` row created **server-side**. Role never
 comes from untrusted client input as the sole authority.
 
-### 1. Invite (any school role)
+### 1. Add member (office-set credentials)
 
-- `school_admin` creates an invitation (email + role) → single-use tokenized link
-  (expiry: 7 days) → invitee sets password → server creates `school_members`
-  from the invitation record. Coordinators may invite non-admin roles
-  ([admin-controls.md](./admin-controls.md)).
+- Coordinator or `school_admin` creates the account (name, email, username,
+  password, role) in the staff directory. `auth.admin.createUser` (service
+  role) plus `profiles` + `school_members`. Role cannot be `school_admin`.
+  Coordinators may add non-admin/non-coordinator roles
+  ([admin-controls.md](./admin-controls.md)). Password reset is the same
+  office path (`auth.admin.updateUserById`). There is no invite token.
 
 ### 2. Domain join → admin activate (teacher / staff)
 
@@ -120,14 +128,13 @@ When a school is registered with `official_email_domain` (e.g. `dps.edu.in`):
    `membership_requests` row. No workspace access yet (not in `school_members`).
 3. User lands on an “awaiting activation” screen.
 4. `school_admin` reviews the queue on the team dashboard, **activates** with an
-   explicit role (`teacher` | `staff` | optionally other school roles except
-   inventing `platform_owner`). That write creates `school_members`.
+   explicit role (`teacher` | `staff` | `accountant` | `coordinator` — never
+   `school_admin` or `platform_owner`). That write creates `school_members`.
 
 Domain match alone must **never** auto-grant `school_admin` or any active
-membership. **Students and parents do not use invite or domain join for mass
+membership. **Students and parents do not use Add member or domain join for mass
 access** — they use admission number + DOB on the family surface
-([family-access.md](./family-access.md)). Invite remains for staff (and rare
-edge cases only).
+([family-access.md](./family-access.md)). Add member is for staff only.
 
 Public registration that **creates a school** (Phase 6) always yields
 `school_admin` for the registrant — separate from domain join and family access.

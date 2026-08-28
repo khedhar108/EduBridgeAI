@@ -6,6 +6,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import { Input } from "@repo/ui/components/input";
 import { Spinner } from "@repo/ui/components/spinner";
+import { useActionToast } from "@repo/ui/hooks/use-action-toast";
 import { signInAction, type SignInState } from "../actions/sign-in";
 import {
   DEMO_PREFILL_EVENT,
@@ -17,6 +18,9 @@ const initial: SignInState = {};
 type Props = {
   surface: "school" | "platform";
   next?: string;
+  emailPrefill?: string;
+  /** When set (workspace sign-in), school comes from the URL — no slug field. */
+  workspace?: string;
 };
 
 const REMEMBER_KEY = "edubridge.remembered-creds";
@@ -73,9 +77,10 @@ function clearRemembered() {
   }
 }
 
-export function SignInForm({ surface, next }: Props) {
+export function SignInForm({ surface, next, emailPrefill, workspace }: Props) {
   const [state, formAction, pending] = useActionState(signInAction, initial);
-  const [email, setEmail] = useState("");
+  useActionToast(state);
+  const [email, setEmail] = useState(emailPrefill ?? "");
   const [schoolSlug, setSchoolSlug] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -86,7 +91,13 @@ export function SignInForm({ surface, next }: Props) {
   const autoSubmitRef = useRef(false);
 
   // Restore credentials (remembered > demo stash) and wire the demo event.
+  // Skip remember-me auto-login when the URL already named a different email
+  // so saved admin creds don't overwrite the named account.
   useEffect(() => {
+    if (emailPrefill) {
+      setEmail(emailPrefill);
+      return;
+    }
     const remembered = readRemembered();
     if (remembered) {
       setEmail(remembered.email);
@@ -112,7 +123,7 @@ export function SignInForm({ surface, next }: Props) {
     };
     window.addEventListener(DEMO_PREFILL_EVENT, onPrefill);
     return () => window.removeEventListener(DEMO_PREFILL_EVENT, onPrefill);
-  }, []);
+  }, [emailPrefill]);
 
   // Auto-submit once when credentials were restored from "remember me",
   // so returning users skip the manual sign-in.
@@ -157,8 +168,11 @@ export function SignInForm({ surface, next }: Props) {
     >
       <input type="hidden" name="surface" value={surface} />
       {next ? <input type="hidden" name="next" value={next} /> : null}
+      {workspace ? (
+        <input type="hidden" name="workspace" value={workspace} />
+      ) : null}
 
-      {surface === "school" ? (
+      {surface === "school" && !workspace ? (
         <div className="flex flex-col gap-2">
           <label htmlFor="schoolSlug" className="text-sm font-medium text-foreground">
             School
@@ -175,7 +189,8 @@ export function SignInForm({ surface, next }: Props) {
             onChange={(event) => setSchoolSlug(event.target.value)}
           />
           <p className="text-xs text-muted-foreground">
-            Required only when signing in with a username.
+            Required only when signing in with a username from a bookmark.
+            Email never needs it.
           </p>
         </div>
       ) : null}
@@ -244,9 +259,7 @@ export function SignInForm({ surface, next }: Props) {
       </label>
 
       {state.error ? (
-        <p className="text-sm text-destructive" role="alert">
-          {state.error}
-        </p>
+        <p className="text-sm text-destructive">{state.error}</p>
       ) : null}
 
       <Button type="submit" className="h-11" disabled={pending}>

@@ -9,10 +9,10 @@ apps/web/features/auth/
 ├── components/
 │   ├── sign-in-form.tsx          # email + password, plus "email me a code" option
 │   ├── otp-verify-form.tsx       # 6-digit OTP (email or phone)
-│   ├── accept-invite-form.tsx    # set name + password (or OTP) via invite token
-│   ├── invite-member-form.tsx    # admin: email + role -> send invitation
+│   ├── provision-member-form.tsx # office: name, email, username, password, role
+│   ├── reset-member-password-form.tsx
 │   ├── passkey-settings.tsx      # register/remove passkeys (post-MVP)
-│   ├── parent-sign-in-form.tsx   # admission no. + student DOB (family; Phase 1)
+│   ├── family-sign-in-form.tsx   # admission no. + student DOB (family door)
 │   ├── add-child-form.tsx        # parent wrapper: extra admission+DOB (Phase 1)
 │   └── user-menu.tsx             # profile, role badge, school switcher, sign out
 ├── actions/
@@ -20,16 +20,16 @@ apps/web/features/auth/
 │   ├── sign-in-otp.ts            # request email/phone OTP
 │   ├── verify-otp.ts             # verify OTP code
 │   ├── sign-out.ts
-│   ├── invite-member.ts          # school_admin only
-│   ├── accept-invite.ts          # creates school_members row server-side
+│   ├── provision-member.ts       # office creates auth user + membership
+│   ├── reset-member-password.ts  # office sets a new password
 │   ├── register-passkey.ts       # post-MVP
-│   └── parent-sign-in.ts         # resolve admission no. + DOB -> session (rate-limited)
+│   └── family-sign-in.ts         # admission + DOB → family cookie
 ├── queries/
 │   └── get-membership.ts         # bootstrap: user -> memberships (school switcher)
 ├── lib/
 │   ├── supabase-server.ts        # @supabase/ssr server client (cookies)
 │   ├── supabase-client.ts        # @supabase/ssr browser client
-│   ├── schemas.ts                # zod: email, phone, OTP, invite payloads
+│   ├── schemas.ts                # zod: email, phone, OTP, provision payloads
 │   └── redirects.ts              # role-aware post-login redirect logic
 ├── types.ts
 ├── index.ts                      # public surface
@@ -39,14 +39,22 @@ apps/web/features/auth/
 Route files stay thin and live outside the feature:
 
 ```
-apps/web/app/
+apps/edubridge/app/
 ├── (auth)/
-│   ├── sign-in/page.tsx          # renders <SignInForm/>
-│   ├── verify-otp/page.tsx       # renders <OtpVerifyForm/>
-│   └── accept-invite/[token]/page.tsx
+│   ├── sign-in/page.tsx          # global fallback; optional school slug for username
 ├── auth/callback/route.ts        # code exchange (magic link / OAuth) — REQUIRED
-└── [workspace]/settings/team/    # renders <InviteMemberForm/> (admin)
+├── [workspace]/
+│   ├── (public)/sign-in/page.tsx # staff door: username + password, school from URL
+│   ├── (public)/family/          # family door + hub ([family-surface.md](./family-surface.md))
+│   │   ├── page.tsx              # admission + DOB form (redirect home if cookie)
+│   │   └── (app)/                # home, fees, progress, exams, events
+│   ├── (staff)/layout.tsx        # getSessionContext + ShellLayout
+│   ├── (staff)/page.tsx
+│   └── (staff)/settings/team/    # pending domain-join queue
+└── platform/sign-in/page.tsx
 ```
+
+Workspace public doors (`/{slug}/sign-in`, `/{slug}/family`) sit **outside** the staff shell so they do not call `getSessionContext`. `proxy.ts` treats both as auth surfaces (no Supabase user required). Family cookie does not satisfy staff routes.
 
 ## Core patterns (from the nextjs-supabase-auth skill)
 
@@ -119,33 +127,40 @@ After any successful sign-in, `resolvePostLoginDestination()` (in `lib/redirects
 4. `platform_owner` claim present → offer console link (console itself re-verifies server-side).
 5. Zero memberships → "awaiting invitation" screen (a user without membership sees nothing tenant-related).
 
-## Middleware integration
+## Proxy integration
 
-`apps/web/middleware.ts` (root) handles two jobs in one pass:
+`apps/edubridge/proxy.ts` (Next 16; not deprecated `middleware.ts`) handles two
+jobs in one pass:
 
-1. **Session refresh** — `@supabase/ssr` cookie rotation on every request.
-2. **Route protection** — unauthenticated requests to `/[workspace]/*` redirect to `/sign-in?next=<path>`; authenticated requests to `/(auth)` pages redirect to their destination.
+1. **Session refresh** — `@supabase/ssr` cookie rotation on every request
+   (`getUser()`, never `getSession()`).
+2. **Route protection** — unauthenticated staff requests to `/{slug}` or
+   `/{slug}/…` redirect to **`/{slug}/sign-in?next=<path>`**, not global
+   `/sign-in`. `/{slug}/sign-in` and `/{slug}/family` (and nested family
+   paths) are auth surfaces: no Supabase user required. A family cookie
+   does not satisfy the staff branch.
 
-Tenant membership checks stay in `getSessionContext()` per request (middleware only knows the session, not the slug→school resolution).
+Tenant membership checks stay in `getSessionContext()` per request (proxy only
+knows the session, not the slug→school resolution). Global `/sign-in` remains
+the email + optional-slug fallback.
 
-## Invitation flow (role granting — detail)
+## Staff create flow (role granting — detail)
 
 ```mermaid
 sequenceDiagram
-    participant A as school_admin
+    participant A as school_admin_or_coordinator
     participant S as Server action
+    participant Auth as Supabase Auth Admin
     participant DB as Postgres
-    participant I as Invitee
-    A->>S: invite-member(email, role)
-    S->>S: assertRole(school_admin)
-    S->>DB: insert invitations (token, email, role, school_id, expires 7d, single-use)
-    S-->>I: email with /accept-invite/<token>
-    I->>S: accept-invite(token, name, password)
-    S->>DB: validate token (unused, unexpired)
-    S->>DB: create auth user + school_members(role FROM invitation)
-    Note over S,DB: role never comes from client input
-    S-->>I: redirect to workspace sign-in
+    A->>S: provision-member(name, email, username, password, role)
+    S->>S: assertCapability(members.provision, role)
+    S->>Auth: createUser email_confirm true
+    S->>DB: insert profiles + school_members + audit
+    Note over S,DB: role validated against provisionRoles, never school_admin
+    S-->>A: account live; office tells the person the password
 ```
+
+Password reset is the same office surface: `reset-member-password` → `updateUserById`.
 
 ## Passkey UI (post-MVP)
 
@@ -157,23 +172,28 @@ sequenceDiagram
 
 Canonical architecture: [family-access.md](./family-access.md). Parent app / PWA: [mobile-app.md](../mobile-app.md).
 
-**Parents and students** (option B) enter at `/[workspace]/family` with **student admission number + student date of birth** — no password, no OTP for mass users. Safe only because the session is **read-only and data-minimal**:
+**Parents and students** (option B) enter at `/[workspace]/family` with **student admission number + student date of birth** — no password, no OTP for mass users. Safe only because the session is **read-only and data-minimal**.
 
-- Server resolves admission + DOB to a `students` row, then issues a **family session cookie** (`viewer: student|parent`, `studentIds`, `activeStudentId`) — **not** thousands of Supabase password accounts.
-- Parents: after first child, **Add child** with another admission+DOB; child switcher; persist `parent_links` in Phase 1.
-- **Rate-limit hard** (per IP + per admission number), return a **generic** "details don't match" error, and log attempts.
-- Family routes never get staff write powers; RLS / claims are student-scoped.
+- Form: `FamilySignInForm` → `familySignInAction` → `matchStudentForFamily` → `setFamilySessionCookie`.
+- School from URL slug only; generic `"details don’t match"`; rate-limit IP + admission + slug.
+- Cookie module `lib/tenancy/family-session.ts`. **`getSessionContext` never reads it.**
+- After match: redirect to `/{slug}/family/home` hub ([family-surface.md](./family-surface.md)). Parent Add child + `parent_links.family_id` sibling group is Slice 2 (`0009` migrated).
+- Family routes never get staff write powers.
 - Escalation (optional later): phone OTP → bind a real `parent` `school_members` row (per-school opt-in).
 
-Staff invite / domain join stay on `/sign-in` and Team settings — do not route mass students through invites.
+Staff Add member / domain join stay on the directory and Team settings — do not route mass students through staff accounts (`provisionRoles` excludes `student`/`parent`).
 
 ## Testing checklist
 
 - [ ] Password sign-in/out, wrong-password error is generic
+- [ ] Workspace `/{slug}/sign-in`: username (no school field) → `signInWithPassword`
 - [ ] Email OTP request/verify happy path + expired code
 - [ ] Magic-link callback route exchanges code and redirects
-- [ ] Middleware: unauthenticated `/[workspace]/*` redirects; session persists across refresh
-- [ ] Invite: only `school_admin` can invite; token single-use; expired token rejected; membership created with invitation's role
+- [ ] Proxy: unauthenticated staff `/{slug}/*` redirects to `/{slug}/sign-in`; `/{slug}/family` stays public to Supabase
+- [x] `/{slug}/family`: EBS-2024-006 + 2013-06-06 matches and lands on `/family/home`; hub pages under `/family/*`; wrong DOB generic; cookie does not open Team/Fees
+- [ ] Parent Add child: EBS-2024-007 / 2012-07-07 after Reyansh; switcher; student viewer has no Add child
+- [ ] Add member: managers can provision; coordinator cannot create admin/coordinator; membership created with chosen role
+- [ ] Reset password: managers only; not self, not school_admin, not archived
 - [ ] Multi-school user sees switcher; each workspace evaluates role independently
 - [ ] All auth actions call `revalidatePath("/", "layout")`
 - [ ] `pnpm lint && pnpm check-types` green

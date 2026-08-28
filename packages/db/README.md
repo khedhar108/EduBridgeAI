@@ -42,7 +42,7 @@ Daily workflow (schema change → migration → seed → verify): [`docs/guides/
 
 ```bash
 pnpm --filter @repo/db check-types
-pnpm db:generate   # schema/*.ts → new SQL migration file
+pnpm db:generate   # schema/*.ts → new SQL + snapshot (then append RLS only)
 pnpm db:migrate    # apply pending migration files
 pnpm db:push       # scratch DBs only — skips migration history
 pnpm db:studio

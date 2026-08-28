@@ -63,3 +63,12 @@ One line.
 | 0015 | [Auth shell + feral-blob mascot](./0015-auth-shell-blob.md) | 2026-08-23 | Split-screen auth layout, form-reactive mascot, docs audit fixes |
 | 0016 | [RBAC dashboard + admin access controls](./0016-rbac-dashboard-admin-controls.md) | 2026-08-26 | coordinator role, capabilities, impersonation, member activation, username login, platform console, 2-school seed |
 | 0017 | [Global 404, error boundaries, and health checks](./0017-error-404-health-checks.md) | 2026-08-27 | Global 404 + animated screen, error boundaries, `lib/http.ts`, `/api/health`, dev `/status` dashboard |
+| 0018 | [Member archive + role change](./0018-member-archive.md) | 2026-08-28 | Terminal archive (no hard delete), admin archive/role-change, staff-directory controls |
+| 0019 | [Family proof (match + cookie)](./0019-family-proof.md) | 2026-08-28 | Headless admission+DOB match, HMAC family cookie, isolated from staff session |
+| 0020 | [Staff workspace sign-in](./0020-staff-workspace-signin.md) | 2026-08-28 | `/{slug}/sign-in` door; username from URL slug; proxy family paths public |
+| 0021 | [Family entry form](./0021-family-entry-form.md) | 2026-08-28 | `/{slug}/family` admission+DOB form; two-door docs |
+| 0022 | [Family home chrome](./0022-family-home-chrome.md) | 2026-08-28 | FamilyShell + `/{slug}/family/home`; cookie still not staff |
+| 0023 | [Family hub pages](./0023-family-hub-pages.md) | 2026-08-28 | Home hub + Fees/Progress/Exams/Events under `/family/*` |
+| 0024 | [Family parent wrapper](./0024-family-parent-wrapper.md) | 2026-08-28 | `parent_links` sibling group + Add child + switcher |
+| 0025 | [Office-created staff accounts](./0025-office-staff-accounts.md) | 2026-08-28 | Directory Add member + reset password; invite tokens removed |
+| 0026 | [School students dashboard](./0026-school-students.md) | 2026-08-28 | `0010` academic tables, `/students` attendance, family fills |

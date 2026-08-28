@@ -1,4 +1,4 @@
-import { and, eq, getDb, schools, schoolMembers, students, sql } from "@repo/db";
+import { and, eq, getDb, isNull, schools, schoolMembers, students, sql } from "@repo/db";
 
 export type SchoolOverview = {
   id: string;
@@ -29,7 +29,11 @@ export async function listSchoolsOverview(): Promise<SchoolOverview[]> {
         .select({ c: sql<number>`count(*)::int` })
         .from(schoolMembers)
         .where(
-          and(eq(schoolMembers.schoolId, s.id), eq(schoolMembers.isActive, true)),
+          and(
+            eq(schoolMembers.schoolId, s.id),
+            eq(schoolMembers.isActive, true),
+            isNull(schoolMembers.archivedAt),
+          ),
         );
 
       const [st] = await db

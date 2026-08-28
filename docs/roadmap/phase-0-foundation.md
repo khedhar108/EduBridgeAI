@@ -10,7 +10,7 @@
 | --------------------------- | --------------- | --------------------------------------------------------------------- |
 | **0.1** Schema + migration  | **Done**        | `0000`–`0006`; pilot + oakwood seed                                  |
 | **0.2** RLS baseline        | **Done**        | Isolation SQL ready; two-school data seeded; live isolation smoke pending final exit |
-| **0.3** Auth wiring         | **Done**        | All school roles login (incl. coordinator, accountant, staff); invite/domain e2e still open |
+| **0.3** Auth wiring         | **Done**        | All school roles login (incl. coordinator, accountant, staff); office-create / domain e2e still open |
 | **0.4** Unified shell       | **Done**        | Adaptive header shell; marketing motion + Dotmatrix install deferred    |
 | **0.5** Full seed + folders | **Done**        | 2 schools, 10 accounts, 65 students; parent/student auth accounts Phase 1 |
 
@@ -21,9 +21,9 @@
 - [x] Env: `DATABASE_URL` + `NEXT_PUBLIC_SUPABASE_*` in `apps/edubridge/.env.local`
 - [x] Core tables + RLS (`0000`); pilot school seed (`edubridge-pilot-bridge`, domain `pilot-school.edu`)
 - [x] Marketing home `/` + school `/sign-in` + platform `/platform/sign-in`
-- [x] **Invite path:** `invitations` (`0001`) + `/accept-invite/[token]` + team “Invite by email”
+- [x] **Office create path:** staff directory Add member (`provisionMemberAction`) + password reset
 - [x] **Domain join path:** `membership_requests` (`0002`) + `/join-school` + pending queue on team page
-- [x] Docs: invite vs domain join + test logins — [auth-local-vs-prod.md](../guides/auth-local-vs-prod.md)
+- [x] Docs: office create vs domain join + test logins — [auth-local-vs-prod.md](../guides/auth-local-vs-prod.md)
 - [x] Family access architecture documented (option B) — [family-access.md](../architecture/auth/family-access.md)
 - [x] Seeded Auth users for **every staff level** across **two schools** (password `TestLogin123!`, email or username sign-in):
   - [x] Pilot (`edubridge-pilot-bridge`): admin, coordinator, accountant, 3× teacher, staff
@@ -39,7 +39,7 @@
 
 **Next**
 
-- [ ] Smoke-test invite outsider + domain staff join → activate (paths exist; do later)
+- [ ] Smoke-test office Add member + domain staff join → activate (paths exist; do later)
 - [x] Shell chrome (0.4) — see sub-checklists below
 - [x] Full role seed + RLS two-school test data (RBAC dashboard branch: coordinator + admin access controls — see [admin-controls.md](../architecture/auth/admin-controls.md))
 - [ ] `pnpm lint` / `check-types` / `build` green at Phase 0 exit
@@ -48,15 +48,15 @@
 
 | Path | Who | What happens |
 |------|-----|----------------|
-| **Invite** | Anyone the admin picks (often Gmail / guest staff) | Admin creates a link with a **fixed role**. Person opens link, sets password → **active** membership immediately. |
+| **Add member** | Anyone the office picks (often Gmail / guest staff) | Coordinator or admin sets username, email, password, and a **fixed role**. Account is **active** immediately. |
 | **Domain join** | Teacher/staff whose email is on the school’s official domain (e.g. `@pilot-school.edu`) | They sign up at `/join-school` → **pending** until admin **Activate** on Team page. |
 
-**Parents and students** do **not** use invite/domain for mass access. They use **admission number + DOB** on `/[workspace]/family` — [family-access.md](../architecture/auth/family-access.md) (implement Phase 1).
+**Parents and students** do **not** use Add member / domain for mass access. They use **admission number + DOB** on `/[workspace]/family` — [family-access.md](../architecture/auth/family-access.md) (implement Phase 1).
 
 **Commands already run on dev (do not re-migrate `0000` unless schema changed):**
 
 ```bash
-pnpm db:migrate    # 0000–0004 core/invite/domain/fees + 0005/0006 admin access controls
+pnpm db:migrate    # 0000–0010 core/domain/fees/admin/archive/parent-links/academic; 0011 drops invitations
 pnpm seed:dev      # 2 schools (pilot + oakwood), 10 accounts, 65 students
 ```
 
@@ -77,7 +77,7 @@ A user can sign in, land in their school workspace under the unified header (log
 - Supabase project setup (auth + Postgres), environment wiring for `apps/edubridge` and `apps/agent`
 - Core schema: `schools`, `school_members`, `profiles`, role enum
 - RLS policies + helper functions for "current user's school and role"
-- Auth flows: sign in, sign out, invite-based sign up (admin invites members)
+- Auth flows: sign in, sign out, office-created staff accounts (Add member + reset password)
 - Unified shell layout: header, role-filtered application menu, module pill, search placeholder, profile menu
 - Feature-folder scaffolding in `apps/edubridge/features/`
 - Seed script for one pilot school with all six roles
@@ -106,7 +106,7 @@ A user can sign in, land in their school workspace under the unified header (log
 2. [x] **SaaS boundary docs** — [platform-boundaries.md](../architecture/platform-boundaries.md), [support-access.md](../architecture/support-access.md), [ADR-006](../decisions/ADR-006-workspace-subdomains.md) (architecture only; no Phase 6 code in Phase 0)
 3. [x] **`packages/db`** — Drizzle schema, `0000_phase0_core.sql`, RLS in SQL, `withTenant()`, dev `/db-check` probe
 4. [x] Auth SSR + tenant proxy basics in `apps/edubridge` (`proxy.ts`, `getSessionContext()`, school/platform sign-in, callback)
-5. [x] Invite flow (`invitations` + `/accept-invite/[token]` + `/[workspace]/settings/team`) — needs migrate `0001` + admin smoke test
+5. [x] Office create (`provisionMemberAction` + directory Add member) — invite tokens removed (`0011_drop-invitations`)
 6. [ ] Shell layout components in `apps/edubridge/features/shell/` (registry exists; Header/AppMenu not built)
 7. [x] Seed script (`pnpm seed:dev`) — **pilot school only**; full role seed in 0.5 after auth
 
@@ -140,12 +140,12 @@ A user can sign in, land in their school workspace under the unified header (log
 - [x] `apps/edubridge/lib/auth/` + `lib/tenancy/` — `getSessionContext()` returns `{ userId, schoolId, role }`; `assertRole()` guards actions (folder map: [platform-boundaries.md](../architecture/platform-boundaries.md))
 - [x] Routes: school `/sign-in`, platform `/platform/sign-in`, callback, choose-workspace, awaiting-invitation; marketing `/`
 - [x] Tenant gate: `/[workspace]/...` resolves slug → school; non-members get 404
-- [x] `withTenant()` used for invite create (other product modules still later phases)
-- [x] Invite flow: admin creates invitation → tokenized link → invitee sets password → `school_members` row created server-side
+- [x] `withTenant()` used for office provision / domain activate (other product modules still later phases)
+- [x] Office create: coordinator or admin sets credentials → `auth.admin.createUser` → `school_members` row created server-side
 - [x] Domain join: matching `official_email_domain` → pending request → admin activates with role from team dashboard (never auto-active)
 - [ ] Host rewrite later per ADR-006 — path-based now; keep rewrite-ready
 - [x] Smoke-test: teacher + school_admin + platform owner sign-in on EduDatabase (2026-08-08)
-- [ ] Smoke-test: invite outsider + domain staff activate (paths ready — do later)
+- [ ] Smoke-test: office Add member + domain staff activate (paths ready — do later)
 
 ### 0.4 Unified shell
 
@@ -233,7 +233,7 @@ New tables: `schools`, `profiles`, `school_members` (+ `invitations`). Everythin
 
 - [x] Sign in / sign out for the three seeded levels: teacher, school_admin, platform owner
 - [ ] Sign in for remaining school roles (staff, student, parent) when seeded
-- [ ] Invite flow end-to-end (admin invites outsider, invitee activates) — do later
+- [ ] Add member end-to-end (office creates outsider, they sign in) — do later
 - [ ] Domain join end-to-end (pending → admin activate) — do later
 - [ ] Cross-tenant read attempts blocked by RLS (automated test with two schools)
 - [ ] Menu shows correct items per role; direct URL access to a forbidden module returns 403/404

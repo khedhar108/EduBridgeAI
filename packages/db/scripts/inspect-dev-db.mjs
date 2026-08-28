@@ -30,8 +30,6 @@ try {
 
   const reqs = await sql`select status, count(*)::int as n from membership_requests group by status;`;
   console.log("\n== membership_requests ==", reqs);
-  const invs = await sql`select accepted_at is not null as accepted, count(*)::int as n from invitations group by 1;`;
-  console.log("\n== invitations ==", invs);
 } catch (e) {
   console.error("inspect failed:", e.message);
   process.exit(1);

@@ -84,9 +84,10 @@ Do not invent a second app. Thin routes and feature folders stay under `apps/edu
 
 | Feature folder | Responsibility |
 |----------------|----------------|
-| `auth/` | Identity UI/actions only |
-| `memberships/` | School invites + role management |
-| `shell/` | Workspace chrome + module registry |
+| `auth/` | Identity UI/actions only (staff sign-in, family cookie set/clear) |
+| `student-dashboard/` | **Family** dashboard (`/family/*`, one child) + **school** dashboard (`/students`, class filter) — [architecture.md](../features/student-dashboard/architecture.md) |
+| `memberships/` | School member + role management |
+| `shell/` | Workspace chrome + module registry (`modules` staff, `familyModules` family) |
 | `registration/` | School signup + provisioning (Phase 6) |
 | `billing/` | School-facing subscription/invoices (Phase 6) |
 | `platform-console/` | Owner aggregates only (Phase 6) |

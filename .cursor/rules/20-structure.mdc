@@ -18,8 +18,8 @@ Canonical blueprint: `docs/guides/feature-folder-structure.md`.
 
 ## Navigation
 
-- All navigation is defined in the shell module registry (`features/shell/modules.ts`): `{ id, title, href, icon, allowedRoles }`. Never hard-code nav links elsewhere.
-- Menu items for forbidden roles are filtered **server-side** — never sent to the client.
+- All navigation is defined in the shell module registry (`features/shell/modules.ts`): `{ id, title, href, icon, allowedRoles }`. Staff uses `modules`; family uses `familyModules` (cookie Path `/family`). Never hard-code nav links elsewhere.
+- Menu items for forbidden roles are filtered **server-side** — never sent to the client. Family chrome is `FamilyShell`, not staff `ShellLayout`.
 
 ## Boundaries
 

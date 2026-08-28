@@ -15,6 +15,7 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "seed:dev": "tsx --env-file=.env src/seed.ts",
+    "test:family-match": "tsx --env-file=.env scripts/test-family-match.ts",
     "clean": "rimraf dist .turbo node_modules"
   },
   "dependencies": {

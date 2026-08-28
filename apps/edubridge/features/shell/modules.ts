@@ -49,11 +49,60 @@ export const modules: ModuleNavItem[] = [
     allowedRoles: ["school_admin", "accountant"],
   },
   {
+    id: "students",
+    title: "Students",
+    href: "/students",
+    icon: "graduation-cap",
+    allowedRoles: ["school_admin", "teacher", "staff"],
+  },
+  {
     id: "team",
     title: "Team",
     href: "/settings/team",
     icon: "users",
     allowedRoles: ["school_admin", "coordinator"],
+  },
+];
+
+/**
+ * Family chrome only. Cookie Path is `/family` — these hrefs must stay under it.
+ * `allowedRoles` is documentary; FamilyShell already proved the cookie.
+ */
+export const familyModules: ModuleNavItem[] = [
+  {
+    id: "family-home",
+    title: "Home",
+    href: "/family/home",
+    icon: "home",
+    allowedRoles: ["student", "parent"],
+  },
+  {
+    id: "family-fees",
+    title: "Fees",
+    href: "/family/fees",
+    icon: "wallet",
+    allowedRoles: ["student", "parent"],
+  },
+  {
+    id: "family-progress",
+    title: "Progress",
+    href: "/family/progress",
+    icon: "chart",
+    allowedRoles: ["student", "parent"],
+  },
+  {
+    id: "family-exams",
+    title: "Exams",
+    href: "/family/exams",
+    icon: "book",
+    allowedRoles: ["student", "parent"],
+  },
+  {
+    id: "family-events",
+    title: "Events",
+    href: "/family/events",
+    icon: "calendar",
+    allowedRoles: ["student", "parent"],
   },
 ];
 

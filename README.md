@@ -132,6 +132,7 @@ edubridge/
 # Requires Node >=22.13.0 and pnpm 9.15+ (npm/yarn are blocked)
 pnpm install
 
+pnpm kill:dev            # stop leftover Next/Mastra/Studio (no PC reboot)
 pnpm dev                 # edubridge + Mastra agent + UI watchers
 pnpm dev:edubridge       # primary app only → http://localhost:3000
 pnpm dev:web             # Mastra demo       → http://localhost:3002
@@ -155,6 +156,7 @@ pnpm dev:all             # everything
 | `pnpm lint` / `lint:fix`                                                        | Lint monorepo                                                              |
 | `pnpm check-types`                                                              | TypeScript check                                                           |
 | `pnpm format` / `format:check`                                                  | Prettier                                                                   |
+| `pnpm kill:dev`                                                                 | Stop leftover local servers on :3000/:3001/:3002/:4111/:4983               |
 | `pnpm clean:cache`                                                              | Clear all dev caches (`.turbo`, `.next`, `.mastra`, `node_modules/.cache`) |
 | `pnpm clean:turbo`                                                              | Clear only Turborepo caches                                                |
 | `pnpm clean`                                                                    | Remove build artifacts + node_modules                                      |

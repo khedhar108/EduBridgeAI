@@ -13,7 +13,7 @@ import {
 type Status = "idle" | "checking" | "available" | "taken" | "invalid";
 
 type Props = {
-  /** Deterministic prefill (e.g. from the invited email) — applied until the user types. */
+  /** Deterministic prefill (e.g. from the email local part) — applied until the user types. */
   suggested?: string;
   /** School slug — username uniqueness is per-school. Empty = format-only check (e.g. domain-join, where uniqueness is deferred to activation). */
   schoolSlug?: string;
