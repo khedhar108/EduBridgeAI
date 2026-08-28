@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { and, eq, getDb, profiles, schoolMembers, schools } from "@repo/db";
 import { createServerSupabaseClient } from "@/lib/auth/supabase-server";
 import { resolvePostLoginDestination } from "../lib/redirects";
 import { signInSchema } from "../lib/schemas";
@@ -17,11 +18,44 @@ export async function signInAction(
     password: formData.get("password"),
   });
   if (!parsed.success) {
-    return { error: "Enter a valid email and password." };
+    return { error: "Enter your email or username and password." };
+  }
+
+  const identifier = parsed.data.email;
+  const schoolSlug = String(formData.get("schoolSlug") ?? "").trim().toLowerCase();
+  const isEmail = identifier.includes("@");
+  let signInEmail = identifier;
+
+  if (!isEmail) {
+    if (!schoolSlug) {
+      return { error: "Enter your school slug when signing in with a username." };
+    }
+    const db = getDb();
+    const rows = await db
+      .select({ email: profiles.email })
+      .from(schoolMembers)
+      .innerJoin(schools, eq(schoolMembers.schoolId, schools.id))
+      .innerJoin(profiles, eq(schoolMembers.userId, profiles.id))
+      .where(
+        and(
+          eq(schoolMembers.username, identifier.toLowerCase()),
+          eq(schools.slug, schoolSlug),
+          eq(schoolMembers.isActive, true),
+        ),
+      )
+      .limit(1);
+
+    if (!rows[0]?.email) {
+      return { error: "Invalid username or school." };
+    }
+    signInEmail = rows[0].email;
   }
 
   const supabase = await createServerSupabaseClient();
-  const { error } = await supabase.auth.signInWithPassword(parsed.data);
+  const { error } = await supabase.auth.signInWithPassword({
+    email: signInEmail,
+    password: parsed.data.password,
+  });
   if (error) {
     return { error: "Invalid email or password." };
   }

@@ -18,6 +18,7 @@
     "build:ui": "turbo run build --filter=@repo/ui",
     "db:generate": "pnpm --filter @repo/db db:generate",
     "db:migrate": "pnpm --filter @repo/db db:migrate",
+    "db:check": "pnpm --filter @repo/db db:check",
     "db:push": "pnpm --filter @repo/db db:push",
     "seed:dev": "pnpm --filter @repo/db seed:dev",
     "start:edubridge": "pnpm --filter edubridge start",
@@ -29,9 +30,11 @@
     "format": "prettier --write \"**/*.{ts,tsx,md,json,css,mjs}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,md,json,css,mjs}\"",
     "clean": "turbo run clean && rimraf node_modules",
-    "clean:cache": "rimraf .turbo apps/**/.turbo packages/**/.turbo apps/**/.next apps/**/.mastra node_modules/.cache",
+    "clean:cache": "rimraf .turbo && rimraf apps/edubridge/.next apps/web/.next apps/docs/.next apps/agent/.mastra packages/ui/dist node_modules/.cache",
     "clean:turbo": "rimraf .turbo && rimraf apps/**/.turbo && rimraf packages/**/.turbo",
-    "ui:add": "pnpm dlx shadcn@latest add -c ./packages/ui"
+    "ui:add": "pnpm dlx shadcn@latest add -c ./packages/ui",
+    "registry:add": "pnpm dlx shadcn@latest add -c ./apps/edubridge",
+    "canvas:preview": "node ./scripts/open-marketing-canvas.mjs"
   },
   "devDependencies": {
     "prettier": "^3.7.4",

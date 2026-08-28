@@ -5,6 +5,7 @@
   "globalEnv": [
     "DATABASE_URL",
     "MIGRATION_DATABASE_URL",
+    "IMPERSONATION_SECRET",
     "MASTRA_API_URL",
     "NODE_ENV"
   ],
@@ -15,7 +16,6 @@
       "outputs": [".next/**", "!.next/cache/**", "!.next/dev/**", "dist/**"]
     },
     "dev": {
-      "dependsOn": ["^build"],
       "cache": false,
       "persistent": true,
       "interruptible": true,

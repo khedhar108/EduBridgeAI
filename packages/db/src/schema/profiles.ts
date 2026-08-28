@@ -4,6 +4,7 @@ import {
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
   varchar,
 } from "drizzle-orm/pg-core";
@@ -19,6 +20,12 @@ export const profiles = pgTable(
   {
     id: uuid("id").primaryKey(),
     fullName: varchar("full_name", { length: 160 }).notNull(),
+    /**
+     * Denormalized from auth.users so member directories can render emails
+     * through Drizzle + RLS. Kept in sync at signup/invite/activate time;
+     * auth.users remains the identity source of truth.
+     */
+    email: varchar("email", { length: 320 }),
     phone: varchar("phone", { length: 32 }),
     avatarUrl: text("avatar_url"),
     createdAt: timestamp("created_at", {
@@ -43,6 +50,11 @@ export const profiles = pgTable(
       "profiles_phone_not_blank",
       sql`${table.phone} is null or length(btrim(${table.phone})) > 0`,
     ),
+    check(
+      "profiles_email_lowercase",
+      sql`${table.email} is null or ${table.email} = lower(${table.email})`,
+    ),
+    uniqueIndex("profiles_email_unique").on(table.email),
   ],
 );
 

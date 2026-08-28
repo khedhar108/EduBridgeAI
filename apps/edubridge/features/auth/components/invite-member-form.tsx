@@ -14,6 +14,7 @@ const initial: InviteMemberState = {};
 const roles = [
   { value: "teacher", label: "Teacher" },
   { value: "staff", label: "Staff" },
+  { value: "accountant", label: "Accountant" },
   { value: "school_admin", label: "School admin" },
   { value: "student", label: "Student" },
   { value: "parent", label: "Parent" },

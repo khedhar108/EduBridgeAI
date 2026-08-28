@@ -47,27 +47,44 @@ Rule: schema changes happen **only** by editing `packages/db/src/schema/*.ts`, t
 ## The daily commands (from repo root)
 
 ```bash
-# 1. Edit packages/db/src/schema/<table>.ts
+# 1. Edit packages/db/src/schema/<table>.ts  (schema is the source of truth)
 
-# 2. Generate migration (SQL written to packages/db/migrations/)
+# 2. Generate migration with a short kebab name
 pnpm db:generate -- --name=<short-change-name>
+# example: pnpm db:generate -- --name=add-fee-receipt-number
 
-# 3. Review the generated SQL. Append RLS/grants/Auth-FK SQL yourself —
-#    drizzle-kit does not generate those (see existing 0000_phase0_core.sql).
+# 3. Open the new packages/db/migrations/000N_<name>.sql
+#    - If it tries to CREATE tables/types that already exist → STOP. Do not migrate.
+#      That means the snapshot is behind; fix meta snapshots first.
+#    - Append RLS / grants yourself (drizzle-kit never writes those).
 
-# 4. Apply to the database your packages/db/.env points at
+# 4. Ask the user for explicit permission, then apply pending migrations
 pnpm db:migrate
 
-# 5. Dev seed (idempotent, blocked in production)
+# 5. Optional seed
 pnpm seed:dev
 
-# 6. Verify
-pnpm lint && pnpm check-types && pnpm build
+# 6. Verify DB state without generating or migrating
+pnpm db:check
+
+# 7. Verify app health
+pnpm lint
+pnpm check-types
+pnpm build
 ```
 
-Migration state lives in the database (`__drizzle_migrations` table). `db:migrate` applies only pending files, in order. There is no force-push — if a migration fails, fix the SQL in the file and re-run; the failed statement rolls back, nothing half-applies.
+### Safety rules (so partial / duplicate migrations do not happen)
 
-`pnpm db:push` exists (drizzle-kit push) for throwaway scratch databases only. Never on a shared or production database — it skips migration files, so history is lost.
+1. **Never hand-write table DDL** into `migrations/`. Always `db:generate`, then edit the generated file (RLS only).
+2. **Never `db:migrate` a file that recreates existing objects.** Review the SQL first.
+3. Prefer `MIGRATION_DATABASE_URL` on the **session pooler `:5432`** for migrate/generate. Transaction pooler `:6543` can leave half-applied DDL when a statement fails.
+4. **Always ask the user before running `pnpm db:migrate`.**
+5. Run `pnpm db:check` for a read-only answer. It checks current schema against the snapshot in a temporary folder and local migration hashes against `drizzle.__drizzle_migrations`.
+6. If `pnpm db:check` says healthy, do not run generate or migrate.
+7. Do **not** use `pnpm db:push` on shared/dev Supabase — it skips migration history.
+
+Migration state lives in the database (`drizzle.__drizzle_migrations`). `db:migrate` applies only pending files, in order.
+
 
 ## NOT NULL on an existing table (the Prisma pain point)
 

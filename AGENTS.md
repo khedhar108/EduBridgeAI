@@ -19,19 +19,21 @@ Portable rules for AI coding agents (Cursor, Claude Code, Codex, Copilot, etc.).
 9. **UI is light-only premium.** Visual system lives in `docs/design/MASTER.md` — no product dark-mode toggle; semantic tokens only; Aceternity for marketing only; AI surfaces via `@repo/ai-ui` + CopilotKit slots. Cursor mirror: `.cursor/rules/40-ui-design.mdc`.
 10. **Primary app:** `apps/edubridge` (port 3000). `apps/web` is Mastra starter/demo (port 3002) — see ADR-005.
 11. **Git:** Conventional Commits (terse); branches `feature/*` → `development` (staging) → `main` (production). Never push features straight to `main`. Full guide: `docs/guides/git-and-release-strategy.md`. Cursor mirror: `.cursor/rules/50-git-workflow.mdc`. Skill: `.agents/skills/edubridge-git/`.
-12. **Build log:** After milestones, append `docs/build-log/NNNN-*.md` and update its index (`.cursor/rules/50-build-log.mdc`).
+12. **Build log:** After milestones, append `docs/build-log/NNNN-*.md` and update its index (`docs/build-log/README.md`).
+13. **Database migrations:** Edit only `packages/db/src/schema/*.ts`, then run `pnpm db:generate -- --name=<short-kebab-name>`. Never create migration SQL or metadata manually; generated SQL may only be extended for reviewed RLS/grants/auth FKs/data migration needs. Always ask the user before `pnpm db:migrate`. `pnpm db:check` is the read-only health check.
+14. **Third-party component code is vendored, never depended on.** Components from open-source registries (threeui, 21st.dev, Aceternity, canvas-ui, …) are copied in via the shadcn CLI (`pnpm registry:add`, lands in `apps/edubridge/components/registry/`) and must pass the audit gate first — no runtime npm deps on niche animation libraries (approved: `framer-motion`/`motion`/`three`). Gate + inventory: `docs/guides/third-party-components.md`. Cursor mirror: `.cursor/rules/40-ui-design.mdc`. Skill: `.agents/skills/registry-components/`.
 
 ## Where to look (reading order)
 
 1. This file → rules.
 2. `docs/roadmap/README.md` → active phase + cross-phase standards.
 3. Active phase file → scope.
-4. Task doc (one only, matching the task): `docs/architecture/data-access.md` (DB/tenancy), `docs/architecture/auth/` (sign-in/roles), `docs/architecture/agent-ecosystem.md` (AI agents/memory), `docs/architecture/mobile-app.md` (PWA/parent app), `docs/guides/feature-folder-structure.md` (modules), `docs/design/MASTER.md` (UI/visual system), `TAILWIND_SHADCN_GUIDE.md` (Tailwind/ShadCN CSS architecture).
+4. Task doc (one only, matching the task): `docs/architecture/data-access.md` (DB/tenancy), `docs/architecture/auth/` (sign-in/roles), `docs/architecture/agent-ecosystem.md` (AI agents/memory), `docs/architecture/mobile-app.md` (PWA/parent app), `docs/guides/feature-folder-structure.md` (modules), `docs/design/MASTER.md` (UI/visual system), `docs/guides/third-party-components.md` (registry/vendored components), `TAILWIND_SHADCN_GUIDE.md` (Tailwind/ShadCN CSS architecture).
 5. `docs/agents/README.md` → extended guidance, key facts, context strategy.
 
 ## Skills
 
-Deep, task-specific knowledge lives in `.agents/skills/` (mastra, shadcn, supabase-postgres-best-practices, ui-ux, edubridge-git, caveman-commit, etc.) — load the matching skill when the task touches that domain instead of guessing.
+Deep, task-specific knowledge lives in `.agents/skills/` (mastra, shadcn, registry-components, supabase-postgres-best-practices, ui-ux-pro-max, edubridge-git, caveman-commit, erp-landscape — competitor/market strategy reference for Fedena, Entab, PowerSchool, MyClassCampus + India school ERP context, etc.) — load the matching skill when the task touches that domain instead of guessing.
 
 ## Verification
 

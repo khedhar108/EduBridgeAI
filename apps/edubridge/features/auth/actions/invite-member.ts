@@ -11,9 +11,9 @@ import {
   type SchoolRole,
 } from "@repo/db";
 import {
-  assertRole,
   getSessionContext,
 } from "@/lib/tenancy/session-context";
+import { assertCapability } from "@/lib/auth/capabilities";
 import { inviteMemberSchema } from "../lib/schemas";
 
 export type InviteMemberState = {
@@ -32,7 +32,6 @@ export async function inviteMemberAction(
   if (!ctx) {
     return { error: "You must be signed in to this workspace." };
   }
-  assertRole(ctx, ["school_admin"]);
 
   const parsed = inviteMemberSchema.safeParse({
     email: formData.get("email"),
@@ -44,6 +43,12 @@ export async function inviteMemberAction(
 
   const email = parsed.data.email.toLowerCase();
   const role = parsed.data.role as SchoolRole;
+
+  try {
+    assertCapability(ctx, "members.invite", role);
+  } catch {
+    return { error: "You can only invite non-admin roles." };
+  }
   const token = randomBytes(32).toString("hex");
   const expiresAt = new Date(Date.now() + INVITE_TTL_MS);
 

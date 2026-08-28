@@ -22,6 +22,16 @@ const fraunces = Fraunces({
 export const metadata: Metadata = {
   title: "EduBridge",
   description: "Multi-tenant school platform",
+  icons: {
+    icon: [
+      { url: "/brand/logo-mark-drop.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/brand/logo-mark-drop.svg",
+    apple: "/brand/logo-mark-drop.svg",
+  },
+  openGraph: {
+    images: [{ url: "/brand/logo-mark-drop.svg", width: 200, height: 200, alt: "EduBridge" }],
+  },
 };
 
 export default function RootLayout({
@@ -32,6 +42,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
+        suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} font-sans antialiased`}
       >
         <Providers>{children}</Providers>

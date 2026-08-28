@@ -56,3 +56,10 @@ One line.
 | 0008 | [Domain join pending](./0008-domain-join-pending.md)            | 2026-08-08 | School-domain pending queue; admin activate on team dashboard       |
 | 0009 | [Multi-role test users](./0009-multi-role-test-users.md)        | 2026-08-08 | Seeded admin/teacher/owner logins; how to start multi-role testing  |
 | 0010 | [Git bootstrap first push](./0010-git-bootstrap-first-push.md)  | 2026-08-08 | First commit; `main` + `development` on GitHub; git workflow docs     |
+| 0011 | [Workspace shell chrome](./0011-shell-chrome.md)                | 2026-08-08 | Phase 0.4 docs, skills, adaptive header shell on workspace routes       |
+| 0012 | [Canvas UI particle + 3D object](./0012-canvas-ui-particle-object.md) | 2026-08-09 | Particle-scroll page shell + ParticleObject brand mark on `/` |
+| 0013 | [Accountant + fee ledger](./0013-accountant-fee-ledger.md) | 2026-08-11 | `accountant` role, versioned fees, register/collect/audit UI |
+| 0014 | [Phase 0 exit](./0014-phase0-exit.md) | 2026-08-15 | `db:rls-test` runner green, ADR-007 recorded, second school seeded |
+| 0015 | [Auth shell + feral-blob mascot](./0015-auth-shell-blob.md) | 2026-08-23 | Split-screen auth layout, form-reactive mascot, docs audit fixes |
+| 0016 | [RBAC dashboard + admin access controls](./0016-rbac-dashboard-admin-controls.md) | 2026-08-26 | coordinator role, capabilities, impersonation, member activation, username login, platform console, 2-school seed |
+| 0017 | [Global 404, error boundaries, and health checks](./0017-error-404-health-checks.md) | 2026-08-27 | Global 404 + animated screen, error boundaries, `lib/http.ts`, `/api/health`, dev `/status` dashboard |

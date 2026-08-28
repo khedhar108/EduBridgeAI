@@ -27,7 +27,8 @@ At the pilot school: a teacher records attendance and marks for their class in u
 - AI summaries, WhatsApp sharing → Phase 2 (but see "share request" note below)
 - Report card generation → Phase 3 (marks recorded here feed it)
 - Bulk CSV import of students (nice-to-have; only if pilot school demands it)
-- Timetables / homework digest → [Phase 5 — Timetable Maker](./phase-5-timetable-maker.md); fees still later
+- Timetables / homework digest → [Phase 5 — Timetable Maker](./phase-5-timetable-maker.md)
+- Full Fees & Spending analytics / online payments → later; early versioned fee ledger + direct registration lives in [`features/fees`](../../apps/edubridge/features/fees/) (admin + accountant)
 
 ## Prerequisites
 

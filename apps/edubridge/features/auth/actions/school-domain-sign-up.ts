@@ -14,7 +14,9 @@ export type SchoolDomainSignUpState = { error?: string };
 
 /**
  * Sign up with a school-domain email → pending membership_requests.
- * Does not create school_members until admin activates.
+ * Does not create school_members until admin activates. Username is stored
+ * on the pending request and copied to school_members on activation — the
+ * per-school uniqueness is enforced at that point, not here.
  */
 export async function schoolDomainSignUpAction(
   _prev: SchoolDomainSignUpState,
@@ -24,9 +26,10 @@ export async function schoolDomainSignUpAction(
     email: formData.get("email"),
     password: formData.get("password"),
     fullName: formData.get("fullName"),
+    username: formData.get("username"),
   });
   if (!parsed.success) {
-    return { error: "Enter your school email, name, and a password (8+ chars)." };
+    return { error: "Enter your school email, name, a username, and a password (8+ chars)." };
   }
 
   const email = parsed.data.email.toLowerCase();
@@ -37,6 +40,8 @@ export async function schoolDomainSignUpAction(
         "Use your official school email (not Gmail/Yahoo/etc.), or ask for an invite link.",
     };
   }
+
+  // Username uniqueness is checked at activation time (per-school), not here.
 
   const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase.auth.signUp({
@@ -55,6 +60,7 @@ export async function schoolDomainSignUpAction(
     userId: data.user.id,
     email,
     fullName: parsed.data.fullName,
+    username: parsed.data.username,
   });
 
   if (!join) {

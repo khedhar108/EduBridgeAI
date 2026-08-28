@@ -29,4 +29,4 @@ Start at [docs/README.md](../README.md) for the full documentation index.
 
 - UI components: [TAILWIND_SHADCN_GUIDE.md](../../TAILWIND_SHADCN_GUIDE.md)
 - AI integration: [architecture/ai-platform.md](../architecture/ai-platform.md)
-- First AI feature: [features/customer-feedback-summarization](../features/customer-feedback-summarization/README.md)
+- First AI feature: [features/mastra-integration-via-customer-feedback-summarization-template](../features/mastra-integration-via-customer-feedback-summarization-template/README.md)

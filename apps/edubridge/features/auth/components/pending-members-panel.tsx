@@ -78,6 +78,7 @@ function PendingRow({
           >
             <option value="teacher">Teacher</option>
             <option value="staff">Staff</option>
+            <option value="accountant">Accountant</option>
             <option value="school_admin">School admin</option>
           </select>
         </div>

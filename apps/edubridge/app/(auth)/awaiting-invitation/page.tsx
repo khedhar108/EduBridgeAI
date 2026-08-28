@@ -4,7 +4,7 @@ import { Button } from "@repo/ui/components/button";
 import { requireUser } from "@/lib/auth/get-user";
 import { listPendingRequestsForUser } from "@/lib/tenancy/domain-join";
 import { listMembershipsForUser } from "@/lib/tenancy/session-context";
-import { signOutAction } from "@/features/auth";
+import { AuthHeader, signOutAction } from "@/features/auth";
 
 export default async function AwaitingInvitationPage() {
   const user = await requireUser();
@@ -21,11 +21,10 @@ export default async function AwaitingInvitationPage() {
   const pending = await listPendingRequestsForUser(user.id);
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center gap-6 px-4">
-      <h1 className="text-2xl font-semibold tracking-tight">
-        {pending.length > 0 ? "Awaiting activation" : "Awaiting invitation"}
-      </h1>
-
+    <>
+      <AuthHeader
+        title={pending.length > 0 ? "Awaiting activation" : "Awaiting invitation"}
+      />
       {pending.length > 0 ? (
         <div className="flex flex-col gap-3 text-sm leading-relaxed text-muted-foreground">
           <p>
@@ -37,7 +36,7 @@ export default async function AwaitingInvitationPage() {
           </p>
           <p>
             A school admin must activate you from the team dashboard before you
-            can open the workspace. Role is assigned when they activate — not
+            can open the workspace. Role is assigned when they activate, not
             when you sign up.
           </p>
         </div>
@@ -62,6 +61,6 @@ export default async function AwaitingInvitationPage() {
           </Button>
         </form>
       </div>
-    </main>
+    </>
   );
 }

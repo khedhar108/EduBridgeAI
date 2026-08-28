@@ -5,4 +5,7 @@ export * from "./profiles";
 export * from "./school-members";
 export * from "./invitations";
 export * from "./membership-requests";
+export * from "./students";
+export * from "./fees";
+export * from "./admin-audit";
 export * from "./relations";

@@ -35,6 +35,11 @@ export const membershipRequests = pgTable(
       .notNull()
       .references(() => profiles.id, { onDelete: "cascade" }),
     email: varchar("email", { length: 320 }).notNull(),
+    /**
+     * Requested per-school username. Copied to school_members on activation;
+     * uniqueness is enforced there, not on this pending queue.
+     */
+    username: varchar("username", { length: 32 }),
     status: membershipRequestStatus("status").notNull().default("pending"),
     /** Set when approved — mirrors school_members.role; never platform_owner. */
     activatedRole: appRole("activated_role"),
@@ -67,6 +72,9 @@ export const membershipRequests = pgTable(
       table.status,
     ),
     index("membership_requests_user_id_idx").on(table.userId),
+    uniqueIndex("membership_requests_school_username_unique")
+      .on(table.schoolId, table.username)
+      .where(sql`${table.username} is not null`),
     check(
       "membership_requests_email_lowercase",
       sql`${table.email} = lower(${table.email})`,

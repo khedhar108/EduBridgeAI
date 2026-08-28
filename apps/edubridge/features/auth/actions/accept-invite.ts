@@ -13,6 +13,7 @@ import {
   schools,
 } from "@repo/db";
 import { createServerSupabaseClient } from "@/lib/auth/supabase-server";
+import { checkUsernameAction } from "./check-username";
 import { acceptInviteSchema } from "../lib/schemas";
 
 export type AcceptInviteState = { error?: string };
@@ -28,11 +29,14 @@ export async function acceptInviteAction(
 ): Promise<AcceptInviteState> {
   const parsed = acceptInviteSchema.safeParse({
     fullName: formData.get("fullName"),
+    username: formData.get("username"),
     password: formData.get("password"),
   });
   if (!parsed.success) {
-    return { error: "Enter your name and a password (at least 8 characters)." };
+    return { error: "Enter your name, a username, and a password (at least 8 characters)." };
   }
+
+  const username = parsed.data.username;
 
   const db = getDb();
   const rows = await db
@@ -61,6 +65,12 @@ export async function acceptInviteAction(
     return { error: "Invalid invitation." };
   }
 
+  // Per-school availability check (single query, before account creation).
+  const usernameCheck = await checkUsernameAction(username, invite.schoolSlug);
+  if (!usernameCheck.available) {
+    return { error: usernameCheck.reason ?? "That username is taken — pick another." };
+  }
+
   const supabase = await createServerSupabaseClient();
   const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
     email: invite.email,
@@ -84,11 +94,13 @@ export async function acceptInviteAction(
       await tx.insert(profiles).values({
         id: userId,
         fullName: parsed.data.fullName.trim(),
+        email: invite.email,
       });
       await tx.insert(schoolMembers).values({
         schoolId: invite.schoolId,
         userId,
         role: invite.role,
+        username,
       });
       await tx
         .update(invitations)
@@ -96,6 +108,14 @@ export async function acceptInviteAction(
         .where(eq(invitations.id, invite.id));
     });
   } catch (err) {
+    if (
+      err instanceof Error &&
+      err.message.includes("school_members_school_username_unique")
+    ) {
+      return {
+        error: "That username was just taken — pick another one.",
+      };
+    }
     console.error("acceptInviteAction membership write failed", err);
     return {
       error:

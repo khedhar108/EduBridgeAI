@@ -83,10 +83,10 @@ See [Mastra monorepo troubleshooting](https://mastra.ai/docs/deployment/monorepo
 - **AI SDK UI** — streaming chat via `@mastra/ai-sdk` in Next.js API routes
 - **CopilotKit / Assistant UI** — agentic UI components
 
-Feature-specific UI flows are documented in [features/customer-feedback-summarization](../features/customer-feedback-summarization/README.md).
+Feature-specific UI flows are documented in [features/mastra-integration-via-customer-feedback-summarization-template](../features/mastra-integration-via-customer-feedback-summarization-template/README.md).
 
 ## References
 
 - [Mastra Client SDK](https://mastra.ai/docs/server/mastra-client)
 - [AI SDK UI guide](https://mastra.ai/guides/build-your-ui/ai-sdk-ui)
-- [Implementation plan](../features/customer-feedback-summarization/implementation-plan.md)
+- [Implementation plan](../features/mastra-integration-via-customer-feedback-summarization-template/implementation-plan.md)

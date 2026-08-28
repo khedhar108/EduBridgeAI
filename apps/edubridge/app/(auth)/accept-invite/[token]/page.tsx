@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { and, eq, getDb, invitations, isNull, schools } from "@repo/db";
-import { AcceptInviteForm } from "@/features/auth";
+import { AcceptInviteForm, AuthHeader } from "@/features/auth";
 
 type Props = {
   params: Promise<{ token: string }>;
@@ -19,6 +19,7 @@ export default async function AcceptInvitePage({ params }: Props) {
       role: invitations.role,
       expiresAt: invitations.expiresAt,
       schoolName: schools.name,
+      schoolSlug: schools.slug,
     })
     .from(invitations)
     .innerJoin(schools, eq(invitations.schoolId, schools.id))
@@ -38,15 +39,13 @@ export default async function AcceptInvitePage({ params }: Props) {
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-8 px-4 py-16">
-      <div className="flex flex-col gap-2">
-        <p className="font-serif text-3xl tracking-tight">EduBridge</p>
-        <h1 className="text-xl font-semibold">Accept invitation</h1>
-      </div>
+    <>
+      <AuthHeader title="Accept invitation" />
       <AcceptInviteForm
         token={token}
         email={invite.email}
         schoolName={invite.schoolName}
+        schoolSlug={invite.schoolSlug}
         role={invite.role}
       />
       <p className="text-center text-sm text-muted-foreground">
@@ -58,14 +57,14 @@ export default async function AcceptInvitePage({ params }: Props) {
           Sign in
         </Link>
       </p>
-    </main>
+    </>
   );
 }
 
 function InviteError({ message }: { message: string }) {
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-4 px-4 py-16">
-      <p className="font-serif text-3xl tracking-tight">EduBridge</p>
+    <>
+      <AuthHeader title="Invitation problem" />
       <p className="text-sm text-destructive" role="alert">
         {message}
       </p>
@@ -75,6 +74,6 @@ function InviteError({ message }: { message: string }) {
       >
         Back to sign-in
       </Link>
-    </main>
+    </>
   );
 }

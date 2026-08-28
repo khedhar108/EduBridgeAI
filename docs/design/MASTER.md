@@ -61,6 +61,8 @@ When tokens are retuned from the starter neutral palette:
 - One **teal or ink accent** for primary actions and AI “alive” affordances — not rainbow accents
 - Success / warn / danger stay semantic and accessible (≥4.5:1 on text, ≥3:1 for large UI glyphs)
 - Color means **status or brand**, never decoration
+- **Marketing module/bento cards are the one exception:** they may use a curated six-hue pastel family (mint, sky, amber, rose, violet, stone) as **surface tints** — light-theme only, one hue per module, with a deep hue-matched ink for title/icon so text stays ≥4.5:1. This is wayfinding colour across modules, **not a second brand accent**; product chrome stays single-accent. Tints live inline in `features/marketing` (arbitrary oklch, same precedent as the hero radial washes) — do **not** add them to `:root` tokens.
+- **Auth surfaces are the one product-side gradient exception:** sign-in/join screens (`features/auth`) use a centered two-part card over a drifting mesh gradient (`MeshGradient`, token-derived `--accent`/`--primary`/`--ring`/`--chart-2`), with an animated gradient bar on the card top. Motion lives in `app/globals.css` and honors `prefers-reduced-motion`. Gradients never appear inside the tenant workspace.
 
 Marketing and app **share the same `:root`**. Do not fork a second palette for landing.
 
@@ -103,11 +105,13 @@ Every workspace page shares one header (product vision):
 ```
 
 - **Application Menu** — role-filtered modules (never show forbidden items to the client)
-- **Active module pill** — current module; click returns to module home
+- **Active module pill** — non-interactive indicator of the current module (`aria-current="page"`); module switching happens via the Application Menu
 - **Search** — module-scoped first, then workspace
 - **Profile** — account, role badge, school switcher, sign out
 
 Homepage under the header: role-relevant module entry points. Modules are feature folders; they inherit shell + tokens — they do not invent nav or themes.
+
+**Layout architecture:** Phase 0.4 ships a **top header only** (no permanent left sidebar). Module-local sidebars and the right AI dock are phased — see [shell-layout.md](./shell-layout.md).
 
 Density:
 

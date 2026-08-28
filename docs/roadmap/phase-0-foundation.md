@@ -4,15 +4,15 @@
 
 ## Progress tracker (agents: do not redo checked items)
 
-**Last verified:** 2026-08-08 — live smoke: **teacher**, **school_admin**, and **platform owner** sign-in work on localhost against EduDatabase. Invite/domain activate and full shell still open.
+**Last verified:** 2026-08-26 — RBAC dashboard branch: coordinator role, member activate/deactivate, admin login-as (impersonation), username sign-in, two-school seed (10 accounts + 65 students), platform console aggregates. Earlier: teacher/school_admin/platform-owner sign-in on localhost.
 
 | Block                       | Status          | Notes                                                                 |
 | --------------------------- | --------------- | --------------------------------------------------------------------- |
-| **0.1** Schema + migration  | **Done**        | `0000_phase0_core.sql` + pilot seed                                   |
-| **0.2** RLS baseline        | **Done**        | Isolation SQL ready; two-school live test deferred to 0.5             |
-| **0.3** Auth wiring         | **Partial**     | Three-role login verified; invite/domain e2e + family UI still open   |
-| **0.4** Unified shell       | **Not started** | Minimal header only; Header/AppMenu chrome pending                    |
-| **0.5** Full seed + folders | **Partial**     | Pilot school + 3 Auth users; not all six roles                        |
+| **0.1** Schema + migration  | **Done**        | `0000`–`0006`; pilot + oakwood seed                                  |
+| **0.2** RLS baseline        | **Done**        | Isolation SQL ready; two-school data seeded; live isolation smoke pending final exit |
+| **0.3** Auth wiring         | **Done**        | All school roles login (incl. coordinator, accountant, staff); invite/domain e2e still open |
+| **0.4** Unified shell       | **Done**        | Adaptive header shell; marketing motion + Dotmatrix install deferred    |
+| **0.5** Full seed + folders | **Done**        | 2 schools, 10 accounts, 65 students; parent/student auth accounts Phase 1 |
 
 ### Done vs next (checkboxes)
 
@@ -25,22 +25,23 @@
 - [x] **Domain join path:** `membership_requests` (`0002`) + `/join-school` + pending queue on team page
 - [x] Docs: invite vs domain join + test logins — [auth-local-vs-prod.md](../guides/auth-local-vs-prod.md)
 - [x] Family access architecture documented (option B) — [family-access.md](../architecture/auth/family-access.md)
-- [x] Seeded Auth users for the **three testable levels** (password `TestLogin123!`):
-  - [x] Teacher → `/sign-in` as `teacher@pilot-school.edu` → `/edubridge-pilot-bridge`
-  - [x] School admin → `/sign-in` as `admin@pilot-school.edu` → `/edubridge-pilot-bridge`
-  - [x] Platform owner → `/platform/sign-in` as `owner@edubridge.app` → `/platform`
+- [x] Seeded Auth users for **every staff level** across **two schools** (password `TestLogin123!`, email or username sign-in):
+  - [x] Pilot (`edubridge-pilot-bridge`): admin, coordinator, accountant, 3× teacher, staff
+  - [x] Oakwood (`oakwood-academy-bridge`): admin, teacher
+  - [x] Platform owner → `/platform/sign-in` as `owner@edubridge.app` / `platform-owner` → `/platform`
+  - [x] 50 pilot + 15 oakwood students with guardians (admin dashboard + platform counts)
+  - Full table: [auth-local-vs-prod.md](../guides/auth-local-vs-prod.md)
 
 **Not testable yet (by design / later phase)**
 
-- [ ] Staff / more school roles beyond teacher+admin seed
 - [ ] Family (parent/student admission + DOB) — Phase 1
 - [ ] Brand-new school self-registration — Phase 6
 
 **Next**
 
 - [ ] Smoke-test invite outsider + domain staff join → activate (paths exist; do later)
-- [ ] Shell chrome (0.4)
-- [ ] Full role seed + RLS two-school test
+- [x] Shell chrome (0.4) — see sub-checklists below
+- [x] Full role seed + RLS two-school test data (RBAC dashboard branch: coordinator + admin access controls — see [admin-controls.md](../architecture/auth/admin-controls.md))
 - [ ] `pnpm lint` / `check-types` / `build` green at Phase 0 exit
 
 ### Two ways people join a school (plain English) — staff
@@ -55,8 +56,8 @@
 **Commands already run on dev (do not re-migrate `0000` unless schema changed):**
 
 ```bash
-pnpm db:migrate    # 0000 + 0001 invitations + 0002 membership_requests
-pnpm seed:dev      # EduBridge Pilot School
+pnpm db:migrate    # 0000–0004 core/invite/domain/fees + 0005/0006 admin access controls
+pnpm seed:dev      # 2 schools (pilot + oakwood), 10 accounts, 65 students
 ```
 
 **Docs for DB workflow:** [`docs/guides/database-workflow.md`](../guides/database-workflow.md)
@@ -147,6 +148,55 @@ A user can sign in, land in their school workspace under the unified header (log
 - [ ] Smoke-test: invite outsider + domain staff activate (paths ready — do later)
 
 ### 0.4 Unified shell
+
+Architecture: [shell-layout.md](../design/shell-layout.md), [loaders.md](../design/loaders.md), [marketing-motion.md](../design/marketing-motion.md) (marketing deferred).
+
+#### 0.4a Architecture docs
+
+- [x] `shell-layout.md` written (adaptive hybrid shell + AI action contract)
+- [x] `marketing-motion.md` written (Canvas UI + brand SVG plan)
+- [x] `loaders.md` written (Dotmatrix policy)
+- [x] `component-policy.md` + design README updated
+
+#### 0.4b Agent skills
+
+- [x] `edubridge-shell` skill
+- [x] `dotmatrix` skill
+- [x] `canvas-ui` skill
+- [x] `docs/agents/README.md` skills table updated
+
+#### 0.4c Shell components (`apps/edubridge/features/shell/`)
+
+- [x] `Header` — logo, school context
+- [x] `AppMenu` — role-filtered dropdown
+- [x] `ModulePill` — route-aware active module
+- [x] `SearchBar` — disabled placeholder
+- [x] `ProfileMenu` — email, role badge, sign out
+- [x] `ShellLayout` composes header + `{children}`
+- [x] `AppLoader` — Dotmatrix-style grid loader + reduced-motion `Spinner` fallback
+
+#### 0.4d Wiring
+
+- [x] `app/[workspace]/layout.tsx` thin — imports from `features/shell`
+- [x] `app/[workspace]/page.tsx` — role-relevant module cards
+- [x] `features/shell/index.ts` public exports only
+
+#### 0.4e Verify
+
+- [x] Teacher / school_admin: menu items match role (Team admin-only)
+- [x] Forbidden module URL blocked server-side (`/settings/team` → `notFound` for teacher)
+- [x] `pnpm lint`, `pnpm check-types`, `pnpm --filter edubridge build` green
+- [x] Build-log entry `0011-shell-chrome.md` + index update
+
+#### Deferred (documented, not 0.4)
+
+- Canvas UI homepage build
+- Brand SVG asset pack
+- 21st.dev MCP (local Cursor config only)
+- Left module sidebar implementation
+- AI dock (Phase 2)
+
+Legacy single-line items (superseded by checklists above):
 
 - [ ] `apps/edubridge/features/shell/`: `Header`, `AppMenu`, `ModulePill`, `SearchBar` (placeholder), `ProfileMenu`
 - [ ] Layout `app/[workspace]/layout.tsx` renders the shell; module pages render inside

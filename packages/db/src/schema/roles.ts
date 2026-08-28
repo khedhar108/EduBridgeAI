@@ -8,6 +8,8 @@ import { pgEnum } from "drizzle-orm/pg-core";
 export const appRoleValues = [
   "platform_owner",
   "school_admin",
+  "coordinator",
+  "accountant",
   "teacher",
   "staff",
   "student",

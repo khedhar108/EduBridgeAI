@@ -18,21 +18,23 @@ Schools track student activity, report cards, and test creation across disconnec
 
 ## Personas and capability matrix
 
-| Capability | platform_owner | school_admin | teacher | staff | student | parent |
-|---|---|---|---|---|---|---|
-| Register school / manage workspace | — | ✅ | — | — | — | — |
-| Invite/manage members and roles | — | ✅ | — | — | — | — |
-| Enter student activity/attendance | — | ✅ | ✅ | ✅ (delegated) | — | — |
-| Enter marks | — | ✅ | ✅ | — | — | — |
-| View student dashboard | — | ✅ (all) | ✅ (own classes) | ✅ (assigned) | ✅ (self) | ✅ (own children) |
-| Request/share reports via WhatsApp | — | ✅ | ✅ | — | — | ✅ (receive) |
-| Create report cards | — | ✅ | ✅ (draft) | — | — | — |
-| Approve/publish report cards | — | ✅ | — | — | — | — |
-| Create test papers / question banks | — | ✅ | ✅ | — | — | — |
-| Build / publish timetable | — | ✅ | — | ✅ (designated) | — | — |
-| View own timetable / post homework | — | ✅ | ✅ | — | — | — |
-| Manage subscription / plans & module toggles | — | ✅ | — | — | — | — |
-| Cross-school analytics (invites, conversions, revenue) | ✅ | — | — | — | — | — |
+| Capability | platform_owner | school_admin | accountant | teacher | staff | student | parent |
+|---|---|---|---|---|---|---|---|
+| Register school / manage workspace | — | ✅ | — | — | — | — | — |
+| Invite/manage members and roles | — | ✅ | — | — | — | — | — |
+| Fee structures / scholarships / collections | — | ✅ | ✅ | — | — | — | — |
+| Register students (direct) + pin fee version | — | ✅ | ✅ | — | — | — | — |
+| Enter student activity/attendance | — | ✅ | — | ✅ | ✅ (delegated) | — | — |
+| Enter marks | — | ✅ | — | ✅ | — | — | — |
+| View student dashboard | — | ✅ (all) | — | ✅ (own classes) | ✅ (assigned) | ✅ (self) | ✅ (own children) |
+| Request/share reports via WhatsApp | — | ✅ | — | ✅ | — | — | ✅ (receive) |
+| Create report cards | — | ✅ | — | ✅ (draft) | — | — | — |
+| Approve/publish report cards | — | ✅ | — | — | — | — | — |
+| Create test papers / question banks | — | ✅ | — | ✅ | — | — | — |
+| Build / publish timetable | — | ✅ | — | — | ✅ (designated) | — | — |
+| View own timetable / post homework | — | ✅ | — | ✅ | — | — | — |
+| Manage subscription / plans & module toggles | — | ✅ | — | — | — | — | — |
+| Cross-school analytics (invites, conversions, revenue) | ✅ | — | — | — | — | — | — |
 
 ## Unified interface (the shell)
 
@@ -62,8 +64,9 @@ The homepage under the header shows role-relevant module cards (Student Dashboar
 | Timetable Maker | 5 | Clash-free period canvas (teacher double-book highlighted), Excel export, history, basic homework digest; AI later |
 | Platform Owner Console | 6 | Cross-tenant: schools, subscriptions, per-school module toggles, revenue |
 | Parent App | 6+ | Mobile-first PWA; parents + students via admission + DOB; multi-child wrapper; AI Q&A later |
+| Fees (early ledger) | Early (pre–full Phase 1 dashboard) | Direct student registration, versioned fee plans, scholarships, manual collections, accountant role — see [features/fees](../features/fees/README.md) |
 | Admissions | Later | Enquiry → application → admission details, roll/section allocation |
-| Fees & Spending | Later | Fee structure, collection tracking, expenses — "how much collected, how much spent" |
+| Fees & Spending | Later | Expense tracking + analytics on top of the early ledger — "how much collected, how much spent" |
 | Activities | Later | Events, achievements, gallery — feeds the dashboard and parent app |
 
 Modules are individually toggleable per school by the platform owner (plan defaults + owner override), so a school can start with the dashboard and grow into admissions/fees on the same platform. This is how EduBridge covers "one platform that works in many ways" without becoming a monolithic ERP.
@@ -110,7 +113,7 @@ Modules are individually toggleable per school by the platform owner (plan defau
 ## Non-goals (for now)
 
 - Native mobile apps (responsive web first; WhatsApp is the mobile channel).
-- Fee management / accounting.
+- Online payment gateways and full school accounting/expenses (early manual fee ledger is in scope).
 - Physical database-per-tenant isolation.
 - Marketplace of third-party modules.
 

@@ -45,16 +45,23 @@ flowchart TD
 - **School tier:** `school_members` rows attach that identity to a school with a role. The same person can be `teacher` in one school and `parent` in another.
 - **Support tier (Phase 6):** time-boxed grants; never a substitute for membership.
 
-## The six roles
+## The school roles
 
 | Role | Lives where | Can never |
 |------|-------------|-----------|
 | `platform_owner` | `platform_admins` (+ optional `app_metadata` cache), **never a `school_members` row** | Browse tenant data without a support grant; self-grant support; appear as a school member |
 | `school_admin` | `school_members` | Manage other schools; access platform console |
+| `coordinator` | `school_members` | Grant admin/coordinator roles; impersonate; touch fees — delegated people-management only ([admin-controls.md](./admin-controls.md)) |
+| `accountant` | `school_members` | See fees outside their school; manage members |
 | `teacher` | `school_members` | Act outside assigned class-subjects; publish report cards |
 | `staff` | `school_members` | Enter marks; see non-delegated classes |
 | `student` | `school_members` | See anyone else's data |
 | `parent` | `school_members` | See children they aren't linked to; request shares to arbitrary numbers |
+
+Privileged actions (invite, activate, deactivate, impersonate, role change)
+route through the central capability map in
+`apps/edubridge/lib/auth/capabilities.ts` — see
+[admin-controls.md](./admin-controls.md) for the full matrix.
 
 Full capability matrix: [docs/roadmap/README.md](../../roadmap/README.md#roles-rbac) and per-phase RBAC tables.
 
@@ -100,7 +107,8 @@ comes from untrusted client input as the sole authority.
 
 - `school_admin` creates an invitation (email + role) → single-use tokenized link
   (expiry: 7 days) → invitee sets password → server creates `school_members`
-  from the invitation record.
+  from the invitation record. Coordinators may invite non-admin roles
+  ([admin-controls.md](./admin-controls.md)).
 
 ### 2. Domain join → admin activate (teacher / staff)
 

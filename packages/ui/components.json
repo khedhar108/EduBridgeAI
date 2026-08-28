@@ -17,5 +17,9 @@
     "utils": "@repo/ui/lib/utils",
     "lib": "@repo/ui/lib",
     "hooks": "@repo/ui/hooks"
+  },
+  "registries": {
+    "@dotmatrix": "https://dotmatrix.zzzzshawn.cloud/r/{name}.json",
+    "@canvas-ui": "https://canvasui.dev/r/{name}.json"
   }
 }

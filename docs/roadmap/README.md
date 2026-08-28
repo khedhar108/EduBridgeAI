@@ -15,7 +15,7 @@
 
 | #   | Phase                   | What it delivers                                                                                                                           | Status                                        | File                                                                   |
 | --- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------- | ---------------------------------------------------------------------- |
-| 0   | Foundation              | Supabase multi-tenant baseline, auth + RBAC, unified app shell, feature-folder structure                                                   | **Active** (0.1–0.2 done; **next: 0.3 auth**) | [phase-0-foundation.md](./phase-0-foundation.md)                       |
+| 0   | Foundation              | Supabase multi-tenant baseline, auth + RBAC, unified app shell, feature-folder structure                                                   | **Active** (0.1/0.2/0.4 done; RLS two-school test green per [0014](../build-log/0014-phase0-exit.md); closing 0.3/0.5 e2e smoke) | [phase-0-foundation.md](./phase-0-foundation.md)                       |
 | 1   | Student Dashboard (MVP) | Role-based activity data entry, charts, parent/student read views                                                                          | Not started                                   | [phase-1-student-dashboard-mvp.md](./phase-1-student-dashboard-mvp.md) |
 | 2   | AI Integration          | Mastra workflows, report summarization, WhatsApp report sharing                                                                            | Not started                                   | [phase-2-ai-integration.md](./phase-2-ai-integration.md)               |
 | 3   | Report Card Maker       | Periodic/half-yearly/annual report cards, approval flow, PDF export                                                                        | Not started                                   | [phase-3-report-card-maker.md](./phase-3-report-card-maker.md)         |
@@ -30,8 +30,8 @@ Supporting document: [product-vision.md](./product-vision.md) — the full brain
 Deliberately unscheduled — they enter the phase table only after the current phases ship. Their requirements are already captured so earlier phases don't paint us into a corner:
 
 - **Parent App** — mobile-first PWA; parents **and** students enter with admission number + student DOB; multi-child parent wrapper ([family-access.md](../architecture/auth/family-access.md), [mobile-app.md](../architecture/mobile-app.md)). PWA-readiness is a Phase 0–1 habit (manifest, mobile-first CSS), not a big-bang project.
-- **Admissions** — enquiry → application → admission records. Depends on Phase 1 student records.
-- **Fees & Spending** — fee structure, collection, expense tracking. Max-plan module.
+- **Admissions (enquiry pipeline)** — enquiry → application → review. Depends on student records; **direct registration + fee pin** already ships early via [`features/fees`](../../apps/edubridge/features/fees/) ([feature docs](../features/fees/README.md)).
+- **Fees & Spending (full)** — expense tracking, analytics, online payments. Builds on the early versioned fee ledger. Max-plan module.
 - **Activities** — events/achievements feed for dashboard + parent app.
 
 ## Phase dependencies
@@ -77,12 +77,13 @@ These apply to **all** phases and are non-negotiable.
 
 ### Roles (RBAC)
 
-Six platform roles, checked server-side on every read and write:
+Seven platform roles, checked server-side on every read and write:
 
 | Role             | Scope                 | Summary                                                                                                        |
 | ---------------- | --------------------- | -------------------------------------------------------------------------------------------------------------- |
 | `platform_owner` | Global (cross-tenant) | You. Billing/aggregates console only. Never a `school_members` row; workspace entry only via audited support grants (Phase 6). |
-| `school_admin`   | One school            | Created the workspace. Manages staff, subscriptions, approves report cards.                                    |
+| `school_admin`   | One school            | Created the workspace. Manages staff, subscriptions, approves report cards; may also manage fees.              |
+| `accountant`     | One school            | Money flow only: fee structures, scholarships, collections, fee audit. No Team/settings.                       |
 | `teacher`        | One school            | Enters student activity/marks, creates report cards and test papers.                                           |
 | `staff`          | One school            | Limited data entry (attendance, activities) as delegated by admin.                                             |
 | `student`        | One school            | Read-only view of own dashboard.                                                                               |
@@ -96,7 +97,7 @@ Six platform roles, checked server-side on every read and write:
 
 ### Code organization
 
-- Feature-based folders: module code lives in `apps/web/features/<module>/` (components, hooks, queries, types per module). Route files in `apps/web/app/` stay thin and import from features.
+- Feature-based folders: module code lives in `apps/edubridge/features/<module>/` (components, hooks, queries, types per module). Route files in `apps/edubridge/app/` stay thin and import from features.
 - Shared, module-agnostic UI goes to `packages/ui`; AI chat UI primitives to `packages/ai-ui`; nothing school-domain-specific in shared packages.
 - **UI visual system is light-only** ([docs/design/MASTER.md](../design/MASTER.md)): semantic tokens in `packages/ui`, Aceternity for marketing only, AI surfaces via `@repo/ai-ui` + CopilotKit — no product dark-mode toggle.
 - Mastra agents/workflows live only in `apps/agent`; the web app talks to it through a typed client, never embeds AI logic.
