@@ -8,6 +8,7 @@
 |------|-------------------|
 | [strategy.md](./strategy.md) | You need the big picture: why Supabase Auth, the method matrix (password/OTP/passkeys), cost and scaling path |
 | [rbac-model.md](./rbac-model.md) | You touch roles, permissions, platform-owner vs. school roles, or membership |
+| [admin-controls.md](./admin-controls.md) | You touch the coordinator role, member activation/deactivation, admin login-as (impersonation), or username sign-in |
 | [family-access.md](./family-access.md) | Parent/student admission number + DOB (read-only family session; not staff login) |
 | [feature-module.md](./feature-module.md) | You implement or modify `apps/edubridge/features/auth/` (screens, actions, flows) |
 | [agent-auth.md](./agent-auth.md) | You work on `apps/edubridge` ↔ `apps/agent` communication or Mastra server auth |

@@ -1,6 +1,7 @@
 import { and, eq, membershipRequests, profiles, withTenant } from "@repo/db";
 import { notFound } from "next/navigation";
 import { getSessionContext } from "@/lib/tenancy/session-context";
+import { can } from "@/lib/auth/capabilities";
 import { InviteMemberForm, PendingMembersPanel } from "@/features/auth";
 
 type Props = {
@@ -10,7 +11,7 @@ type Props = {
 export default async function TeamSettingsPage({ params }: Props) {
   const { workspace } = await params;
   const ctx = await getSessionContext(workspace);
-  if (!ctx || ctx.role !== "school_admin") {
+  if (!ctx || !can(ctx, "team.view")) {
     notFound();
   }
 

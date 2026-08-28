@@ -8,6 +8,8 @@ import {
   acceptInviteAction,
   type AcceptInviteState,
 } from "../actions/accept-invite";
+import { UsernameField } from "./username-field";
+import { suggestUsername } from "../lib/username";
 
 const initial: AcceptInviteState = {};
 
@@ -15,10 +17,11 @@ type Props = {
   token: string;
   email: string;
   schoolName: string;
+  schoolSlug: string;
   role: string;
 };
 
-export function AcceptInviteForm({ token, email, schoolName, role }: Props) {
+export function AcceptInviteForm({ token, email, schoolName, schoolSlug, role }: Props) {
   const bound = acceptInviteAction.bind(null, token);
   const [state, formAction, pending] = useActionState(bound, initial);
 
@@ -59,6 +62,12 @@ export function AcceptInviteForm({ token, email, schoolName, role }: Props) {
           disabled={pending}
         />
       </div>
+
+      <UsernameField
+        suggested={suggestUsername(email)}
+        schoolSlug={schoolSlug}
+        disabled={pending}
+      />
 
       <div className="flex flex-col gap-2">
         <label htmlFor="password" className="text-sm font-medium">

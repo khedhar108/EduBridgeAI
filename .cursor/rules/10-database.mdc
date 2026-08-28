@@ -35,6 +35,15 @@ Canonical reference: `docs/architecture/data-access.md`.
 7. `pnpm db:check` is read-only. If it reports healthy, do not run generate or migrate.
 8. Never use `pnpm db:push` on shared/dev/production databases.
 
+## Seeding Supabase auth users (mandatory)
+
+- Every seeded `auth.users` row must also get a matching `auth.identities` row
+  (`provider='email'`, `provider_id` = user id, `identity_data` = `{"sub","email"}`).
+  GoTrue requires an identity for password sign-in; without one the account appears
+  in the directory but direct sign-in fails with "Invalid email or password".
+- The seed must **assert** after writing that no `auth.users` row is missing an
+  identity, and fail loudly if one is. Never leave silently-broken sign-in accounts.
+
 ## Performance (Supabase Postgres best practices)
 
 - Index every FK and every `school_id`.

@@ -1,6 +1,13 @@
 import { notFound } from "next/navigation";
-import { getSessionContext } from "@/lib/tenancy/session-context";
-import { ShellLayout, modulesForRole } from "@/features/shell";
+import {
+  getInactiveMembership,
+  getSessionContext,
+} from "@/lib/tenancy/session-context";
+import {
+  AccountDisabledScreen,
+  ShellLayout,
+  modulesForRole,
+} from "@/features/shell";
 
 type Props = {
   children: React.ReactNode;
@@ -11,6 +18,10 @@ export default async function WorkspaceLayout({ children, params }: Props) {
   const { workspace } = await params;
   const ctx = await getSessionContext(workspace);
   if (!ctx) {
+    const inactive = await getInactiveMembership(workspace);
+    if (inactive) {
+      return <AccountDisabledScreen schoolName={inactive.schoolName} />;
+    }
     notFound();
   }
 
@@ -23,6 +34,8 @@ export default async function WorkspaceLayout({ children, params }: Props) {
       email={ctx.email}
       role={ctx.role}
       nav={nav}
+      isImpersonating={ctx.isImpersonating}
+      realEmail={ctx.realEmail}
     >
       {children}
     </ShellLayout>

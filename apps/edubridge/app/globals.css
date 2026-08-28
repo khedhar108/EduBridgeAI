@@ -123,3 +123,29 @@ body {
     animation: none;
   }
 }
+
+/* 404 screen — gentle floating motion for the drop mark + code. */
+.not-found-mark {
+  animation: not-found-float 5s ease-in-out infinite;
+}
+
+.not-found-code {
+  animation: not-found-float 7s ease-in-out infinite reverse;
+}
+
+@keyframes not-found-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .not-found-mark,
+  .not-found-code {
+    animation: none;
+  }
+}

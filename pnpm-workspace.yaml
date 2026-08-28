@@ -39,3 +39,4 @@ catalog:
   three: ^0.185.1
   "@types/three": ^0.185.4
   zod: ^4.3.6
+  "@tanstack/react-query": 5.102.7

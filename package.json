@@ -30,7 +30,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,md,json,css,mjs}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,md,json,css,mjs}\"",
     "clean": "turbo run clean && rimraf node_modules",
-    "clean:cache": "rimraf .turbo apps/**/.turbo packages/**/.turbo apps/**/.next apps/**/.mastra node_modules/.cache",
+    "clean:cache": "rimraf .turbo && rimraf apps/edubridge/.next apps/web/.next apps/docs/.next apps/agent/.mastra packages/ui/dist node_modules/.cache",
     "clean:turbo": "rimraf .turbo && rimraf apps/**/.turbo && rimraf packages/**/.turbo",
     "ui:add": "pnpm dlx shadcn@latest add -c ./packages/ui",
     "registry:add": "pnpm dlx shadcn@latest add -c ./apps/edubridge",

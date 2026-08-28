@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { Button } from "@repo/ui/components/button";
 import { Input } from "@repo/ui/components/input";
 import { Spinner } from "@repo/ui/components/spinner";
@@ -8,6 +8,8 @@ import {
   schoolDomainSignUpAction,
   type SchoolDomainSignUpState,
 } from "../actions/school-domain-sign-up";
+import { UsernameField } from "./username-field";
+import { suggestUsername } from "../lib/username";
 
 const initial: SchoolDomainSignUpState = {};
 
@@ -16,6 +18,7 @@ export function SchoolDomainSignUpForm() {
     schoolDomainSignUpAction,
     initial,
   );
+  const [email, setEmail] = useState("");
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
@@ -49,8 +52,12 @@ export function SchoolDomainSignUpForm() {
           required
           className="h-11"
           disabled={pending}
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
         />
       </div>
+
+      <UsernameField suggested={suggestUsername(email)} disabled={pending} />
 
       <div className="flex flex-col gap-2">
         <label htmlFor="password" className="text-sm font-medium">

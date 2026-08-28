@@ -10,9 +10,9 @@ import {
   type SchoolRole,
 } from "@repo/db";
 import {
-  assertRole,
   getSessionContext,
 } from "@/lib/tenancy/session-context";
+import { assertCapability } from "@/lib/auth/capabilities";
 import { activateMemberSchema } from "../lib/schemas";
 
 export type ActivateMemberState = { error?: string; ok?: boolean };
@@ -24,9 +24,8 @@ export async function activateMembershipRequestAction(
 ): Promise<ActivateMemberState> {
   const ctx = await getSessionContext(workspace);
   if (!ctx) {
-    return { error: "You must be signed in as a school admin." };
+    return { error: "You must be signed in as a school admin or coordinator." };
   }
-  assertRole(ctx, ["school_admin"]);
 
   const parsed = activateMemberSchema.safeParse({
     requestId: formData.get("requestId"),
@@ -37,6 +36,12 @@ export async function activateMembershipRequestAction(
   }
 
   const role = parsed.data.role as SchoolRole;
+
+  try {
+    assertCapability(ctx, "members.activate", role);
+  } catch {
+    return { error: "You can only activate members with non-admin roles." };
+  }
 
   try {
     await withTenant(
@@ -67,6 +72,7 @@ export async function activateMembershipRequestAction(
           schoolId: ctx.schoolId,
           userId: request.userId,
           role,
+          username: request.username,
         });
 
         await tx
@@ -99,7 +105,7 @@ export async function rejectMembershipRequestAction(
 ): Promise<void> {
   const ctx = await getSessionContext(workspace);
   if (!ctx) return;
-  assertRole(ctx, ["school_admin"]);
+  assertCapability(ctx, "members.activate");
 
   const requestId = String(formData.get("requestId") ?? "");
   if (!requestId) return;

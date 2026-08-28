@@ -45,17 +45,31 @@ Admission number + student DOB → read-only family cookie. No mass passwords. P
 
 ## Ready-to-use test logins (EduDatabase)
 
-Seeded in Supabase Auth + `profiles` / `school_members`.
+Seeded in Supabase Auth + `profiles` / `school_members` via `pnpm seed:dev`.
+The sign-in form accepts **email or username** (see
+[admin-controls.md](../architecture/auth/admin-controls.md)).
 
-**Password (all three accounts):** `TestLogin123!`
+**Password (all accounts):** `TestLogin123!`
 
-| Email | Password | Role | Where to sign in | Lands on | Verified |
-|-------|----------|------|------------------|----------|----------|
-| `admin@pilot-school.edu` | `TestLogin123!` | school_admin | `/sign-in` | `/edubridge-pilot-bridge` | [x] |
-| `teacher@pilot-school.edu` | `TestLogin123!` | teacher | `/sign-in` | `/edubridge-pilot-bridge` | [x] |
-| `owner@edubridge.app` | `TestLogin123!` | platform owner (`app_metadata`) | `/platform/sign-in` | `/platform` | [x] |
+| Email | Username | Role | Where to sign in | Lands on |
+|-------|----------|------|------------------|----------|
+| `admin@pilot-school.edu` | `pilot-admin` | school_admin | `/sign-in` | `/edubridge-pilot-bridge` |
+| `coordinator@pilot-school.edu` | `pilot-coordinator` | coordinator | `/sign-in` | `/edubridge-pilot-bridge` |
+| `accountant@pilot-school.edu` | `pilot-accountant` | accountant | `/sign-in` | `/edubridge-pilot-bridge` |
+| `teacher@pilot-school.edu` | `pilot-teacher` | teacher | `/sign-in` | `/edubridge-pilot-bridge` |
+| `staff@pilot-school.edu` | `pilot-staff` | staff | `/sign-in` | `/edubridge-pilot-bridge` |
+| `vikram@pilot-school.edu` | `pilot-vikram` | teacher | `/sign-in` | `/edubridge-pilot-bridge` |
+| `meera@pilot-school.edu` | `pilot-meera` | teacher | `/sign-in` | `/edubridge-pilot-bridge` |
+| `admin@oakwood.edu` | `oak-admin` | school_admin | `/sign-in` | `/oakwood-academy-bridge` |
+| `teacher@oakwood.edu` | `oak-teacher` | teacher | `/sign-in` | `/oakwood-academy-bridge` |
+| `owner@edubridge.app` | `platform-owner` | platform owner (`app_metadata`) | `/platform/sign-in` | `/platform` |
 
-Live check (2026-08-08): workspace shows role badge + email; platform console shows Phase 0 placeholder.
+Also seeded: 50 students (Pilot, `EBS-2024-###`, Classes 6–10, Indian names,
+primary guardians) + 15 students (Oakwood, `OAK-2024-###`) — visible on the
+admin dashboard and in the platform console counts. Admin dashboard actions:
+**Login as** (impersonation) and **Activate/Deactivate** per member.
+
+Live check (2026-08-08): workspace shows role badge + email; platform console shows school aggregates. RBAC dashboard verified 2026-08-26.
 
 ### Verified so far
 

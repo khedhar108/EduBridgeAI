@@ -33,7 +33,7 @@ Portable rules for AI coding agents (Cursor, Claude Code, Codex, Copilot, etc.).
 
 ## Skills
 
-Deep, task-specific knowledge lives in `.agents/skills/` (mastra, shadcn, registry-components, supabase-postgres-best-practices, ui-ux-pro-max, edubridge-git, caveman-commit, etc.) — load the matching skill when the task touches that domain instead of guessing.
+Deep, task-specific knowledge lives in `.agents/skills/` (mastra, shadcn, registry-components, supabase-postgres-best-practices, ui-ux-pro-max, edubridge-git, caveman-commit, erp-landscape — competitor/market strategy reference for Fedena, Entab, PowerSchool, MyClassCampus + India school ERP context, etc.) — load the matching skill when the task touches that domain instead of guessing.
 
 ## Verification
 

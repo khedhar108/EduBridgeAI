@@ -26,6 +26,7 @@ export async function ensureDomainJoinRequest(opts: {
   userId: string;
   email: string;
   fullName?: string;
+  username?: string;
 }): Promise<PendingDomainJoin | null> {
   const email = opts.email.toLowerCase();
   const domain = emailDomain(email);
@@ -61,7 +62,13 @@ export async function ensureDomainJoinRequest(opts: {
     await db.insert(profiles).values({
       id: opts.userId,
       fullName: name.length >= 2 ? name : "School member",
+      email,
     });
+  } else if (!opts.email) {
+    await db
+      .update(profiles)
+      .set({ updatedAt: new Date() })
+      .where(eq(profiles.id, opts.userId));
   }
 
   const pending = await db
@@ -91,6 +98,7 @@ export async function ensureDomainJoinRequest(opts: {
       schoolId: school.id,
       userId: opts.userId,
       email,
+      username: opts.username,
       status: "pending",
     })
     .returning({ id: membershipRequests.id });

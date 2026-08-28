@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { ModuleNavItem } from "../modules";
 import { ShellHeader } from "./shell-header";
+import { ImpersonationBanner } from "./impersonation-banner";
 
 type ShellLayoutProps = {
   workspace: string;
@@ -9,6 +10,8 @@ type ShellLayoutProps = {
   role: string;
   nav: ModuleNavItem[];
   children: ReactNode;
+  isImpersonating?: boolean;
+  realEmail?: string;
 };
 
 export function ShellLayout({
@@ -18,9 +21,19 @@ export function ShellLayout({
   role,
   nav,
   children,
+  isImpersonating,
+  realEmail,
 }: ShellLayoutProps) {
   return (
     <div className="min-h-dvh bg-background">
+      {isImpersonating && (
+        <ImpersonationBanner
+          workspace={workspace}
+          targetEmail={email}
+          targetRole={role}
+          realEmail={realEmail}
+        />
+      )}
       <ShellHeader
         workspace={workspace}
         schoolSlug={schoolSlug}

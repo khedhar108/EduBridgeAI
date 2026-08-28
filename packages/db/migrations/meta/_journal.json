@@ -36,6 +36,27 @@
       "when": 1786200001000,
       "tag": "0004_students_and_fees",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1787702595014,
+      "tag": "0005_admin_access_controls",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1787705059653,
+      "tag": "0006_admin_access_controls",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1787765172673,
+      "tag": "0007_per-school-username",
+      "breakpoints": true
     }
   ]
 }

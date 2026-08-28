@@ -19,6 +19,7 @@ export default async function AcceptInvitePage({ params }: Props) {
       role: invitations.role,
       expiresAt: invitations.expiresAt,
       schoolName: schools.name,
+      schoolSlug: schools.slug,
     })
     .from(invitations)
     .innerJoin(schools, eq(invitations.schoolId, schools.id))
@@ -44,6 +45,7 @@ export default async function AcceptInvitePage({ params }: Props) {
         token={token}
         email={invite.email}
         schoolName={invite.schoolName}
+        schoolSlug={invite.schoolSlug}
         role={invite.role}
       />
       <p className="text-center text-sm text-muted-foreground">

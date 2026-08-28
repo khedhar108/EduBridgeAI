@@ -9,9 +9,49 @@ import {
   isNull,
   profiles,
   studentFeeAssignments,
+  studentGuardians,
   students,
   type TenantTx,
 } from "@repo/db";
+
+export type SchoolStudentRow = {
+  id: string;
+  admissionNumber: string;
+  fullName: string;
+  dateOfBirth: string;
+  classLabel: string | null;
+  guardianName: string | null;
+  guardianPhone: string | null;
+  guardianEmail: string | null;
+};
+
+/** Plain student roster with primary guardian — admin dashboard view. */
+export async function listSchoolStudents(
+  tx: TenantTx,
+  schoolId: string,
+): Promise<SchoolStudentRow[]> {
+  return tx
+    .select({
+      id: students.id,
+      admissionNumber: students.admissionNumber,
+      fullName: students.fullName,
+      dateOfBirth: students.dateOfBirth,
+      classLabel: students.classLabel,
+      guardianName: studentGuardians.fullName,
+      guardianPhone: studentGuardians.phone,
+      guardianEmail: studentGuardians.email,
+    })
+    .from(students)
+    .leftJoin(
+      studentGuardians,
+      and(
+        eq(studentGuardians.studentId, students.id),
+        eq(studentGuardians.isPrimary, true),
+      ),
+    )
+    .where(eq(students.schoolId, schoolId))
+    .orderBy(students.admissionNumber);
+}
 
 export async function listFeePlansWithLatestVersion(
   tx: TenantTx,

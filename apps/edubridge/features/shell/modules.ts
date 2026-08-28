@@ -4,6 +4,7 @@
 export const PLATFORM_ROLES = [
   "platform_owner",
   "school_admin",
+  "coordinator",
   "accountant",
   "teacher",
   "staff",
@@ -52,7 +53,7 @@ export const modules: ModuleNavItem[] = [
     title: "Team",
     href: "/settings/team",
     icon: "users",
-    allowedRoles: ["school_admin"],
+    allowedRoles: ["school_admin", "coordinator"],
   },
 ];
 

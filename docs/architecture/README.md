@@ -18,6 +18,7 @@ System-wide architecture documentation. Use this for cross-app concerns and plat
 | [AI Platform](./ai-platform.md)                                        | Mastra as a separate service, how `apps/web` connects                                     |
 | [Mastra Web Connection](./mastra-web-connection.md)                    | `mastra-client.ts`, AI UI package layout, feedback 500 fix, phased plan                   |
 | [Mastra Supabase Database](./mastra-supabase-database-architecture.md) | Production database setup with Supabase Postgres                                          |
+| [Error Handling, 404, and Health Checks](./error-handling-and-health.md) | Global 404, error boundaries, centralized HTTP errors, health endpoint + dev dashboard |
 
 ## When to add here vs `docs/features/`
 

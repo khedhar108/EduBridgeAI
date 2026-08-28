@@ -76,6 +76,7 @@ function clearRemembered() {
 export function SignInForm({ surface, next }: Props) {
   const [state, formAction, pending] = useActionState(signInAction, initial);
   const [email, setEmail] = useState("");
+  const [schoolSlug, setSchoolSlug] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
@@ -157,15 +158,37 @@ export function SignInForm({ surface, next }: Props) {
       <input type="hidden" name="surface" value={surface} />
       {next ? <input type="hidden" name="next" value={next} /> : null}
 
+      {surface === "school" ? (
+        <div className="flex flex-col gap-2">
+          <label htmlFor="schoolSlug" className="text-sm font-medium text-foreground">
+            School
+          </label>
+          <Input
+            id="schoolSlug"
+            name="schoolSlug"
+            type="text"
+            autoComplete="organization"
+            placeholder="e.g. edubridge-pilot-bridge"
+            className="h-11"
+            disabled={pending}
+            value={schoolSlug}
+            onChange={(event) => setSchoolSlug(event.target.value)}
+          />
+          <p className="text-xs text-muted-foreground">
+            Required only when signing in with a username.
+          </p>
+        </div>
+      ) : null}
+
       <div className="flex flex-col gap-2">
         <label htmlFor="email" className="text-sm font-medium text-foreground">
-          Email
+          Email or username
         </label>
         <Input
           id="email"
           name="email"
-          type="email"
-          autoComplete="email"
+          type="text"
+          autoComplete="username"
           required
           className="h-11"
           disabled={pending}

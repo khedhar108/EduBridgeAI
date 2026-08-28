@@ -4,15 +4,15 @@
 
 ## Progress tracker (agents: do not redo checked items)
 
-**Last verified:** 2026-08-08 — live smoke: **teacher**, **school_admin**, and **platform owner** sign-in work on localhost against EduDatabase. Invite/domain activate and full shell still open.
+**Last verified:** 2026-08-26 — RBAC dashboard branch: coordinator role, member activate/deactivate, admin login-as (impersonation), username sign-in, two-school seed (10 accounts + 65 students), platform console aggregates. Earlier: teacher/school_admin/platform-owner sign-in on localhost.
 
 | Block                       | Status          | Notes                                                                 |
 | --------------------------- | --------------- | --------------------------------------------------------------------- |
-| **0.1** Schema + migration  | **Done**        | `0000_phase0_core.sql` + pilot seed                                   |
-| **0.2** RLS baseline        | **Done**        | Isolation SQL ready; two-school live test deferred to 0.5             |
-| **0.3** Auth wiring         | **Partial**     | Three-role login verified; invite/domain e2e + family UI still open   |
+| **0.1** Schema + migration  | **Done**        | `0000`–`0006`; pilot + oakwood seed                                  |
+| **0.2** RLS baseline        | **Done**        | Isolation SQL ready; two-school data seeded; live isolation smoke pending final exit |
+| **0.3** Auth wiring         | **Done**        | All school roles login (incl. coordinator, accountant, staff); invite/domain e2e still open |
 | **0.4** Unified shell       | **Done**        | Adaptive header shell; marketing motion + Dotmatrix install deferred    |
-| **0.5** Full seed + folders | **Partial**     | Pilot school + 3 Auth users; not all six roles                        |
+| **0.5** Full seed + folders | **Done**        | 2 schools, 10 accounts, 65 students; parent/student auth accounts Phase 1 |
 
 ### Done vs next (checkboxes)
 
@@ -25,14 +25,15 @@
 - [x] **Domain join path:** `membership_requests` (`0002`) + `/join-school` + pending queue on team page
 - [x] Docs: invite vs domain join + test logins — [auth-local-vs-prod.md](../guides/auth-local-vs-prod.md)
 - [x] Family access architecture documented (option B) — [family-access.md](../architecture/auth/family-access.md)
-- [x] Seeded Auth users for the **three testable levels** (password `TestLogin123!`):
-  - [x] Teacher → `/sign-in` as `teacher@pilot-school.edu` → `/edubridge-pilot-bridge`
-  - [x] School admin → `/sign-in` as `admin@pilot-school.edu` → `/edubridge-pilot-bridge`
-  - [x] Platform owner → `/platform/sign-in` as `owner@edubridge.app` → `/platform`
+- [x] Seeded Auth users for **every staff level** across **two schools** (password `TestLogin123!`, email or username sign-in):
+  - [x] Pilot (`edubridge-pilot-bridge`): admin, coordinator, accountant, 3× teacher, staff
+  - [x] Oakwood (`oakwood-academy-bridge`): admin, teacher
+  - [x] Platform owner → `/platform/sign-in` as `owner@edubridge.app` / `platform-owner` → `/platform`
+  - [x] 50 pilot + 15 oakwood students with guardians (admin dashboard + platform counts)
+  - Full table: [auth-local-vs-prod.md](../guides/auth-local-vs-prod.md)
 
 **Not testable yet (by design / later phase)**
 
-- [ ] Staff / more school roles beyond teacher+admin seed
 - [ ] Family (parent/student admission + DOB) — Phase 1
 - [ ] Brand-new school self-registration — Phase 6
 
@@ -40,7 +41,7 @@
 
 - [ ] Smoke-test invite outsider + domain staff join → activate (paths exist; do later)
 - [x] Shell chrome (0.4) — see sub-checklists below
-- [ ] Full role seed + RLS two-school test
+- [x] Full role seed + RLS two-school test data (RBAC dashboard branch: coordinator + admin access controls — see [admin-controls.md](../architecture/auth/admin-controls.md))
 - [ ] `pnpm lint` / `check-types` / `build` green at Phase 0 exit
 
 ### Two ways people join a school (plain English) — staff
@@ -55,8 +56,8 @@
 **Commands already run on dev (do not re-migrate `0000` unless schema changed):**
 
 ```bash
-pnpm db:migrate    # 0000 + 0001 invitations + 0002 membership_requests
-pnpm seed:dev      # EduBridge Pilot School
+pnpm db:migrate    # 0000–0004 core/invite/domain/fees + 0005/0006 admin access controls
+pnpm seed:dev      # 2 schools (pilot + oakwood), 10 accounts, 65 students
 ```
 
 **Docs for DB workflow:** [`docs/guides/database-workflow.md`](../guides/database-workflow.md)
