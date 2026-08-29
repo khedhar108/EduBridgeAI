@@ -20,6 +20,7 @@
     "db:migrate": "pnpm --filter @repo/db db:migrate",
     "db:check": "pnpm --filter @repo/db db:check",
     "db:push": "pnpm --filter @repo/db db:push",
+    "db:studio": "pnpm --filter @repo/db db:studio",
     "seed:dev": "pnpm --filter @repo/db seed:dev",
     "start:edubridge": "pnpm --filter edubridge start",
     "start:web": "pnpm --filter web start",
@@ -34,6 +35,7 @@
     "clean:turbo": "rimraf .turbo && rimraf apps/**/.turbo && rimraf packages/**/.turbo",
     "ui:add": "pnpm dlx shadcn@latest add -c ./packages/ui",
     "registry:add": "pnpm dlx shadcn@latest add -c ./apps/edubridge",
+    "kill:dev": "node ./scripts/kill-dev.mjs",
     "canvas:preview": "node ./scripts/open-marketing-canvas.mjs"
   },
   "devDependencies": {
