@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { HomeIcon, GraduationCapIcon, UsersIcon, type LucideIcon } from "lucide-react";
+import { HomeIcon, GraduationCapIcon, SlidersHorizontalIcon, UsersIcon, WalletIcon, type LucideIcon } from "lucide-react";
 import { Badge } from "@repo/ui/components/badge";
 import type { ModuleNavItem } from "../modules";
 import { findActiveModule } from "../nav-utils";
@@ -9,7 +9,9 @@ import { findActiveModule } from "../nav-utils";
 const MODULE_ICONS: Record<string, LucideIcon> = {
   home: HomeIcon,
   users: UsersIcon,
+  wallet: WalletIcon,
   "graduation-cap": GraduationCapIcon,
+  "sliders-horizontal": SlidersHorizontalIcon,
 };
 
 type ModulePillProps = {

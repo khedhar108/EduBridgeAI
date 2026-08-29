@@ -6,7 +6,7 @@ import {
 import {
   AccountDisabledScreen,
   ShellLayout,
-  modulesForRole,
+  modulesForSession,
 } from "@/features/shell";
 
 type Props = {
@@ -30,7 +30,7 @@ export default async function StaffWorkspaceLayout({ children, params }: Props) 
     notFound();
   }
 
-  const nav = modulesForRole(ctx.role);
+  const nav = modulesForSession(ctx);
 
   return (
     <ShellLayout

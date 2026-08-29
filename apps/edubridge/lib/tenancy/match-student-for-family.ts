@@ -41,7 +41,7 @@ function normalizeSlug(value: string): string {
 }
 
 function normalizeAdmission(value: string): string {
-  return value.trim();
+  return value.trim().toUpperCase().replace(/[\s-]/g, "");
 }
 
 function normalizeDob(value: string): string | null {
@@ -104,18 +104,22 @@ export async function matchStudentForFamily(
     .select({
       id: students.id,
       schoolId: students.schoolId,
+      admissionNumber: students.admissionNumber,
     })
     .from(students)
     .where(
       and(
         eq(students.schoolId, school.id),
-        eq(students.admissionNumber, admissionNumber),
         eq(students.dateOfBirth, dateOfBirth),
       ),
-    )
-    .limit(1);
+    );
 
-  const student = studentRows[0];
+  const matches = studentRows.filter(
+    (row) => normalizeAdmission(row.admissionNumber) === admissionNumber,
+  );
+  // ponytail: same-DOB scan; generated unique on stripped admission if collisions appear
+  if (matches.length !== 1) return miss();
+  const student = matches[0];
   if (!student) return miss();
 
   return {

@@ -30,7 +30,7 @@ flowchart TD
     end
     subgraph Enforcement["Enforcement"]
         ctx["getSessionContext() / platform / support contexts"]
-        guard["assertRole / assertSupportScope (UX)"]
+        guard["assertCapability / assertSupportScope (UX)"]
         rls["Postgres RLS (backstop)"]
     end
     authUsers --> members
@@ -51,7 +51,7 @@ flowchart TD
 |------|-------------|-----------|
 | `platform_owner` | `platform_admins` (+ optional `app_metadata` cache), **never a `school_members` row** | Browse tenant data without a support grant; self-grant support; appear as a school member |
 | `school_admin` | `school_members` — **exactly one live (non-archived) row per school** | Manage other schools; access platform console |
-| `coordinator` | `school_members` | Grant admin/coordinator roles; impersonate; touch fees — delegated people-management only ([admin-controls.md](./admin-controls.md)) |
+| `coordinator` | `school_members` | Grant admin/coordinator roles; impersonate; touch fees **by default** — delegated people-management ([admin-controls.md](./admin-controls.md)). Fees/Students extras only via Control Hub + matching RLS |
 | `accountant` | `school_members` | See fees outside their school; manage members |
 | `teacher` | `school_members` | Act outside assigned class-subjects; publish report cards |
 | `staff` | `school_members` | Enter marks; see non-delegated classes |
@@ -62,6 +62,8 @@ Privileged actions (provision, password reset, activate, deactivate, impersonate
 route through the central capability map in
 `apps/edubridge/lib/auth/capabilities.ts` — see
 [admin-controls.md](./admin-controls.md) for the full matrix.
+School-admin **Control Hub** (module-grouped Switches) is specified in
+[control-hub.md](../../wayfinder/control-hub.md); it overrides that map per tenant, it does not replace roles.
 
 Full capability matrix: [docs/roadmap/README.md](../../roadmap/README.md#roles-rbac) and per-phase RBAC tables.
 

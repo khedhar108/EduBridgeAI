@@ -1,6 +1,7 @@
 import { withTenant } from "@repo/db";
 import { notFound } from "next/navigation";
-import { FeesNav, isMoneyRole, listFeeAudit } from "@/features/fees";
+import { FeesNav, listFeeAudit } from "@/features/fees";
+import { can } from "@/lib/auth/capabilities";
 import { getSessionContext } from "@/lib/tenancy/session-context";
 
 type Props = {
@@ -10,7 +11,8 @@ type Props = {
 export default async function FeeAuditPage({ params }: Props) {
   const { workspace } = await params;
   const ctx = await getSessionContext(workspace);
-  if (!ctx || !isMoneyRole(ctx.role)) notFound();
+  if (!ctx || !can(ctx, "fees.view")) notFound();
+  const canCollect = can(ctx, "fees.collect");
 
   const events = await withTenant(
     { sub: ctx.userId, school_id: ctx.schoolId, role: ctx.role },
@@ -27,7 +29,11 @@ export default async function FeeAuditPage({ params }: Props) {
         </p>
       </div>
 
-      <FeesNav workspace={workspace} active="audit" />
+      <FeesNav
+        workspace={workspace}
+        active="audit"
+        canCollect={canCollect}
+      />
 
       {events.length === 0 ? (
         <p className="text-sm text-muted-foreground">No audit events yet.</p>

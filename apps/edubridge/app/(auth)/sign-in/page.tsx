@@ -25,6 +25,14 @@ export default async function SchoolSignInPage({ searchParams }: Props) {
         emailPrefill={params.email}
       />
       <p className="text-center text-sm text-muted-foreground">
+        Register a new school?{" "}
+        <Link
+          href="/register"
+          className="font-medium text-foreground underline-offset-4 hover:underline"
+        >
+          Create workspace
+        </Link>
+        {" · "}
         New staff with a school email?{" "}
         <Link
           href="/join-school"

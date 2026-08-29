@@ -66,7 +66,7 @@ active `school_members` row for that slug.
 ## RBAC and navigation
 
 1. **Single registry** — `apps/edubridge/features/shell/modules.ts` is the only place module nav is defined.
-2. **Server-side filter** — `modulesForRole(ctx.role)` runs in Server Components / layouts; never trust client-only menu filtering.
+2. **Server-side filter** — `modulesForSession(ctx)` runs in Server Components / layouts (`can()` + Hub overrides); never trust client-only menu filtering. `modulesForRole(role)` remains the static fallback list.
 3. **Forbidden access** — Direct URL to a module the role cannot use → `403` or `notFound()` after server check (same rule as menu visibility).
 4. **Roles** — Seven platform roles in product docs (`accountant` for money flow); `school_members` never stores `platform_owner` (DB constraint). Workspace shell uses `SchoolRole` from session context.
 
@@ -112,7 +112,7 @@ Mastra agents **do not** manipulate layout DOM. They request **typed shell actio
 | `setModuleFilter` | Apply list filter state (module-owned URL/search params) |
 | `openAiDock` | Expand AI dock with optional context scope |
 
-Rejected if: module not in `modulesForRole`, cross-tenant target, or write without human-approve flow per [agent-ecosystem.md](../architecture/agent-ecosystem.md).
+Rejected if: module not in `modulesForSession`, cross-tenant target, or write without human-approve flow per [agent-ecosystem.md](../architecture/agent-ecosystem.md).
 
 ## File ownership
 

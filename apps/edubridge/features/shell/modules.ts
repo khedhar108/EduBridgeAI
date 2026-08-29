@@ -46,7 +46,7 @@ export const modules: ModuleNavItem[] = [
     title: "Fees",
     href: "/fees",
     icon: "wallet",
-    allowedRoles: ["school_admin", "accountant"],
+    allowedRoles: ["school_admin", "accountant", "coordinator"],
   },
   {
     id: "students",
@@ -54,6 +54,13 @@ export const modules: ModuleNavItem[] = [
     href: "/students",
     icon: "graduation-cap",
     allowedRoles: ["school_admin", "teacher", "staff"],
+  },
+  {
+    id: "control",
+    title: "Control Hub",
+    href: "/settings/control",
+    icon: "sliders-horizontal",
+    allowedRoles: ["school_admin"],
   },
   {
     id: "team",

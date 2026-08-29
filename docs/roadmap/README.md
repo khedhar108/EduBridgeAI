@@ -21,7 +21,7 @@
 | 3   | Report Card Maker       | Periodic/half-yearly/annual report cards, approval flow, PDF export                                                                        | Not started                                   | [phase-3-report-card-maker.md](./phase-3-report-card-maker.md)         |
 | 4   | Test Paper Creator      | Question banks, test templates, AI-assisted generation, print/export                                                                       | Not started                                   | [phase-4-test-paper-creator.md](./phase-4-test-paper-creator.md)       |
 | 5   | Timetable Maker         | Clash-free canvas (teacher double-book = red), Excel export, history, basic homework digest; AI assist later                               | Not started                                   | [phase-5-timetable-maker.md](./phase-5-timetable-maker.md)             |
-| 6   | Platform Growth         | Public registration, provisioning, 15-day Max trial, plan subscriptions (3/6/12-month upfront), per-school module toggles, owner analytics | Not started                                   | [phase-6-platform-growth.md](./phase-6-platform-growth.md)             |
+| 6   | Platform Growth         | Public registration, provisioning, 15-day Max trial, plan subscriptions (3/6/12-month upfront), per-school module toggles, owner analytics | **Open** (6.1 register shipped; URLs/plans/flags on [platform-launch](../wayfinder/platform-launch.md)) | [phase-6-platform-growth.md](./phase-6-platform-growth.md)             |
 
 Supporting document: [product-vision.md](./product-vision.md) — the full brainstorming output (personas, module map, tenancy model, business model). Read it once for context; phase files are the actionable documents.
 
@@ -30,7 +30,7 @@ Supporting document: [product-vision.md](./product-vision.md) — the full brain
 Deliberately unscheduled — they enter the phase table only after the current phases ship. Their requirements are already captured so earlier phases don't paint us into a corner:
 
 - **Parent App** — mobile-first PWA; parents **and** students enter with admission number + student DOB; multi-child parent wrapper ([family-access.md](../architecture/auth/family-access.md), [mobile-app.md](../architecture/mobile-app.md)). PWA-readiness is a Phase 0–1 habit (manifest, mobile-first CSS), not a big-bang project.
-- **Admissions (enquiry pipeline)** — enquiry → application → review. Depends on student records; **direct registration + fee pin** already ships early via [`features/fees`](../../apps/edubridge/features/fees/) ([feature docs](../features/fees/README.md)).
+- **Admissions (enquiry pipeline)** — enquiry → application → review. Depends on student records. SIS create is specified in [student-registration.md](../wayfinder/student-registration.md); Fees keeps the versioned ledger and will assign plans to an existing `student_id` after cutover ([fees](../features/fees/README.md)).
 - **Fees & Spending (full)** — expense tracking, analytics, online payments. Builds on the early versioned fee ledger. Max-plan module.
 - **Activities** — events/achievements feed for dashboard + parent app.
 
@@ -77,12 +77,13 @@ These apply to **all** phases and are non-negotiable.
 
 ### Roles (RBAC)
 
-Seven platform roles, checked server-side on every read and write:
+School and platform roles, checked server-side on every read and write. Defaults below; school admin may later override **overridable** capabilities in [Control Hub](../wayfinder/control-hub.md) without creating custom roles.
 
 | Role             | Scope                 | Summary                                                                                                        |
 | ---------------- | --------------------- | -------------------------------------------------------------------------------------------------------------- |
 | `platform_owner` | Global (cross-tenant) | You. Billing/aggregates console only. Never a `school_members` row; workspace entry only via audited support grants (Phase 6). |
-| `school_admin`   | One school            | Created the workspace. Manages staff, subscriptions, approves report cards; may also manage fees.              |
+| `school_admin`   | One school            | Created the workspace. Manages staff, subscriptions, approves report cards; may also manage fees. Control Hub is admin-only. |
+| `coordinator`    | One school            | Team / people management. Not Fees or Students nav by default.                                                 |
 | `accountant`     | One school            | Money flow only: fee structures, scholarships, collections, fee audit. No Team/settings.                       |
 | `teacher`        | One school            | Enters student activity/marks, creates report cards and test papers.                                           |
 | `staff`          | One school            | Limited data entry (attendance, activities) as delegated by admin.                                             |

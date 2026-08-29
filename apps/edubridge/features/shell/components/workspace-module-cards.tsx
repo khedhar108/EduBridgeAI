@@ -3,6 +3,7 @@ import {
   ArrowUpRightIcon,
   GraduationCapIcon,
   HomeIcon,
+  SlidersHorizontalIcon,
   UsersIcon,
   WalletIcon,
   type LucideIcon,
@@ -21,6 +22,7 @@ const MODULE_ICONS: Record<string, LucideIcon> = {
   users: UsersIcon,
   wallet: WalletIcon,
   "graduation-cap": GraduationCapIcon,
+  "sliders-horizontal": SlidersHorizontalIcon,
 };
 
 type WorkspaceModuleCardsProps = {

@@ -72,3 +72,9 @@ One line.
 | 0024 | [Family parent wrapper](./0024-family-parent-wrapper.md) | 2026-08-28 | `parent_links` sibling group + Add child + switcher |
 | 0025 | [Office-created staff accounts](./0025-office-staff-accounts.md) | 2026-08-28 | Directory Add member + reset password; invite tokens removed |
 | 0026 | [School students dashboard](./0026-school-students.md) | 2026-08-28 | `0010` academic tables, `/students` attendance, family fills |
+| 0028 | [Control Hub capability overrides](./0028-control-hub-overrides.md) | 2026-08-29 | `schools.capability_overrides`; Hub Switches persist on EduDatabase |
+| 0029 | [Visual fee structures](./0029-visual-fee-structures.md) | 2026-08-29 | Visual heads studio, version timeline, Hub-aware Fees nav |
+| 0030 | [Coordinator fee SELECT + demo flag](./0030-fee-select-coordinator.md) | 2026-08-29 | Fee SELECT includes coordinator; `is_demo`; Hub `fees.view` live |
+| 0030 | [Public school registration](./0030-school-registration.md) | 2026-08-29 | `/register` wizard, instant school + first admin, founder password recovery |
+| 0031 | [Workspace URL architecture](./0031-workspace-url-architecture.md) | 2026-08-29 | Dual-mode URL doc + open platform-launch checkboxes; no routing change |
+| 0032 | [Host rewrite + Coolify path](./0032-host-rewrite-coolify.md) | 2026-08-29 | `proxy.ts` subdomain rewrite; admin School URL; Coolify+Hetzner HITL |

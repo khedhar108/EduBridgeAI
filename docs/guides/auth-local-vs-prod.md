@@ -34,13 +34,15 @@ Admission number + student DOB → read-only family cookie. No mass passwords. P
 
 ## Different local vs production
 
-| | Local (now) | Production (later) |
-|--|-------------|-------------------|
-| App URL | `http://localhost:3000` | `https://…` / `*.edubridge.app` |
-| First admin | Manual (below) | School registration (Phase 6) creates admin |
-| Email delivery | Office tells the person the password | Same until self-serve recovery ships |
-| Host routing | Path `/edubridge-pilot-bridge` | Subdomain rewrite (ADR-006) |
-| Family entry | Phase 1: `/edubridge-pilot-bridge/family` | Same path on workspace host |
+| | Local (now) | Coolify apex only (no wildcard yet) | After DNS + TLS |
+|--|-------------|-------------------------------------|-----------------|
+| App URL | `http://localhost:3000/{slug}` or `{slug}.localhost:3000` | `{apex}/{slug}` | `https://{slug}.edubridge.app` |
+| First admin | `/register` or seed | `/register` creates admin | Same, then slice D redirects to school host |
+| Host routing | Path `/edubridge-pilot-bridge` **or** rewrite on `{slug}.localhost` | Path on apex; rewrite ready | Subdomain rewrite (ADR-006) |
+| Family cookie Path | Host-aware (`/{slug}/family` vs `/family`) | Same | `/family` on school host |
+| Family entry | `/{slug}/sign-in` → Parent or student | Same chooser | Same chooser on workspace host |
+
+Full table: [workspace-urls.md](../architecture/workspace-urls.md). Open slices: [platform-launch.md](../wayfinder/platform-launch.md).
 
 ## Ready-to-use test logins (EduDatabase)
 
@@ -75,10 +77,11 @@ Live check (2026-08-08): workspace shows role badge + email; platform console sh
 - [x] Teacher login
 - [x] School admin login
 - [x] Platform owner login
+- [x] Family admission + DOB (local path cookie)
+- [x] New school registration (`/register` thin slice)
 - [ ] Add member outsider path (do later)
 - [ ] Domain join → activate (do later)
-- [ ] Family admission + DOB (Phase 1)
-- [ ] New school registration (Phase 6)
+- [ ] Family on `{slug}.edubridge.app` (platform-launch slice B DNS)
 
 Pilot school already exists: slug `edubridge-pilot-bridge`, domain `pilot-school.edu`.
 
@@ -94,11 +97,18 @@ pnpm --filter edubridge dev
 
 ### Brand-new school (first-time registration)
 
-**Not built yet** (Phase 6). Today you cannot self-register a school in the app. Only the seeded pilot school exists until Phase 6 registration ships.
+Public `/register` (Phase 6.1 thin slice). Official school-domain email (not Gmail) → OTP or magic link → workspace at `/{slug}` as the one school admin. Location (India state/city) is stored on `schools`. Trial/billing is not in this slice.
+
+Production also needs, in the Supabase Auth dashboard:
+
+- Redirect URLs including `https://<host>/auth/callback`
+- `NEXT_PUBLIC_SITE_URL` on the app (email links)
+
+Local: if email confirmations are off, `/register` provisions in the same request (no OTP).
 
 ### Family (parent/student admission + DOB)
 
-**Not built yet** (Phase 1). No student rows / `/family` UI to test.
+Local: `/{slug}/sign-in` → Parent or student → `/{slug}/family/home`. Cookie Path follows Host ([workspace-urls.md](../architecture/workspace-urls.md)).
 
 ### Extra: add outsider / domain pending
 

@@ -19,6 +19,10 @@ export class AdminAuthError extends Error {
   }
 }
 
+export function createAdminClientForUserUpdate() {
+  return createAdminClient();
+}
+
 function createAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;

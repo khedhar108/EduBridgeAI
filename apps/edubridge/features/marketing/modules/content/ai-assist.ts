@@ -1,4 +1,5 @@
 import type { ModulePage } from "../types";
+import { PLATFORM_NAME } from "@/lib/brand";
 
 export const aiAssistPage: ModulePage = {
   slug: "ai-assist",
@@ -21,7 +22,7 @@ export const aiAssistPage: ModulePage = {
   sections: [
     {
       heading: "The rule",
-      body: "Assistants draft. Humans approve. Writes go through server actions with the same role checks as the rest of EduBridge.",
+      body: `Assistants draft. Humans approve. Writes go through server actions with the same role checks as the rest of ${PLATFORM_NAME}.`,
       media: {
         label: "Approval checklist UI",
         aspect: "4 / 3",

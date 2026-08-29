@@ -9,6 +9,7 @@ import {
   setFamilySessionCookie,
 } from "@/lib/tenancy/family-session";
 import { resolveParentFamilyGroup } from "@/lib/tenancy/parent-family-group";
+import { persistAcceptedTerms } from "@/lib/legal/accept-terms";
 import { familySignInSchema } from "../lib/schemas";
 
 export type FamilySignInState = { error?: string };
@@ -41,6 +42,9 @@ export async function familySignInAction(
   if (!parsed.success) {
     return { error: FAMILY_MATCH_GENERIC_ERROR };
   }
+
+  const terms = await persistAcceptedTerms(formData);
+  if (!terms.ok) return { error: terms.error };
 
   const headerStore = await headers();
   const result = await matchStudentForFamily({

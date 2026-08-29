@@ -1,7 +1,8 @@
 import { cache } from "react";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { eq, getDb, schools } from "@repo/db";
+import { hostnameFromHeaders, isSchoolHostForSlug } from "./workspace-host";
 import {
   FAMILY_COOKIE_NAME,
   FAMILY_SESSION_TTL_MS,
@@ -29,13 +30,19 @@ export {
 
 export type FamilySessionInput = Omit<FamilySessionPayload, "expiresAt">;
 
+async function familyHostMode(schoolSlug: string): Promise<boolean> {
+  const headerList = await headers();
+  return isSchoolHostForSlug(hostnameFromHeaders(headerList), schoolSlug);
+}
+
 /**
  * Signed family cookie. Copies the impersonation HMAC *shape*, not meaning:
  * this cookie is the only family credential and never grants staff context.
  *
- * Origin-aware Path (PWA-safe): prod `Path=/family` on `{slug}.edubridge.app`
- * (never `Domain=.edubridge.app`); local `Path=/{slug}/family`.
- * TTL (~30 days) is set at sign-in. Reads do not write cookies (RSC-safe).
+ * Origin-aware Path (PWA-safe): school host `Path=/family` on
+ * `{slug}.edubridge.app` (never `Domain=.edubridge.app`); path mode
+ * `Path=/{slug}/family`. TTL (~30 days) is set at sign-in. Reads do not
+ * write cookies (RSC-safe).
  */
 export async function setFamilySessionCookie(
   payload: FamilySessionInput,
@@ -49,7 +56,9 @@ export async function setFamilySessionCookie(
   cookieStore.set(
     FAMILY_COOKIE_NAME,
     signFamilyPayload(fullPayload),
-    familyCookieSetOptions(origin.schoolSlug),
+    familyCookieSetOptions(origin.schoolSlug, {
+      hostMode: await familyHostMode(origin.schoolSlug),
+    }),
   );
 }
 
@@ -96,7 +105,9 @@ export async function requireFamilySession(
 export async function clearFamilySessionCookie(schoolSlug: string): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.set(FAMILY_COOKIE_NAME, "", {
-    ...familyCookieSetOptions(schoolSlug),
+    ...familyCookieSetOptions(schoolSlug, {
+      hostMode: await familyHostMode(schoolSlug),
+    }),
     maxAge: 0,
   });
 }

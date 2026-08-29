@@ -2,6 +2,24 @@
 
 > Turn EduBridge from a pilot product into a self-service SaaS: public school registration, automatic workspace provisioning, a 15-day Max trial, three paid plans with upfront billing, per-school module toggles, and the platform-owner console.
 
+Tracker (open slices, do not skip): [platform-launch.md](../wayfinder/platform-launch.md).  
+URL dual-mode: [workspace-urls.md](../architecture/workspace-urls.md).
+
+## Status
+
+### Done
+
+- [x] 6.1 thin slice — public `/register`, OTP, `-bridge` slug, atomic school + first admin (no trial row yet)
+
+### Left (do not start payments before rewrite)
+
+- [ ] 6.6 Workspace URLs — wildcard DNS + TLS on Coolify/Hetzner (`proxy.ts` rewrite is in code); path fallback stays
+- [ ] 6.2 Plans and trial engine — `normal | pro | max`, 15-day Max trial, read-only
+- [ ] 6.3 Module entitlements — plan defaults + owner override; shell + write gate
+- [ ] 6.4 Payments — provider ADR first ([research ticket](../wayfinder/tickets/research-payment-provider.md))
+- [ ] 6.5 Platform owner console
+- [ ] 6.7 Support access (JIT grants)
+
 ## Goal
 
 Any school can register with its official email, get its own `-bridge` workspace automatically, experience the full platform on a 15-day Max trial, then pick a paid plan (Normal / Pro / Max, billed upfront for 3 / 6 / 12 months). The platform owner controls which modules each school can access and tracks the funnel and revenue in a dedicated cross-tenant console.
@@ -53,49 +71,49 @@ A school owner registers on the public site, verifies their official school emai
 
 ### 6.1 Registration and provisioning
 
-- Public register flow: school name → official email (domain validated against a free-provider blocklist; domain stored on the school) → email verification → choose workspace name → slug generated with `-bridge` suffix, uniqueness enforced.
-- Provisioning is one atomic server-side operation: `schools` row, admin `school_members` row, `subscriptions` row (`trialing`, plan = `max`, 15 days), default module entitlements materialized.
+**Thin slice shipped (no billing):** public `/register` wizard (school name + India state/city → founder identity → workspace slug) → official-email OTP or magic link → atomic provision (`schools` + first `school_admin` `school_members` + profile). Instant — no sales approval. Founder forgot-password is `/forgot-password`. Staff `/join-school` is unchanged.
+
+- [x] Public register flow: school name → official email (free-provider blocklist; domain stored on the school) → email verification → workspace name → slug `-bridge`, uniqueness enforced
+- [x] Provisioning is one atomic server-side operation: `schools` row, admin `school_members` row
+- [ ] `subscriptions` row (`trialing`, plan = `max`, 15 days) and default module entitlements — land with §6.2
 
 ### 6.2 Plans and trial engine
 
-- `plans` table (code `normal | pro | max`, name, default module set, prices per period `3m | 6m | 12m`) — seeded, owner-editable in console.
-- `subscriptions` (school_id, plan, state, current_period_start/end) with a daily scheduled job transitioning states (`trialing → grace → read_only`; `active → grace → read_only` on lapse).
-- Trial = subscription in `trialing` state with plan `max`; converting to paid swaps the plan and resets the period — module set changes take effect immediately (e.g. choosing Normal hides Pro/Max modules).
-- Read-only enforcement: shared middleware blocks mutations for `read_only` workspaces (reads keep working — schools never lose access to their data); persistent banner with days remaining during `trialing`/`grace`.
+- [ ] `plans` table (code `normal | pro | max`, name, default module set, prices per period `3m | 6m | 12m`) — seeded, owner-editable in console
+- [ ] `subscriptions` (school_id, plan, state, current_period_start/end) with a daily scheduled job transitioning states (`trialing → grace → read_only`; `active → grace → read_only` on lapse)
+- [ ] Trial = subscription in `trialing` state with plan `max`; converting to paid swaps the plan and resets the period
+- [ ] Read-only enforcement: shared guard blocks mutations for `read_only` workspaces (reads keep working); banners during `trialing`/`grace` — copy from [What read-only blocks](../wayfinder/tickets/grill-read-only-ux.md)
 
 ### 6.3 Module entitlement engine + owner toggles
 
-- `module_entitlements` (school_id, module_id, enabled, source: `plan | owner_override`, updated_by, updated_at). Plan changes rewrite `plan`-sourced rows; owner toggles write `owner_override` rows that survive plan changes until cleared.
-- Enforcement is server-side, two layers:
-  1. **Shell registry filtering:** module menu/cards rendered only for entitled modules (per role AND entitlement).
-  2. **Write gating:** mutations for a disabled module return 403 even if the caller crafts a request.
-- Owner console: per-school module toggle switches with instant effect (next request), plus "reset to plan defaults".
+- [ ] `module_entitlements` (school_id, module_id, enabled, source: `plan | owner_override`, updated_by, updated_at)
+- [ ] Shell registry filtering + write gating (`assertModuleEntitled`)
+- [ ] Owner console toggles — with §6.5
+- Ids: [Canonical module ids](../wayfinder/tickets/grill-module-ids.md)
 
 ### 6.4 Payments
 
-- Pricing page + checkout for 3m/6m/12m upfront (provider per ADR); webhook-driven `subscriptions` updates (`active`, renewals, failures → `grace`).
-- Invoices (GST-compliant) accessible to `school_admin` in settings; renewal reminders via email/WhatsApp before period end.
-- No proration in v1: plan changes apply at next renewal (upgrade can be immediate with a manual adjustment in console if the owner chooses).
+- [ ] Provider ADR ([Razorpay vs Stripe](../wayfinder/tickets/research-payment-provider.md)) then checkout for 3m/6m/12m upfront; webhook-driven `subscriptions` updates
+- [ ] GST invoices for `school_admin`; renewal reminders
+- No proration in v1 (locked)
 
 ### 6.5 Platform Owner Console
 
-- Module visible **only** via platform context (`platform_admins`); never a `school_members` row.
-- Hosted under `platform.edubridge.app` / `/platform` thin routes composing `features/platform-console/`.
-- Cross-tenant reads go through dedicated SQL views/functions (`security definer`) that aggregate across schools — the only sanctioned **billing/aggregate** cross-tenant path.
-- Dashboards: schools by plan and state (trialing/active/grace/read-only), registration→activation→paid funnel, revenue (collected, MRR-equivalent run-rate, upcoming renewals), module adoption (how many schools have each module on), per-school drill-down with module toggles.
-- Console has **no** general tenant-table browser. Workspace content requires support grants (§6.7).
+- [ ] `features/platform-console/` on `platform.edubridge.app` / `/platform` — `platform_admins` only, never a `school_members` row
+- [ ] Security-definer aggregate views (billing/funnel only)
+- Console has **no** general tenant-table browser (locked). Workspace content requires §6.7.
 
 ### 6.6 Workspace URL implementation
 
-- Execute [ADR-006](../decisions/ADR-006-workspace-subdomains.md): wildcard DNS + TLS; `proxy.ts` maps `<slug>.edubridge.app` → `[workspace]` and `platform.edubridge.app` → `/platform`.
-- Path-based URLs remain valid in local/non-prod. Application code keeps using the workspace slug param.
-- Reserved subdomains (`www`, `platform`, `api`, …) blocked from school slug allocation.
+- [x] `proxy.ts` maps `<slug>.edubridge.app` / `{slug}.localhost` → `[workspace]` and `platform.*` → `/platform`
+- [ ] Execute [ADR-006](../decisions/ADR-006-workspace-subdomains.md) DNS + TLS: Coolify on Hetzner, `*.edubridge.app`
+- [x] Path-based URLs remain valid locally. Application code keeps using the workspace slug param
+- [x] Reserved subdomains blocked from school slug allocation (`RESERVED_WORKSPACE_SLUGS`)
 
 ### 6.7 Support access (audited JIT)
 
-- Implement [support-access.md](../architecture/support-access.md): `support_access_grants`, RLS helpers, banner, audit log, `features/support-access/`.
-- Default read-only; explicit write scopes; 4h default / 24h max; school admin or support may revoke.
-- Platform identity never inserted into `school_members` for support.
+- [ ] Implement [support-access.md](../architecture/support-access.md): `support_access_grants`, RLS helpers, banner, audit log, `features/support-access/`
+- Default read-only; 4h default / 24h max (locked). Platform identity never inserted into `school_members` for support.
 
 ## Data model touchpoints
 
@@ -122,15 +140,17 @@ except entitlement gating.
 
 ## Testing checklist
 
-- [ ] Registration end-to-end: verify email, provision workspace, land in Max trial (automated test)
+- [x] Registration wizard exists locally (`/register` → provision → `/{slug}`) — production host still path until 6.6
+- [ ] Registration end-to-end on `edubridge.app` → land on `{slug}.edubridge.app` Max trial
 - [ ] Free-provider emails rejected for registration
 - [ ] Trial end → grace → read-only; writes blocked, reads work; payment restores access
 - [ ] Plan change (Max trial → Normal paid) hides Pro/Max modules and blocks their writes
-- [ ] Owner toggle disables a module for one school instantly; other schools unaffected; override survives plan change
+- [ ] Owner toggle disables a module for one school instantly; other schools unaffected
 - [ ] Payment webhooks idempotent
-- [ ] Owner console numbers reconcile with raw tables; `school_admin` cannot reach console routes/views
-- [ ] Support grant: enter with active grant; denied after expiry/revoke; write scopes honored; no `school_members` row for support user
-- [ ] Subdomain host rewrite lands in correct workspace; reserved names rejected
+- [ ] Owner console numbers reconcile; `school_admin` cannot reach console routes
+- [ ] Support grant: enter with active grant; denied after expiry/revoke
+- [x] Subdomain host rewrite lands in correct workspace; reserved names rejected (local `{slug}.localhost`)
+- [ ] **Local path still works** after rewrite: `localhost:3000/{slug}/sign-in` and family cookie `Path=/{slug}/family`
 - [ ] `pnpm build`, `pnpm lint`, `pnpm check-types` green
 
 ## Exit criteria

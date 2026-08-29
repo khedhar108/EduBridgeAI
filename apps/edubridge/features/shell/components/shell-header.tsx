@@ -6,6 +6,7 @@ import { AppMenu } from "./app-menu";
 import { ModulePill } from "./module-pill";
 import { ProfileMenu } from "./profile-menu";
 import { SearchBar, SearchBarMobile } from "./search-bar";
+import { PLATFORM_NAME } from "@/lib/brand";
 
 type ShellHeaderProps = {
   workspace: string;
@@ -34,7 +35,7 @@ export function ShellHeader({
           </span>
           <span className="flex flex-col leading-none">
             <span className="font-serif text-base font-semibold tracking-tight text-foreground">
-              EduBridge
+              {PLATFORM_NAME}
             </span>
             <span className="mt-1 hidden max-w-[12rem] truncate text-xs text-muted-foreground sm:block">
               {schoolSlug}

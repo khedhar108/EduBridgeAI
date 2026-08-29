@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { Button } from "@repo/ui/components/button";
 import { Input } from "@repo/ui/components/input";
 import { Spinner } from "@repo/ui/components/spinner";
@@ -9,12 +9,14 @@ import {
   registerStudentAction,
   type RegisterStudentState,
 } from "../actions/register-student";
+import { formatInr, payableInr } from "../lib/money";
 
 const initial: RegisterStudentState = {};
 
 type PlanVersionOption = {
   id: string;
   label: string;
+  totalAmountInr: number;
 };
 
 type Props = {
@@ -26,6 +28,13 @@ export function RegisterStudentForm({ workspace, planVersions }: Props) {
   const bound = registerStudentAction.bind(null, workspace);
   const [state, formAction, pending] = useActionState(bound, initial);
   useActionToast(state, "Student registered.");
+  const [planVersionId, setPlanVersionId] = useState(planVersions[0]?.id ?? "");
+  const [concessionPercent, setConcessionPercent] = useState(0);
+
+  const selected = planVersions.find((v) => v.id === planVersionId);
+  const net = selected
+    ? payableInr(selected.totalAmountInr, concessionPercent)
+    : 0;
 
   if (planVersions.length === 0) {
     return (
@@ -144,6 +153,8 @@ export function RegisterStudentForm({ workspace, planVersions }: Props) {
           name="planVersionId"
           required
           disabled={pending}
+          value={planVersionId}
+          onChange={(event) => setPlanVersionId(event.target.value)}
           className="border-input bg-background h-11 rounded-md border px-3 text-sm"
         >
           {planVersions.map((v) => (
@@ -152,6 +163,10 @@ export function RegisterStudentForm({ workspace, planVersions }: Props) {
             </option>
           ))}
         </select>
+        <p className="text-xs text-muted-foreground">
+          This version is pinned. Later structure publishes do not change this
+          family&apos;s bill.
+        </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -165,9 +180,14 @@ export function RegisterStudentForm({ workspace, planVersions }: Props) {
             type="number"
             min={0}
             max={100}
-            defaultValue={0}
+            value={concessionPercent}
             disabled={pending}
             className="h-11"
+            onChange={(event) =>
+              setConcessionPercent(
+                Math.min(100, Math.max(0, Math.floor(Number(event.target.value) || 0))),
+              )
+            }
           />
         </div>
         <div className="flex flex-col gap-2">
@@ -182,6 +202,15 @@ export function RegisterStudentForm({ workspace, planVersions }: Props) {
           />
         </div>
       </div>
+
+      <p className="text-sm">
+        Payable after scholarship:{" "}
+        <span className="font-medium tabular-nums">{formatInr(net)}</span>
+        <span className="text-muted-foreground">
+          {" "}
+          — not retroactive for students already billed.
+        </span>
+      </p>
 
       <Button type="submit" className="h-11" disabled={pending}>
         {pending ? <Spinner className="size-4" /> : null}

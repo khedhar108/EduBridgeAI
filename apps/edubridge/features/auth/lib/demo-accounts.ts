@@ -1,3 +1,5 @@
+import { COOKIE_PREFIX, PLATFORM_DOMAIN } from "@/lib/brand";
+
 // Local-development demo accounts. Mirrors docs/guides/auth-local-vs-prod.md.
 // Never exposed in production: the modal that renders these is gated by
 // process.env.NODE_ENV !== "production".
@@ -80,16 +82,16 @@ export const DEMO_ACCOUNTS: DemoAccount[] = [
     id: "owner",
     role: "Platform owner",
     description: "Operator console · platform-owner",
-    email: "owner@edubridge.app",
+    email: `owner@${PLATFORM_DOMAIN}`,
     password: "TestLogin123!",
     surface: "platform",
     path: "/platform/sign-in",
   },
 ];
 
-export const DEMO_PREFILL_EVENT = "edubridge:demo-prefill";
+export const DEMO_PREFILL_EVENT = `${COOKIE_PREFIX}:demo-prefill`;
 
-const STORAGE_KEY = "edubridge.demo-prefill";
+const STORAGE_KEY = `${COOKIE_PREFIX}.demo-prefill`;
 
 /** Same-page fill: the sign-in form listens for this event. */
 export function dispatchDemoPrefill(email: string, password: string) {

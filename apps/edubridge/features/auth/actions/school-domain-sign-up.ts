@@ -8,6 +8,7 @@ import {
   emailDomain,
   isEligibleSchoolEmailDomain,
 } from "@/lib/tenancy/email-domain";
+import { persistAcceptedTerms } from "@/lib/legal/accept-terms";
 import { schoolDomainSignUpSchema } from "../lib/schemas";
 
 export type SchoolDomainSignUpState = { error?: string };
@@ -31,6 +32,9 @@ export async function schoolDomainSignUpAction(
   if (!parsed.success) {
     return { error: "Enter your school email, name, a username, and a password (8+ chars)." };
   }
+
+  const terms = await persistAcceptedTerms(formData);
+  if (!terms.ok) return { error: terms.error };
 
   const email = parsed.data.email.toLowerCase();
   const domain = emailDomain(email);

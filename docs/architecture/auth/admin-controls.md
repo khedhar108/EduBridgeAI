@@ -5,9 +5,12 @@
 > another user, and how username sign-in works.
 > The capability map in `apps/edubridge/lib/auth/capabilities.ts` is the
 > single source of truth for privileged actions; RLS remains the backstop.
+> Admin module-grouped Switches are **Control Hub**
+> ([control-hub.md](../../wayfinder/control-hub.md)). The directory Switch is
+> member active/inactive, not a capability grant.
 
 Related: [rbac-model.md](./rbac-model.md) · [auth README](./README.md) ·
-[multi-tenancy.md](../multi-tenancy.md)
+[multi-tenancy.md](../multi-tenancy.md) · [Control Hub](../../wayfinder/control-hub.md)
 
 ## Capability map (who can do what)
 
@@ -23,7 +26,8 @@ Related: [rbac-model.md](./rbac-model.md) · [auth README](./README.md) ·
 | `members.changeRole`     |      ✓       |      ✗      |
 | `members.impersonate`    |      ✓       |      ✗      |
 | `team.view` (Team page)  |      ✓       |      ✓      |
-| Fees module              |      ✓       |      ✗      |
+| Fees module              |      ✓       |      ✗ (unless Hub later grants `fees.collect`) |
+| Control Hub              |      ✓       |      ✗      |
 
 Rules encoded in `can(ctx, capability, targetRole?)`:
 
@@ -188,9 +192,8 @@ and 15 (Oakwood, `OAK-2024-###`) each with a primary guardian.
 - [x] Username and email sign-in both work (`/{slug}/sign-in` needs no slug
       typed; global `/sign-in` still has the optional school field)
 - [x] Cross-tenant: pilot member opening `/oakwood-academy-bridge` → 404
-- [ ] Family match (headless): `pnpm --filter @repo/db test:family-match` — Pilot `EBS-2024-006`/`2013-06-06` hits; wrong DOB and Oakwood miss; family cookie does not satisfy staff context
-- [ ] Archive: admin archives a coordinator → archived screen, directory
-      badge, no reactivation; coordinator cannot archive or change roles
-      (apply `0008` then smoke)
-- [ ] One admin: provision/activate/role-change have no School admin option;
+- [x] Family match (headless): `pnpm --filter @repo/db test:family-match` — Pilot `EBS-2024-006`/`2013-06-06` hits; hyphenless `EBS2024006` hits; wrong DOB and Oakwood miss; family cookie does not satisfy staff context
+- [x] Archive: admin archives a coordinator → archived screen, directory
+      badge, no reactivation; coordinator cannot archive or change roles (`0008`)
+- [x] One admin: provision/activate/role-change have no School admin option;
       unique index rejects a second live `school_admin`

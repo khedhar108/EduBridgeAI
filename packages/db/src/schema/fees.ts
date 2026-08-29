@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   check,
   index,
   integer,
@@ -57,6 +58,8 @@ export const feePlans = pgTable(
     name: varchar("name", { length: 160 }).notNull(),
     classLabel: varchar("class_label", { length: 64 }),
     paymentMode: feePaymentMode("payment_mode").notNull().default("once"),
+    /** First-time starter. Next published version clears this. */
+    isDemo: boolean("is_demo").notNull().default(false),
     archivedAt: timestamp("archived_at", {
       withTimezone: true,
       mode: "date",

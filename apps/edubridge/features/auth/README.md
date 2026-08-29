@@ -4,15 +4,18 @@ Identity UI and server actions for EduBridge (Supabase Auth).
 
 ## Routes served
 
-- `/sign-in` — school members (email, or username + optional school slug)
-- `/[workspace]/sign-in` — staff door; school from the URL, no slug field
-- `/[workspace]/family` — family door; admission number + student DOB
+- `/sign-in` — school members (email, or username + optional school slug). **Staff-only.**
+- `/[workspace]/sign-in` — How are you? then staff (`SignInForm`) or family (`FamilySignInForm`); `?who=school|family` skips the cards
+- `/[workspace]/family` — family app entry: cookie → `/family/home`, else redirect to `/sign-in?who=family`
 - `/[workspace]/family/home` — family app (`features/student-dashboard`)
 - `/[workspace]/family/add-child` — parent Add child (admission + DOB)
 - `/join-school` — school-domain sign-up (pending until admin activates)
+- `/register` — founder creates a new school (email proof, then instant workspace)
+- `/forgot-password` / `/update-password` — founder/staff email recovery (office reset stays on the directory)
 - `/platform/sign-in` — platform owner
 - `/auth/callback` — magic-link / OAuth code exchange
 - `/[workspace]/settings/team` — pending domain-join queue
+- `/[workspace]/settings/control` — Control Hub (school admin; permission flags)
 
 ## Layout
 
@@ -44,8 +47,7 @@ mount.
 2. **Domain join** — email domain matches `schools.official_email_domain` →
    pending `membership_requests` → admin activates with role on Team.
 
-Password reset is office-only (directory Actions). Domain match never
-auto-grants workspace access or `school_admin`.
+Password reset is office-only for staff they created (directory Actions). Founders use `/forgot-password`. Domain match never auto-grants workspace access or `school_admin`.
 
 ## Roles
 

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { LayoutDashboard, ShieldCheck, Sparkles } from "lucide-react";
 import { MeshGradient } from "./mesh-gradient";
+import { PLATFORM_NAME } from "@/lib/brand";
 
 const panelFeatures = [
   {
@@ -32,7 +33,7 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
             href="/"
             className="relative font-serif text-2xl tracking-tight text-foreground"
           >
-            EduBridge
+            {PLATFORM_NAME}
           </Link>
           <div className="relative flex flex-1 flex-col justify-center gap-10 py-10">
             <div className="flex flex-col gap-4">
@@ -72,7 +73,7 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
               href="/"
               className="font-serif text-2xl tracking-tight text-foreground"
             >
-              EduBridge
+              {PLATFORM_NAME}
             </Link>
           </header>
           <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-8 px-6 py-12">

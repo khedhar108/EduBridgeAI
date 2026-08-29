@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BlogArticleView, getArticle } from "@/features/marketing";
 import { BLOG_ARTICLES } from "@/features/marketing/content/modules";
+import { SiteFooter } from "@/features/legal";
+import { PLATFORM_NAME } from "@/lib/brand";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -12,9 +14,9 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const article = getArticle(slug);
-  if (!article) return { title: "Product note | EduBridge" };
+  if (!article) return { title: `Product note | ${PLATFORM_NAME}` };
   return {
-    title: `${article.title} | EduBridge`,
+    title: `${article.title} | ${PLATFORM_NAME}`,
     description: article.description,
   };
 }
@@ -27,6 +29,7 @@ export default async function BlogArticlePage({ params }: Props) {
   return (
     <div className="min-h-dvh bg-background">
       <BlogArticleView article={article} />
+      <SiteFooter />
     </div>
   );
 }

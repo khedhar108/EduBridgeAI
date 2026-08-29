@@ -71,9 +71,11 @@ The first migration and a rollback-only isolation test live under
 
 ## Workspace URLs
 
-- **Phase 0 / local:** path-based `/{slug}` (slug ends `-bridge`).
-- **Production (Phase 6):** `<slug>.edubridge.app` via host rewrite in `proxy.ts`
-  ([ADR-006](../decisions/ADR-006-workspace-subdomains.md)).
+Canonical: [workspace-urls.md](./workspace-urls.md). Execution checkboxes:
+[platform-launch.md](../wayfinder/platform-launch.md).
+
+- **Local (forever):** path-based `/{slug}` (slug ends `-bridge`); optional `{slug}.localhost`.
+- **Production:** `<slug>.edubridge.app` via host rewrite in `proxy.ts` ([ADR-006](../decisions/ADR-006-workspace-subdomains.md)). DNS/TLS: Coolify on Hetzner.
 - Hostname selects the school candidate; membership or grant authorizes access.
 
 ## Development probe

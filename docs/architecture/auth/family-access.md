@@ -2,7 +2,7 @@
 
 > Canonical architecture for **parents and students** opening a **read-only, mobile-first** surface. Staff password / office create / domain-join stay separate and must not be broken by this path.
 
-**Phase 0:** `/{slug}/family` form (admission + DOB) + HMAC cookie `edubridge.family`.  
+**Phase 0:** `/{slug}/sign-in` How are you? then admission + DOB (`?who=family`) + HMAC cookie `edubridge.family`.  
 **Phase 1 Slice 1 (shipped):** `/{slug}/family/home` hub + Fees / Progress / Exams / Events under `/family/*`.  
 **Phase 1 Slice 2 (shipped):** parent wrapper — `parent_links.family_id` sibling group, Add child, switcher (`0009_parent-links` migrated).  
 **Phase 1 Slice 3 (in progress):** school `/students` class filter + attendance; family Progress/Exams/Events read those tables. Marks CRUD, charts, PWA still open.  
@@ -19,8 +19,10 @@ Two-door table (canonical): [auth README](./README.md#two-doors-school-is-the-ur
 
 | Door | Open |
 |------|------|
-| Staff | `localhost:3000/<slug>/sign-in` |
-| Family | `localhost:3000/<slug>/family` |
+| Public chooser | `localhost:3000/<slug>/sign-in` |
+| Staff | `localhost:3000/<slug>/sign-in?who=school` |
+| Family proof | `localhost:3000/<slug>/sign-in?who=family` |
+| Family app | `localhost:3000/<slug>/family/home` |
 
 ### Decisions so far
 
@@ -30,9 +32,9 @@ Two-door table (canonical): [auth README](./README.md#two-doors-school-is-the-ur
 | Mass student passwords? | **No** — no thousands of Supabase password users; no mass student/parent staff accounts |
 | Parent multi-child | Parent wrapper: verify first child → **Add child** with another admission+DOB → switcher (Phase 1 UI) |
 | Student key (human) | `(school_id, admission_number)` unique; UUID remains internal FK |
-| Entry URL | `/[workspace]/family` |
+| Entry URL | `/[workspace]/sign-in` (How are you?; `?who=family` skips to the form) |
 | Verify + cookie | `matchStudentForFamily` + `lib/tenancy/family-session.ts` |
-| Form | `FamilySignInForm` at `/family` |
+| Form | `FamilySignInForm` at `/sign-in?who=family` |
 | Family home | Slice 1 — `/{slug}/family/home` hub ([family-surface.md](./family-surface.md)) |
 | Add child | Slice 2 — `/{slug}/family/add-child` (parent only) |
 
@@ -46,9 +48,9 @@ Two-door table (canonical): [auth README](./README.md#two-doors-school-is-the-ur
 
 | Actor | Entry | Sees |
 |-------|--------|------|
-| Student (any grade with a phone) | `/{slug}/family` — own admission # + own DOB | Read-only self |
-| Parent / guardian | `/{slug}/family` — any child’s admission # + that child’s DOB | Read-only; Add child + switcher in Phase 1 |
-| Staff / teacher / admin | `/{slug}/sign-in` (username + password) or global `/sign-in` (email + password) | Full staff workspace — **not** this path |
+| Student (any grade with a phone) | `/{slug}/sign-in?who=family` — own admission # + own DOB | Read-only self |
+| Parent / guardian | `/{slug}/sign-in?who=family` — any child’s admission # + that child’s DOB | Read-only; Add child + switcher in Phase 1 |
+| Staff / teacher / admin | `/{slug}/sign-in?who=school` (username + password) or global `/sign-in` (email + password) | Full staff workspace — **not** this path |
 
 **Add member is not for mass students/parents.** Office create is for staff only (`provisionRoles` excludes `student` / `parent`). Family read access is admission + DOB only.
 
@@ -56,7 +58,8 @@ Two-door table (canonical): [auth README](./README.md#two-doors-school-is-the-ur
 
 ```mermaid
 flowchart TD
-  entry["/[workspace]/family"]
+  url["/[workspace]/sign-in"]
+  ask["How are you?"]
   form["admission_number + DOB"]
   verify["Server: rate-limit + match students"]
   mode{"Viewer mode"}
@@ -64,20 +67,21 @@ flowchart TD
   parentSess["Family session: parent + studentIds"]
   addChild["Add child: another admission+DOB"]
   switcher["Child switcher"]
-  readUI["Read-only family routes"]
-  staffAuth["Staff /sign-in"]
-  entry --> form --> verify --> mode
+  readUI["Read-only family routes /family/*"]
+  staffAuth["Staff username + password"]
+  url --> ask
+  ask -->|Parent or student| form --> verify --> mode
+  ask -->|School| staffAuth
   mode -->|student| studentSess --> readUI
   mode -->|parent| parentSess --> readUI
   parentSess --> addChild --> parentSess
   parentSess --> switcher --> readUI
-  staffAuth -.->|"separate"| readUI
 ```
 
 Headless verify: `matchStudentForFamily({ schoolSlug, admissionNumber, dateOfBirth, ip })`. Form: `FamilySignInForm` → `familySignInAction` → cookie → redirect `/{slug}/family/home`.
 
 1. Resolve `schools.slug` → `school_id` (URL slug only; never a client `schoolId`).
-2. `SELECT` from `students` where `school_id` + `admission_number` + `date_of_birth`.
+2. `SELECT` from `students` where `school_id` + `date_of_birth`, then match admission with hyphens/spaces ignored (`EBS2024006` = `EBS-2024-006`).
 3. Hit → `{ studentId, schoolId }`. Miss → generic `"details don’t match"` (wrong DOB, unknown admission, other school — same copy).
 4. Rate-limit key: **IP + admission + slug** (not IP alone — shared school WiFi).
 
@@ -87,7 +91,7 @@ Seed checks (`pnpm --filter @repo/db test:family-match`): Pilot + `EBS-2024-006`
 
 ## Admission number as the student key
 
-- Unique per school: `(school_id, admission_number)`.
+- Unique per school: `(school_id, admission_number)`. Stored value can keep hyphens; family login ignores `-` and spaces.
 - Human-facing identifier across modules (dashboard, reports, support).
 - Internal FKs still use `students.id` (UUID).
 - DOB lives on `students`; never trusted from the client alone.
@@ -106,8 +110,9 @@ Module: `apps/edubridge/lib/tenancy/family-session.ts` (HMAC helpers in `family-
    - `expiresAt`
 3. Secret: `FAMILY_SESSION_SECRET` (separate from `IMPERSONATION_SECRET`). Required in production.
 4. **Origin-aware Path (PWA-safe):**
-   - Production: host is `{slug}.edubridge.app`, `Path=/family`. **Never** `Domain=.edubridge.app`.
-   - Local: `Path=/{slug}/family` so Pilot and Oakwood do not share a cookie on localhost.
+   - Local / path-only: `Path=/{slug}/family` so Pilot and Oakwood do not share a cookie on localhost.
+   - Production after rewrite: host is `{slug}.edubridge.app`, `Path=/family`. **Never** `Domain=.edubridge.app`.
+   - Family cookie Path follows Host, not `NODE_ENV` ([workspace-urls.md](../workspace-urls.md)).
 5. **TTL ~30 days** at sign-in. Reads do not rewrite the cookie (RSC-safe). Re-proof on a new device.
 6. Every read re-checks payload `schoolId` against the URL slug’s school.
 7. Family routes/actions are **read-only** (SELECT only). Hub UI (home + fees/progress/exams/events) is Slice 1; charts wait on Slice 3.
@@ -135,8 +140,8 @@ Unique `(school_id, family_id, student_id)`. Family writes use privileged `getDb
 
 ## Staff auth must stay unbroken
 
-- Family under `/[workspace]/family/...` — not `/sign-in`.
-- `proxy.ts`: allow `/{slug}/family` without a Supabase user; staff workspace paths still require Supabase. Family cookie **does not** satisfy the staff branch. (`proxy.ts` is owned with the staff sign-in work.)
+- Family **pages** stay under `/[workspace]/family/...` so cookie Path works. Proof form lives on `/{slug}/sign-in?who=family`. Global `/sign-in` is staff-only.
+- `proxy.ts`: allow `/{slug}/family` and `/{slug}/sign-in` without a Supabase user; staff workspace paths still require Supabase. Family cookie **does not** satisfy the staff branch. (`proxy.ts` is owned with the staff sign-in work.)
 - `getSessionContext` never reads `edubridge.family`. Team/Fees keep `getSessionContext` + role gates.
 - RLS for family path: Phase 1 student-scoped policies / server claims — never teacher/admin powers.
 
@@ -151,7 +156,7 @@ Unique `(school_id, family_id, student_id)`. Family writes use privileged `getDb
 
 ## Local vs production
 
-Same Supabase project and rules. Local: `localhost:3000/<slug>/family` (cookie path `/{slug}/family`). Production: `{slug}.edubridge.app` + `Path=/family` (ADR-006). No email required for family proof.
+Same Supabase project and rules. Local: `localhost:3000/<slug>/family` (cookie path `/{slug}/family`). Production after rewrite: `{slug}.edubridge.app` + `Path=/family` (ADR-006). No email required for family proof.
 
 Staff office-create and domain-join testing remains in [auth-local-vs-prod.md](../../guides/auth-local-vs-prod.md).
 

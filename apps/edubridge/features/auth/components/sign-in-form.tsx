@@ -12,6 +12,10 @@ import {
   DEMO_PREFILL_EVENT,
   consumeDemoPrefill,
 } from "../lib/demo-accounts";
+import { TermsAcceptCheckbox } from "./terms-accept-checkbox";
+import { REMEMBER_CREDS_KEY } from "@/lib/legal/cookie-inventory";
+import { readConsentFromDocument } from "@/lib/legal/consent";
+import { TERMS_VERSION } from "@/lib/legal/constants";
 
 const initial: SignInState = {};
 
@@ -23,7 +27,6 @@ type Props = {
   workspace?: string;
 };
 
-const REMEMBER_KEY = "edubridge.remembered-creds";
 const REMEMBER_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 type RememberedCreds = {
@@ -34,7 +37,7 @@ type RememberedCreds = {
 
 function readRemembered(): RememberedCreds | null {
   try {
-    const raw = localStorage.getItem(REMEMBER_KEY);
+    const raw = localStorage.getItem(REMEMBER_CREDS_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<RememberedCreds>;
     if (
@@ -45,7 +48,7 @@ function readRemembered(): RememberedCreds | null {
       return null;
     }
     if (Date.now() > parsed.expiresAt) {
-      localStorage.removeItem(REMEMBER_KEY);
+      localStorage.removeItem(REMEMBER_CREDS_KEY);
       return null;
     }
     return {
@@ -61,7 +64,7 @@ function readRemembered(): RememberedCreds | null {
 function writeRemembered(email: string, password: string) {
   try {
     localStorage.setItem(
-      REMEMBER_KEY,
+      REMEMBER_CREDS_KEY,
       JSON.stringify({ email, password, expiresAt: Date.now() + REMEMBER_TTL }),
     );
   } catch {
@@ -71,7 +74,7 @@ function writeRemembered(email: string, password: string) {
 
 function clearRemembered() {
   try {
-    localStorage.removeItem(REMEMBER_KEY);
+    localStorage.removeItem(REMEMBER_CREDS_KEY);
   } catch {
     // ignore
   }
@@ -133,7 +136,8 @@ export function SignInForm({ surface, next, emailPrefill, workspace }: Props) {
       email &&
       password &&
       !autoSubmitRef.current &&
-      !pending
+      !pending &&
+      readConsentFromDocument()?.termsVersion === TERMS_VERSION
     ) {
       autoSubmitRef.current = true;
       const id = setTimeout(() => formRef.current?.requestSubmit(), 60);
@@ -246,6 +250,14 @@ export function SignInForm({ surface, next, emailPrefill, workspace }: Props) {
             )}
           </button>
         </div>
+        <p className="text-right">
+          <Link
+            href="/forgot-password"
+            className="text-xs font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          >
+            Forgot password?
+          </Link>
+        </p>
       </div>
 
       <label className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -257,6 +269,8 @@ export function SignInForm({ surface, next, emailPrefill, workspace }: Props) {
         />
         Remember me for 7 days
       </label>
+
+      <TermsAcceptCheckbox disabled={pending} />
 
       {state.error ? (
         <p className="text-sm text-destructive">{state.error}</p>

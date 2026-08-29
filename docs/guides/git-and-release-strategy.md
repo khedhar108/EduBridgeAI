@@ -28,6 +28,7 @@ feature/<short-name>  ──PR──►  development  ──PR──►  main
 - Do not push feature work directly to `main`.
 - Do not keep long-lived personal branches.
 - Protect `main` and `development` on GitHub (PR required, CI green) once more than one person commits.
+- CI workflows are **not in the repo yet**. Slice A on [platform-launch.md](../wayfinder/platform-launch.md) adds `pnpm lint` / `check-types` / `build` on PRs. Until then, run those locally before merge. Never put `pnpm db:migrate` in CI.
 
 ### Naming examples
 

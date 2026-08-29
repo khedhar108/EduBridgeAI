@@ -34,7 +34,7 @@
 
 **Not testable yet (by design / later phase)**
 
-- [ ] Family (parent/student admission + DOB) — Phase 1
+- [x] Family (parent/student admission + DOB) — Phase 1 door shipped
 - [ ] Brand-new school self-registration — Phase 6
 
 **Next**
@@ -132,7 +132,7 @@ A user can sign in, land in their school workspace under the unified header (log
 - [x] Policies use transaction-scoped claims (`request.jwt.claims`) per [data-access.md](../architecture/data-access.md)
 - [x] Indexes on FKs / `school_id` (including `school_members_user_id_idx`, `school_members_school_id_role_idx`)
 - [x] Rollback isolation test script: `packages/db/tests/rls-isolation.sql`
-- [ ] Run isolation test against dev after two-school seed (blocked until 0.5 expands seed)
+- [ ] Run isolation test against dev (two-school seed exists; runner still fails on `school_members` fixture insert)
 
 ### 0.3 Auth + data-access wiring in `apps/edubridge`
 
@@ -198,10 +198,10 @@ Architecture: [shell-layout.md](../design/shell-layout.md), [loaders.md](../desi
 
 Legacy single-line items (superseded by checklists above):
 
-- [ ] `apps/edubridge/features/shell/`: `Header`, `AppMenu`, `ModulePill`, `SearchBar` (placeholder), `ProfileMenu`
-- [ ] Layout `app/[workspace]/layout.tsx` renders the shell; module pages render inside
+- [x] `apps/edubridge/features/shell/`: `Header`, `AppMenu`, `ModulePill`, `SearchBar` (placeholder), `ProfileMenu`
+- [x] Layout `app/[workspace]/(staff)/layout.tsx` renders the shell; module pages render inside
 - [x] `modules.ts` registry shape defined (`{ id, title, href, icon, allowedRoles }`)
-- [ ] Role filtering server-side; workspace home with role-relevant module cards
+- [x] Role filtering server-side; workspace home with role-relevant module cards
 - [x] Public marketing home `/` separate from authenticated workspace routes
 
 ### 0.5 Feature-folder structure + seed
@@ -211,8 +211,8 @@ Legacy single-line items (superseded by checklists above):
 - [x] Route files in `app/` stay thin (home, db-check, auth pages import from features)
 - [x] Pilot seed: 1 school (`edubridge-pilot-bridge`) via `pnpm seed:dev`
 - [x] Auth seed (dev): school_admin + teacher + platform owner (see [auth-local-vs-prod.md](../guides/auth-local-vs-prod.md))
-- [ ] Full seed: + staff + students + parent (family path Phase 1; staff optional)
-- [ ] Optional: 2–3 schools in seed for RLS isolation test
+- [x] Full seed: + staff + students (family path; no parent `auth.users`)
+- [x] Two schools in seed (Pilot + Oakwood) for RLS isolation test
 
 ## Data model touchpoints
 
@@ -232,11 +232,11 @@ New tables: `schools`, `profiles`, `school_members` (+ `invitations`). Everythin
 ## Testing checklist
 
 - [x] Sign in / sign out for the three seeded levels: teacher, school_admin, platform owner
-- [ ] Sign in for remaining school roles (staff, student, parent) when seeded
+- [x] Sign in for remaining school roles (staff password; student/parent via `/family`)
 - [ ] Add member end-to-end (office creates outsider, they sign in) — do later
 - [ ] Domain join end-to-end (pending → admin activate) — do later
 - [ ] Cross-tenant read attempts blocked by RLS (automated test with two schools)
-- [ ] Menu shows correct items per role; direct URL access to a forbidden module returns 403/404
+- [x] Menu shows correct items per role; direct URL access to a forbidden module returns 403/404
 - [x] Dev DB connection probe (`/db-check` returns pilot school)
 - [x] Auth slice typecheck green (`pnpm --filter edubridge check-types`)
 - [ ] Full monorepo `pnpm build`, `pnpm lint`, `pnpm check-types` green at Phase 0 exit

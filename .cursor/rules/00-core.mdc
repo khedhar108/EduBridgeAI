@@ -20,12 +20,12 @@ Stop as soon as you have enough context; never bulk-read docs.
 1. `README.md` (root) — orientation + documentation map
 2. `docs/roadmap/README.md` — which phase is **active** + cross-phase standards
 3. The **active phase file** in `docs/roadmap/` — the only scope you may implement
-4. Task-specific doc (from the documentation map): feature blueprint, data-access, guides, `docs/design/MASTER.md` (any UI work)
+4. Task-specific doc (from the documentation map): feature blueprint, data-access, guides, `docs/design/MASTER.md` (any UI work). Brand constants: `.cursor/rules/61-brand-constants.mdc` (`apps/edubridge/lib/brand.ts` only). Brand/legal copy: `.cursor/rules/60-legal-brand.mdc`. Permissions / Control Hub: `.cursor/rules/70-permissions.mdc` and `docs/wayfinder/control-hub.md`. Workspace URLs / deploy dual-mode: `docs/architecture/workspace-urls.md` and `docs/wayfinder/platform-launch.md` (checkboxes; do not skip slices).
 
 ## Scope and behavior rules
 
 - **Never implement scope from a future phase** unless the user explicitly asks.
 - **Docs move with code.** If a change contradicts a doc in `docs/`, update that doc in the same change.
-- Product is **EduBridge** (multi-tenant school platform). "Aria" is the legacy starter name — do not reuse it in new code/docs.
-- Seven platform roles: `platform_owner`, `school_admin`, `accountant`, `teacher`, `staff`, `student`, `parent`. Every read/write is role-checked server-side.
+- Product display name is `PLATFORM_NAME` from `apps/edubridge/lib/brand.ts` — never a second constant or a hardcoded string. "Aria" is the legacy starter name — do not reuse it in new code/docs.
+- School roles on `school_members`: `school_admin`, `coordinator`, `accountant`, `teacher`, `staff`, `student`, `parent`. Platform owner is not a membership. Privileged actions use `assertCapability`, not ad-hoc role arrays (`.cursor/rules/70-permissions.mdc`).
 - **Drizzle schema first.** Tables/indexes live in `packages/db/src/schema/*.ts`; `pnpm db:generate` writes SQL + snapshots. Never hand-write DDL in `migrations/`. Details: `.cursor/rules/10-database.mdc`.

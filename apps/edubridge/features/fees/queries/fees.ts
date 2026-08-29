@@ -64,15 +64,30 @@ export async function listFeePlansWithLatestVersion(
     .orderBy(feePlans.name);
 
   const versions = await tx
-    .select()
+    .select({
+      id: feePlanVersions.id,
+      planId: feePlanVersions.planId,
+      version: feePlanVersions.version,
+      paymentMode: feePlanVersions.paymentMode,
+      heads: feePlanVersions.heads,
+      totalAmountInr: feePlanVersions.totalAmountInr,
+      note: feePlanVersions.note,
+      createdAt: feePlanVersions.createdAt,
+      createdByName: profiles.fullName,
+    })
     .from(feePlanVersions)
+    .leftJoin(profiles, eq(feePlanVersions.createdBy, profiles.id))
     .where(eq(feePlanVersions.schoolId, schoolId))
-    .orderBy(desc(feePlanVersions.version));
+    .orderBy(desc(feePlanVersions.version), desc(feePlanVersions.createdAt));
 
-  return plans.map((plan) => ({
-    ...plan,
-    latestVersion: versions.find((v) => v.planId === plan.id) ?? null,
-  }));
+  return plans.map((plan) => {
+    const history = versions.filter((row) => row.planId === plan.id);
+    return {
+      ...plan,
+      versions: history,
+      latestVersion: history[0] ?? null,
+    };
+  });
 }
 
 export async function listPlanVersions(tx: TenantTx, schoolId: string) {

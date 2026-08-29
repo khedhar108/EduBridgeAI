@@ -42,11 +42,16 @@ Route files stay thin and live outside the feature:
 apps/edubridge/app/
 ├── (auth)/
 │   ├── sign-in/page.tsx          # global fallback; optional school slug for username
+│   ├── register/page.tsx         # founder school create
+│   ├── register/verify/page.tsx  # email OTP
+│   ├── forgot-password/page.tsx
+│   ├── update-password/page.tsx
+│   └── join-school/page.tsx      # staff domain join (existing school)
 ├── auth/callback/route.ts        # code exchange (magic link / OAuth) — REQUIRED
 ├── [workspace]/
-│   ├── (public)/sign-in/page.tsx # staff door: username + password, school from URL
-│   ├── (public)/family/          # family door + hub ([family-surface.md](./family-surface.md))
-│   │   ├── page.tsx              # admission + DOB form (redirect home if cookie)
+│   ├── (public)/sign-in/page.tsx # How are you? then staff or family form
+│   ├── (public)/family/          # family app ([family-surface.md](./family-surface.md))
+│   │   ├── page.tsx              # cookie → /home; else /sign-in?who=family
 │   │   └── (app)/                # home, fees, progress, exams, events
 │   ├── (staff)/layout.tsx        # getSessionContext + ShellLayout
 │   ├── (staff)/page.tsx
@@ -172,10 +177,10 @@ Password reset is the same office surface: `reset-member-password` → `updateUs
 
 Canonical architecture: [family-access.md](./family-access.md). Parent app / PWA: [mobile-app.md](../mobile-app.md).
 
-**Parents and students** (option B) enter at `/[workspace]/family` with **student admission number + student date of birth** — no password, no OTP for mass users. Safe only because the session is **read-only and data-minimal**.
+**Parents and students** (option B) enter at `/[workspace]/sign-in` (How are you? → Parent or student, or `?who=family`) with **student admission number + student date of birth** — no password, no OTP for mass users. Safe only because the session is **read-only and data-minimal**. Family **app** URLs stay under `/family`.
 
 - Form: `FamilySignInForm` → `familySignInAction` → `matchStudentForFamily` → `setFamilySessionCookie`.
-- School from URL slug only; generic `"details don’t match"`; rate-limit IP + admission + slug.
+- Admission match ignores hyphens/spaces. School from URL slug only; generic `"details don’t match"`; rate-limit IP + admission + slug.
 - Cookie module `lib/tenancy/family-session.ts`. **`getSessionContext` never reads it.**
 - After match: redirect to `/{slug}/family/home` hub ([family-surface.md](./family-surface.md)). Parent Add child + `parent_links.family_id` sibling group is Slice 2 (`0009` migrated).
 - Family routes never get staff write powers.
@@ -185,15 +190,14 @@ Staff Add member / domain join stay on the directory and Team settings — do no
 
 ## Testing checklist
 
-- [ ] Password sign-in/out, wrong-password error is generic
-- [ ] Workspace `/{slug}/sign-in`: username (no school field) → `signInWithPassword`
-- [ ] Email OTP request/verify happy path + expired code
-- [ ] Magic-link callback route exchanges code and redirects
-- [ ] Proxy: unauthenticated staff `/{slug}/*` redirects to `/{slug}/sign-in`; `/{slug}/family` stays public to Supabase
-- [x] `/{slug}/family`: EBS-2024-006 + 2013-06-06 matches and lands on `/family/home`; hub pages under `/family/*`; wrong DOB generic; cookie does not open Team/Fees
-- [ ] Parent Add child: EBS-2024-007 / 2012-07-07 after Reyansh; switcher; student viewer has no Add child
-- [ ] Add member: managers can provision; coordinator cannot create admin/coordinator; membership created with chosen role
-- [ ] Reset password: managers only; not self, not school_admin, not archived
-- [ ] Multi-school user sees switcher; each workspace evaluates role independently
-- [ ] All auth actions call `revalidatePath("/", "layout")`
-- [ ] `pnpm lint && pnpm check-types` green
+- [x] Password sign-in/out, wrong-password error is generic
+- [x] `/{slug}/sign-in`: How are you? → username (no school field) or family admission+DOB; `EBS-2024-006` + `2013-06-06` lands on `/family/home`; anonymous `/family` → `?who=family`; cookie does not open Team/Fees
+- [ ] Email OTP request/verify happy path + expired code (not in product; password is the staff door)
+- [x] Magic-link callback route exchanges code and redirects
+- [x] Proxy: unauthenticated staff `/{slug}/*` redirects to `/{slug}/sign-in`; `/{slug}/family` stays public to Supabase
+- [x] Parent Add child: EBS-2024-007 / 2012-07-07 after Reyansh; switcher; student viewer has no Add child
+- [x] Add member: managers can provision; coordinator cannot create admin/coordinator; membership created with chosen role
+- [x] Reset password: managers only; not self, not school_admin, not archived
+- [x] Multi-school user sees switcher; each workspace evaluates role independently
+- [ ] All auth actions call `revalidatePath("/", "layout")` (many revalidate a workspace path instead)
+- [ ] `pnpm lint && pnpm check-types` green (full monorepo at Phase 0/1 exit)

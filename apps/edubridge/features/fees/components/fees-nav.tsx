@@ -3,6 +3,7 @@ import Link from "next/link";
 type FeesNavProps = {
   workspace: string;
   active: "overview" | "structures" | "register" | "collections" | "audit";
+  canCollect?: boolean;
 };
 
 const links = [
@@ -13,10 +14,18 @@ const links = [
   { id: "audit", href: "/fees/audit", label: "Audit" },
 ] as const;
 
-export function FeesNav({ workspace, active }: FeesNavProps) {
+export function FeesNav({
+  workspace,
+  active,
+  canCollect = true,
+}: FeesNavProps) {
+  const visible = canCollect
+    ? links
+    : links.filter((link) => link.id !== "register" && link.id !== "collections");
+
   return (
     <nav className="flex flex-wrap gap-2 border-b border-border pb-3">
-      {links.map((link) => {
+      {visible.map((link) => {
         const href = `/${workspace}${link.href}`;
         const isActive = link.id === active;
         return (

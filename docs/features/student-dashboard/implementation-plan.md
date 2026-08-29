@@ -8,7 +8,9 @@ Single-student surface. No class filter.
 
 Door and session:
 
-- [x] `/{slug}/family` admission + DOB form (`FamilySignInForm`)
+- [x] `/{slug}/sign-in` How are you? chooser → staff `SignInForm` or family `FamilySignInForm` (`?who=school|family`)
+- [x] Anonymous `/{slug}/family` → `/sign-in?who=family`; cookie → `/family/home`
+- [x] Admission match ignores hyphens/spaces (`EBS2024006` = `EBS-2024-006`)
 - [x] HMAC cookie `edubridge.family` (Path `/family`; not staff)
 - [x] Cookie cannot open Team, staff `/fees`, or school `/students`
 
@@ -25,9 +27,7 @@ Hub (cookie Path `/family/*`):
 - [x] Bottom nav from `familyModules` only
 - [x] Home destination cards (Fees, Progress, Exams, Events)
 - [x] `/family/fees` read-only ledger from `student_fee_assignments` / `fee_payments` (honest empty if no plan)
-- [x] `/family/progress` structured empty (attendance / year)
-- [x] `/family/exams` structured empty (unit tests / half-yearly / final)
-- [x] `/family/events` structured empty (calendar)
+- [x] `/family/progress` / `/family/exams` / `/family/events` hub pages (filled from tables in Slice 3)
 - [x] No invented scores, no family pay/submit form, no new migration
 
 ## Slice 2 — family: parent wrapper (shipped)
@@ -69,3 +69,5 @@ Family pages stay single-student. They read what staff entered on the school das
 - Charts or fake marks before the school dashboard can record them
 - Putting a class filter on `/family/*`
 - Putting family chrome on `/students`
+- Student left / rejoin years later (same admission = same row; new admission = new student; no alumni link)
+- Phone + DOB as the family door (optional OTP later)

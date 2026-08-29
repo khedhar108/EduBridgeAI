@@ -11,6 +11,7 @@ import {
 } from "../actions/school-domain-sign-up";
 import { UsernameField } from "./username-field";
 import { suggestUsername } from "../lib/username";
+import { TermsAcceptCheckbox } from "./terms-accept-checkbox";
 
 const initial: SchoolDomainSignUpState = {};
 
@@ -76,6 +77,8 @@ export function SchoolDomainSignUpForm() {
           disabled={pending}
         />
       </div>
+
+      <TermsAcceptCheckbox disabled={pending} />
 
       {state.error ? (
         <p className="text-sm text-destructive">{state.error}</p>

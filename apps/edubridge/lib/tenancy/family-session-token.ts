@@ -1,11 +1,12 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { COOKIE_PREFIX } from "../brand";
 
 /**
  * Family HMAC cookie contract (not a Supabase session).
  * `getSessionContext` never reads this cookie — Team/Fees stay staff-gated.
  */
 
-export const FAMILY_COOKIE_NAME = "edubridge.family";
+export const FAMILY_COOKIE_NAME = `${COOKIE_PREFIX}.family`;
 export const FAMILY_SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 /** Cookie + `parent_links` cap so the HMAC payload stays small. */
 export const MAX_LINKED_STUDENTS = 8;
@@ -23,7 +24,8 @@ export type FamilySessionPayload = {
 };
 
 export type FamilyCookieOrigin = {
-  production: boolean;
+  /** True when Host is `{slug}.{PLATFORM_DOMAIN}` or `{slug}.localhost`. */
+  hostMode: boolean;
   schoolSlug: string;
 };
 
@@ -37,14 +39,17 @@ function getSecret(): string {
 
 export function familyCookiePath(origin: FamilyCookieOrigin): string {
   const slug = origin.schoolSlug.trim().toLowerCase();
-  if (origin.production) {
+  if (origin.hostMode) {
     // School isolation is the host (`{slug}.edubridge.app`). Never Domain=.edubridge.app.
     return "/family";
   }
   return `/${slug}/family`;
 }
 
-export function familyCookieSetOptions(schoolSlug: string): {
+export function familyCookieSetOptions(
+  schoolSlug: string,
+  origin: { hostMode: boolean },
+): {
   httpOnly: true;
   secure: boolean;
   sameSite: "lax";
@@ -56,7 +61,7 @@ export function familyCookieSetOptions(schoolSlug: string): {
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: familyCookiePath({
-      production: process.env.NODE_ENV === "production",
+      hostMode: origin.hostMode,
       schoolSlug,
     }),
     maxAge: Math.floor(FAMILY_SESSION_TTL_MS / 1000),

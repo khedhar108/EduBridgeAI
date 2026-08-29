@@ -28,7 +28,7 @@ At the pilot school: a teacher opens `/[workspace]/students`, picks **their clas
 - Report card generation → Phase 3 (marks recorded here feed it)
 - Bulk CSV import of students (nice-to-have; only if pilot school demands it)
 - Timetables / homework digest → [Phase 5 — Timetable Maker](./phase-5-timetable-maker.md)
-- Full Fees & Spending analytics / online payments → later; early versioned fee ledger + direct registration lives in [`features/fees`](../../apps/edubridge/features/fees/) (admin + accountant)
+- Full Fees & Spending analytics / online payments → later; early versioned fee ledger lives in [`features/fees`](../../apps/edubridge/features/fees/) (admin + accountant). SIS create is [student-registration.md](../wayfinder/student-registration.md), not a Fees form.
 
 ## Prerequisites
 
@@ -57,7 +57,7 @@ Checkboxes: [implementation-plan.md](../features/student-dashboard/implementatio
 
 - Tables: `classes` (name, section, academic_year), `subjects`, `class_subjects`, `teacher_assignments` (teacher ↔ class_subject), `students` (`admission_number` unique per school, DOB, class, roll no, optional profile link), `parent_links` (`family_id` sibling group, not a parent auth user).
 - Admin UI: manage classes, subjects, assignments, enrollments, parent links (simple CRUD screens inside the module).
-- Family entry: `/[workspace]/family` door + hub + parent wrapper **shipped in code**; apply `0009_parent-links` when permitted. Admin `parent_links` CRUD waits for `/students` ([family-access.md](../architecture/auth/family-access.md), [implementation-plan.md](../features/student-dashboard/implementation-plan.md)).
+- Family entry: `/{slug}/sign-in` How are you? then admission+DOB; hub under `/family/*` + parent wrapper **shipped in code**; apply `0009_parent-links` when permitted. Admin `parent_links` CRUD waits for `/students` ([family-access.md](../architecture/auth/family-access.md), [implementation-plan.md](../features/student-dashboard/implementation-plan.md)).
 - RLS: all tables filter by `school_id`; assignment tables drive teacher visibility; family session is read-only student-scoped.
 
 ### 1.2 Data entry
@@ -100,12 +100,12 @@ New tables: `classes`, `subjects`, `class_subjects`, `teacher_assignments`, `stu
 
 ## Testing checklist
 
-- [ ] School dashboard filters by class; teacher sees only assigned classes (UI and RLS)
-- [ ] Family dashboard is one child (`activeStudentId`); no class picker
-- [ ] Parent sees exactly their linked children, student sees only self
+- [ ] School dashboard filters by class; teacher sees only assigned classes (UI shipped; RLS isolation runner still red)
+- [x] Family dashboard is one child (`activeStudentId`); no class picker
+- [x] Parent sees exactly their linked children, student sees only self
 - [ ] Charts render correctly with 0, 1, and many data points
 - [ ] Attendance percentage and subject averages computed correctly (unit tests)
-- [ ] Audit fields populated on all writes
+- [ ] Audit fields populated on all writes (attendance/activities yes; marks entry not built)
 - [ ] `pnpm build`, `pnpm lint`, `pnpm check-types` green
 
 ## Exit criteria

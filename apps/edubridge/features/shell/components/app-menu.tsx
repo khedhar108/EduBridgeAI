@@ -8,7 +8,9 @@ import {
   GraduationCapIcon,
   HomeIcon,
   LayoutGridIcon,
+  SlidersHorizontalIcon,
   UsersIcon,
+  WalletIcon,
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
@@ -27,7 +29,9 @@ import { findActiveModule, moduleHref } from "../nav-utils";
 const MODULE_ICONS: Record<string, LucideIcon> = {
   home: HomeIcon,
   users: UsersIcon,
+  wallet: WalletIcon,
   "graduation-cap": GraduationCapIcon,
+  "sliders-horizontal": SlidersHorizontalIcon,
 };
 
 type AppMenuProps = {

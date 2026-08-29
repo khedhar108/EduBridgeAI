@@ -1,12 +1,13 @@
 import { withTenant } from "@repo/db";
 import { notFound } from "next/navigation";
 import {
+  FeeHeadsVisual,
   FeesNav,
-  isMoneyRole,
   listFeePlansWithLatestVersion,
   listRecentPayments,
   listStudentsWithFees,
 } from "@/features/fees";
+import { can } from "@/lib/auth/capabilities";
 import { getSessionContext } from "@/lib/tenancy/session-context";
 
 type Props = {
@@ -16,7 +17,8 @@ type Props = {
 export default async function FeesOverviewPage({ params }: Props) {
   const { workspace } = await params;
   const ctx = await getSessionContext(workspace);
-  if (!ctx || !isMoneyRole(ctx.role)) notFound();
+  if (!ctx || !can(ctx, "fees.view")) notFound();
+  const canCollect = can(ctx, "fees.collect");
 
   const data = await withTenant(
     { sub: ctx.userId, school_id: ctx.schoolId, role: ctx.role },
@@ -35,12 +37,16 @@ export default async function FeesOverviewPage({ params }: Props) {
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-semibold tracking-tight">Fees</h1>
         <p className="text-sm text-muted-foreground">
-          Versioned fee structures, student registration pins, and collections.
-          Signed in as {ctx.role.replace(/_/g, " ")}.
+          Versioned structures, pinned enrollments, and collections. Signed in
+          as {ctx.role.replace(/_/g, " ")}.
         </p>
       </div>
 
-      <FeesNav workspace={workspace} active="overview" />
+      <FeesNav
+        workspace={workspace}
+        active="overview"
+        canCollect={canCollect}
+      />
 
       <section className="grid gap-4 sm:grid-cols-3">
         <Stat label="Active plans" value={String(data.plans.length)} />
@@ -51,25 +57,33 @@ export default async function FeesOverviewPage({ params }: Props) {
         />
       </section>
 
-      <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-medium">Latest plan versions</h2>
+      <section className="flex flex-col gap-4">
+        <h2 className="text-lg font-medium">Latest structures</h2>
         {data.plans.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             No fee plans yet. Publish one under Structures.
           </p>
         ) : (
-          <ul className="divide-y divide-border rounded-md border border-border">
+          <ul className="grid gap-6 lg:grid-cols-2">
             {data.plans.map((plan) => (
               <li
                 key={plan.id}
-                className="flex flex-wrap items-baseline justify-between gap-2 px-4 py-3 text-sm"
+                className="flex flex-col gap-4 rounded-md border border-border px-4 py-4"
               >
-                <span className="font-medium">{plan.name}</span>
-                <span className="text-muted-foreground">
-                  {plan.latestVersion
-                    ? `v${plan.latestVersion.version} · ₹${plan.latestVersion.totalAmountInr}`
-                    : "No version published"}
-                </span>
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <span className="font-medium">{plan.name}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {plan.latestVersion
+                      ? `v${plan.latestVersion.version}`
+                      : "No version"}
+                  </span>
+                </div>
+                {plan.latestVersion ? (
+                  <FeeHeadsVisual
+                    heads={plan.latestVersion.heads}
+                    totalAmountInr={plan.latestVersion.totalAmountInr}
+                  />
+                ) : null}
               </li>
             ))}
           </ul>

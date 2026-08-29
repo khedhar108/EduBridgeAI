@@ -1,10 +1,16 @@
+export { TermsAcceptCheckbox } from "./components/terms-accept-checkbox";
 export { SignInForm } from "./components/sign-in-form";
+export { ForgotPasswordForm } from "./components/forgot-password-form";
+export { UpdatePasswordForm } from "./components/update-password-form";
 export { FamilySignInForm } from "./components/family-sign-in-form";
+export { WorkspaceHowAreYou } from "./components/workspace-how-are-you";
 export { FamilyAddChildForm } from "./components/family-add-child-form";
 export { AuthShell } from "./components/auth-shell";
 export { AuthHeader } from "./components/auth-header";
 export { DemoAccountsModal } from "./components/demo-accounts-modal";
 export { SchoolDomainSignUpForm } from "./components/school-domain-sign-up-form";
+export { ControlHubMatrix } from "./components/control-hub-matrix";
+export { setHubFlagAction } from "./actions/set-hub-flag";
 export { PendingMembersPanel } from "./components/pending-members-panel";
 export { StaffDirectory } from "./components/staff-directory";
 export { UsernameField } from "./components/username-field";
@@ -24,8 +30,14 @@ export {
 } from "./actions/impersonate";
 export { schoolDomainSignUpAction } from "./actions/school-domain-sign-up";
 export {
+  requestPasswordResetAction,
+  updatePasswordAction,
+} from "./actions/forgot-password";
+export {
+  parseWorkspaceDoorWho,
   resolvePostLoginDestination,
   safeNextPath,
+  workspaceSignInHref,
   workspaceSignInNext,
 } from "./lib/redirects";
 export { listSchoolMembers, type MemberDirectoryEntry } from "./queries/list-members";

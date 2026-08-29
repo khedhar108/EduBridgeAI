@@ -81,7 +81,7 @@ Modules are individually toggleable per school by the platform owner (plan defau
 ## Tenancy model
 
 1. A school's owner registers with the **official school email domain** (personal email domains are rejected for the admin account).
-2. On approval, EduBridge provisions a **workspace**: a unique slug ending in `-bridge` (e.g. `dps-jaipur-bridge`). Production URL is `dps-jaipur-bridge.edubridge.app` ([ADR-006](../decisions/ADR-006-workspace-subdomains.md)); local/dev uses path `/{slug}`. Platform console: `platform.edubridge.app`.
+2. After email proof, EduBridge **immediately** provisions a **workspace**: a unique slug ending in `-bridge` (e.g. `dps-jaipur-bridge`). No sales queue. Abuse review can happen after they are in. Production URL is `dps-jaipur-bridge.edubridge.app` ([ADR-006](../decisions/ADR-006-workspace-subdomains.md)); local/dev uses path `/{slug}`. Platform console: `platform.edubridge.app`.
 3. All data is stored in **one shared Supabase project** with a `school_id` on every tenant table and **Row Level Security** enforcing isolation (the "multi-tenant behavior from Supabase" approach — one database, policy-isolated tenants). This keeps operations simple and cheap at this scale; physical isolation per school is a future option, not a current requirement.
 4. Users belong to schools through a `school_members` table (`user_id`, `school_id`, `role`), so one person can hold different roles in different schools. Platform owner access is a separate context (`platform_admins` + optional support grants) — never silent membership ([platform-boundaries.md](../architecture/platform-boundaries.md)).
 

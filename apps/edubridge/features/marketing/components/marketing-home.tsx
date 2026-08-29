@@ -9,7 +9,7 @@ import { Reveal } from "./marketing-motion";
 
 /**
  * Public homepage. Blackhole hero up top; module bento, security band,
- * shell anatomy, and CTA follow. Footer shared.
+ * shell anatomy, and CTA follow. Footer is composed by the route.
  */
 function MarketingHomeContent() {
   return (
@@ -81,39 +81,29 @@ function MarketingHomeContent() {
               Ready when your school is.
             </h2>
             <p className="max-w-md text-muted-foreground leading-relaxed">
-              Sign in to a school workspace, or open the platform console if
-              you operate EduBridge.
+              Register with your official school email and open a workspace in
+              minutes, or sign in if you already have one.
             </p>
-            <Button
-              asChild
-              size="lg"
-              className="h-12 cursor-pointer px-6 text-base active:scale-[0.98]"
-            >
-              <Link href="/sign-in">Sign in</Link>
-            </Button>
+            <div className="flex flex-wrap gap-3">
+              <Button
+                asChild
+                size="lg"
+                className="h-12 cursor-pointer px-6 text-base active:scale-[0.98]"
+              >
+                <Link href="/register">Register your school</Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="h-12 cursor-pointer px-6 text-base active:scale-[0.98]"
+              >
+                <Link href="/sign-in">Sign in</Link>
+              </Button>
+            </div>
           </section>
         </Reveal>
       </main>
-
-      <footer className="relative z-10 border-t border-border/60">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-6 text-xs text-muted-foreground sm:px-6">
-          <span>EduBridge</span>
-          <div className="flex items-center gap-4">
-            <Link
-              href="/modules"
-              className="cursor-pointer underline-offset-4 hover:text-foreground hover:underline"
-            >
-              Modules
-            </Link>
-            <Link
-              href="/platform/sign-in"
-              className="cursor-pointer underline-offset-4 hover:text-foreground hover:underline"
-            >
-              Platform
-            </Link>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

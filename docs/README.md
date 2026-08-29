@@ -14,6 +14,7 @@ Central documentation for the EduBridge monorepo. Use this as the entry point fo
 | [Design](./design/README.md) | Light-only visual system, component policy, AI surfaces, accessibility |
 | [Agents](./agents/README.md) | How AI agents should navigate and use this documentation |
 | [Build log](./build-log/README.md) | Short chronological journal of milestones + commands |
+| [Wayfinder](./wayfinder/control-hub.md) | Spec maps + tickets ([Control Hub](./wayfinder/control-hub.md), [Platform launch](./wayfinder/platform-launch.md), [SIS registration](./wayfinder/student-registration.md), [brand/legal](./wayfinder/brand-legal-and-consent-surfaces.md)) |
 
 ## Repository overview
 
@@ -68,6 +69,7 @@ pnpm check-types
 | **Design** | `docs/design/` | Light-only visual system, component/AI UI policy, a11y |
 | **Agent context** | `docs/agents/` | Structured hints for AI coding agents |
 | **Build log** | `docs/build-log/` | Chronological milestone journal (commands + key paths) |
+| **Wayfinder** | `docs/wayfinder/` | Spec maps + tickets before implementation (local markdown tracker) |
 
 **Rule of thumb:** If it affects more than one app or is a platform choice → `docs/architecture/`. If it is a product capability → `docs/features/<name>/`. If it is visual consistency / theming → `docs/design/`.
 

@@ -3,6 +3,9 @@ export { PublishFeePlanForm } from "./components/publish-fee-plan-form";
 export { RegisterStudentForm } from "./components/register-student-form";
 export { RecordPaymentForm } from "./components/record-payment-form";
 export { StudentsPanel } from "./components/students-panel";
+export { FeeHeadsVisual } from "./components/fee-heads-visual";
+export { FeeStructureTimeline } from "./components/fee-structure-timeline";
+export { formatInr, payableInr } from "./lib/money";
 export {
   listFeeAudit,
   listFeePlansWithLatestVersion,
@@ -12,4 +15,3 @@ export {
   listStudentsWithFees,
   type SchoolStudentRow,
 } from "./queries/fees";
-export { isMoneyRole, MONEY_ROLES } from "./lib/roles";

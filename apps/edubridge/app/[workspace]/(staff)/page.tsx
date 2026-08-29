@@ -1,24 +1,38 @@
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { withTenant } from "@repo/db";
 import { getSessionContext } from "@/lib/tenancy/session-context";
+import { hostnameFromHeaders, workspaceUrlDisplay } from "@/lib/tenancy/workspace-host";
 import { can } from "@/lib/auth/capabilities";
-import { formatRoleLabel, modulesForRole, WorkspaceModuleCards } from "@/features/shell";
+import {
+  formatRoleLabel,
+  modulesForSession,
+  WorkspaceModuleCards,
+  WorkspacePublicUrl,
+} from "@/features/shell";
 import { listSchoolMembers, StaffDirectory } from "@/features/auth";
 import { listSchoolStudents, StudentsPanel } from "@/features/fees";
+import { WelcomeSetupCard } from "@/features/registration";
 
 type Props = {
   params: Promise<{ workspace: string }>;
+  searchParams: Promise<{ welcome?: string }>;
 };
 
-export default async function WorkspaceHomePage({ params }: Props) {
+export default async function WorkspaceHomePage({ params, searchParams }: Props) {
   const { workspace } = await params;
+  const { welcome } = await searchParams;
   const ctx = await getSessionContext(workspace);
   if (!ctx) notFound();
 
-  const nav = modulesForRole(ctx.role);
+  const nav = modulesForSession(ctx);
   const roleLabel = formatRoleLabel(ctx.role);
   const firstName = ctx.email?.split("@")[0] ?? "there";
   const showDirectory = can(ctx, "members.viewDirectory");
+  const schoolUrl =
+    ctx.role === "school_admin"
+      ? workspaceUrlDisplay(workspace, hostnameFromHeaders(await headers()))
+      : null;
 
   const data = showDirectory
     ? await withTenant(
@@ -49,6 +63,12 @@ export default async function WorkspaceHomePage({ params }: Props) {
             : `Everything for ${workspace} lives in the modules below — pick one to get started.`}
         </p>
       </div>
+
+      {schoolUrl ? <WorkspacePublicUrl url={schoolUrl} /> : null}
+
+      {welcome === "1" && ctx.role === "school_admin" && schoolUrl ? (
+        <WelcomeSetupCard workspace={workspace} shareHost={schoolUrl.shareHost} />
+      ) : null}
 
       {showDirectory ? (
         <>

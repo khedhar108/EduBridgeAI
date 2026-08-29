@@ -1,10 +1,8 @@
 import { notFound, redirect } from "next/navigation";
 import {
-  AuthHeader,
-  AuthShell,
-  FamilySignInForm,
   getFamilyStudentPreview,
   getPublicSchoolBySlug,
+  workspaceSignInHref,
 } from "@/features/auth";
 import { getFamilySession } from "@/lib/tenancy/family-session";
 
@@ -28,13 +26,5 @@ export default async function FamilyEntryPage({ params }: Props) {
     }
   }
 
-  return (
-    <AuthShell>
-      <AuthHeader
-        title={school.name}
-        description="Admission number and date of birth. No email or password."
-      />
-      <FamilySignInForm workspace={workspace} schoolName={school.name} />
-    </AuthShell>
-  );
+  redirect(workspaceSignInHref(workspace, { who: "family" }));
 }

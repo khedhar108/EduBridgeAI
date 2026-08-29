@@ -9,6 +9,7 @@ System-wide architecture documentation. Use this for cross-app concerns and plat
 | [Data Access](./data-access.md)                                        | Drizzle over Supabase Postgres, tenant transactions, RLS layering (ADR-004)               |
 | [Multi-tenancy](./multi-tenancy.md)                                    | School schema, relationships, RLS boundary, platform-owner separation                     |
 | [Platform Boundaries](./platform-boundaries.md)                        | Three authz contexts, folder map, URL surface, Phase 0 vs 6 split                         |
+| [Workspace URLs](./workspace-urls.md)                                  | Path locally, `{slug}.edubridge.app` in prod; Coolify+Hetzner DNS; host rewrite |
 | [Support Access](./support-access.md)                                  | School-approved JIT support grants, scopes, audit, RLS contract (Phase 6)                 |
 | [Authentication](./auth/README.md)                                     | Auth folder: strategy, RBAC, family access, family surface routes, `features/auth/`       |
 | [AI / RAG](./ai-rag.md)                                                | Mastra RAG with pgvector vs. SQL tools, tenant-filtered retrieval                         |

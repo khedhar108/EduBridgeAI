@@ -11,11 +11,8 @@ import {
   students,
   withTenant,
 } from "@repo/db";
-import {
-  assertRole,
-  getSessionContext,
-} from "@/lib/tenancy/session-context";
-import { MONEY_ROLES } from "../lib/roles";
+import { getSessionContext } from "@/lib/tenancy/session-context";
+import { can } from "@/lib/auth/capabilities";
 import { registerStudentSchema } from "../lib/schemas";
 
 export type RegisterStudentState = { error?: string; ok?: boolean };
@@ -27,7 +24,9 @@ export async function registerStudentAction(
 ): Promise<RegisterStudentState> {
   const ctx = await getSessionContext(workspace);
   if (!ctx) return { error: "Sign in required." };
-  assertRole(ctx, MONEY_ROLES);
+  if (!can(ctx, "fees.collect")) {
+    return { error: "You cannot register a student against a fee plan." };
+  }
 
   const parsed = registerStudentSchema.safeParse({
     admissionNumber: formData.get("admissionNumber"),

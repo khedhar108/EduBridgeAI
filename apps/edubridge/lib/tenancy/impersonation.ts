@@ -1,5 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
+import { COOKIE_PREFIX } from "../brand";
 
 /**
  * Signed-cookie impersonation. The admin's Supabase session stays intact;
@@ -8,7 +9,7 @@ import { cookies } from "next/headers";
  * still verified on every request — the cookie alone grants nothing.
  */
 
-const COOKIE_NAME = "edubridge.impersonation";
+const COOKIE_NAME = `${COOKIE_PREFIX}.impersonation`;
 const TTL_MS = 30 * 60 * 1000;
 
 export type ImpersonationPayload = {

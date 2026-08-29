@@ -45,7 +45,8 @@ route later. Custom domains per school are not required yet.
 
 ### Cons / follow-up
 
-- Production needs wildcard TLS and DNS (`*.edubridge.app`).
+- Production needs wildcard TLS and DNS (`*.edubridge.app`) on Coolify/Hetzner
+  ([workspace-urls.md](../architecture/workspace-urls.md)).
 - Cookie domain / SameSite strategy must be designed so auth works across
   apex and subdomains (document at Phase 6 implement time).
 - Reserved subdomains (`www`, `platform`, `api`, `app`, …) must never collide
@@ -53,11 +54,17 @@ route later. Custom domains per school are not required yet.
 
 ## Implementation notes (Phase 6)
 
-- Wildcard DNS + certificate for `*.edubridge.app`.
-- `proxy.ts`: map `platform.*` → `/platform/*`; map other subdomains →
-  `/[workspace]/…` after validating slug shape; reject unknown reserved names.
-- Keep path URLs working in non-prod environments.
-- Update slug uniqueness and reserved-name checks in `packages/db` / registration.
+Open checkboxes: [platform-launch.md](../wayfinder/platform-launch.md).
+Architecture: [workspace-urls.md](../architecture/workspace-urls.md).
+
+- [x] Path-based `/[workspace]` for local (Phase 0)
+- [x] Slug ends `-bridge`; reserved names blocked at registration
+- [ ] Wildcard DNS + certificate for `*.edubridge.app` (Coolify Traefik DNS-01 on Hetzner)
+- [x] `proxy.ts`: map `platform.*` → `/platform/*`; map school subdomains →
+  `/[workspace]/…` after validating slug shape; reject unknown reserved names
+- [x] Keep path URLs working in local/non-prod (do not delete `[workspace]` routes)
+- [x] Host-aware family cookie Path (do not key off `NODE_ENV` alone)
+- [x] Cookie domain: never `Domain=.edubridge.app`
 
 ## References
 
@@ -65,4 +72,5 @@ route later. Custom domains per school are not required yet.
 - [multi-tenancy.md](../architecture/multi-tenancy.md)
 - [phase-0-foundation.md](../roadmap/phase-0-foundation.md) (path OK until Phase 6)
 - [phase-6-platform-growth.md](../roadmap/phase-6-platform-growth.md) (§6.6)
+- [workspace-urls.md](../architecture/workspace-urls.md)
 - [ADR-005](./ADR-005-primary-app-edubridge.md)

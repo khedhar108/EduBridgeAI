@@ -58,6 +58,16 @@ await check("pilot + EBS-2024-006 + 2013-06-06 matches", async () => {
   assert.equal(typeof result.schoolId, "string");
 });
 
+await check("hyphens optional: EBS2024006 matches seeded EBS-2024-006", async () => {
+  const result = await matchStudentForFamily({
+    schoolSlug: PILOT_SLUG,
+    admissionNumber: "EBS2024006",
+    dateOfBirth: DOB,
+    ip: "test-match-hyphen",
+  });
+  assert.equal(result.ok, true);
+});
+
 await check("wrong DOB → generic error, no row", async () => {
   const result = await matchStudentForFamily({
     schoolSlug: PILOT_SLUG,
@@ -100,15 +110,15 @@ await check("family cookie HMAC + origin-aware path", () => {
   assert.equal(FAMILY_COOKIE_NAME, "edubridge.family");
 
   assert.equal(
-    familyCookiePath({ production: true, schoolSlug: PILOT_SLUG }),
+    familyCookiePath({ hostMode: true, schoolSlug: PILOT_SLUG }),
     "/family",
   );
   assert.equal(
-    familyCookiePath({ production: false, schoolSlug: PILOT_SLUG }),
+    familyCookiePath({ hostMode: false, schoolSlug: PILOT_SLUG }),
     `/${PILOT_SLUG}/family`,
   );
 
-  const opts = familyCookieSetOptions(PILOT_SLUG);
+  const opts = familyCookieSetOptions(PILOT_SLUG, { hostMode: false });
   assert.equal(opts.httpOnly, true);
   assert.equal(opts.sameSite, "lax");
   assert.ok(!("domain" in opts));

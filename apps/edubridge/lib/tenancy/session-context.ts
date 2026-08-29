@@ -1,4 +1,5 @@
 import { and, eq, getDb, schoolMembers, schools, type SchoolRole } from "@repo/db";
+import { asCapabilityOverrides } from "../auth/capabilities";
 import { requireUser } from "../auth/get-user";
 import { getImpersonation } from "./impersonation";
 
@@ -8,6 +9,8 @@ export type SessionContext = {
   schoolSlug: string;
   role: SchoolRole;
   email: string | undefined;
+  /** Sparse Hub overrides for this school. Missing key = capability default. */
+  capabilityOverrides: Record<string, string[]>;
   /** Present only when an admin is impersonating this user. */
   isImpersonating?: boolean;
   realUserId?: string;
@@ -40,6 +43,7 @@ export async function getSessionContext(
       role: schoolMembers.role,
       isActive: schoolMembers.isActive,
       archivedAt: schoolMembers.archivedAt,
+      capabilityOverrides: schools.capabilityOverrides,
     })
     .from(schoolMembers)
     .innerJoin(schools, eq(schoolMembers.schoolId, schools.id))
@@ -47,6 +51,8 @@ export async function getSessionContext(
 
   const match = rows.find((r) => r.schoolSlug === schoolSlug);
   if (!match || !match.isActive || match.archivedAt) return null;
+
+  const capabilityOverrides = asCapabilityOverrides(match.capabilityOverrides);
 
   // Impersonation: admin views as a target member of the same school.
   const impersonation = await getImpersonation();
@@ -80,6 +86,7 @@ export async function getSessionContext(
       schoolSlug: match.schoolSlug,
       role: target.role as SchoolRole,
       email: impersonation.targetEmail ?? undefined,
+      capabilityOverrides,
       isImpersonating: true,
       realUserId: user.id,
       realEmail: user.email,
@@ -92,6 +99,7 @@ export async function getSessionContext(
     schoolSlug: match.schoolSlug,
     role: match.role as SchoolRole,
     email: user.email,
+    capabilityOverrides,
   };
 }
 

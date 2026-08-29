@@ -44,7 +44,11 @@ export function FamilyAddChildForm({ workspace, schoolName }: Props) {
           maxLength={64}
           className="h-11"
           disabled={pending}
+          placeholder="EBS2024007"
         />
+        <p className="text-xs text-muted-foreground">
+          This child’s admission number. Hyphens and spaces are optional.
+        </p>
       </div>
 
       <div className="flex flex-col gap-2">

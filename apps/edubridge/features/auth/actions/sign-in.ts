@@ -13,6 +13,7 @@ import {
 } from "@repo/db";
 import { createServerSupabaseClient } from "@/lib/auth/supabase-server";
 import { resolvePostLoginDestination } from "../lib/redirects";
+import { persistAcceptedTerms } from "@/lib/legal/accept-terms";
 import { signInSchema } from "../lib/schemas";
 
 export type SignInState = { error?: string };
@@ -38,6 +39,9 @@ export async function signInAction(
   _prev: SignInState,
   formData: FormData,
 ): Promise<SignInState> {
+  const terms = await persistAcceptedTerms(formData);
+  if (!terms.ok) return { error: terms.error };
+
   const parsed = signInSchema.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),

@@ -10,8 +10,10 @@ Canonical two-door table: [auth README](./README.md#two-doors-school-is-the-url)
 
 | Origin | Path |
 |--------|------|
-| Local | `/{slug}/family` |
-| Production | `/family` on `{slug}.edubridge.app` (never `Domain=.edubridge.app`) |
+| Path-only host (localhost, apex, Coolify preview) | `/{slug}/family` |
+| School host (`{slug}.edubridge.app` or `{slug}.localhost`) | `/family` (never `Domain=.edubridge.app`) |
+
+`familyCookiePath` is **host-aware**. See [workspace-urls.md](../workspace-urls.md).
 
 Every family page **must** stay under that path or the browser will not send the cookie.
 
@@ -41,7 +43,7 @@ Both trees import from `features/student-dashboard` via `index.ts`. Routes stay 
 ```
 apps/edubridge/app/[workspace]/
 ├── (public)/
-│   ├── sign-in/page.tsx              # staff door (done)
+│   ├── sign-in/page.tsx              # How are you? then staff or family form
 │   └── family/
 │       ├── layout.tsx                # school from slug; unknown → notFound
 │       ├── page.tsx                  # form if anonymous; redirect if cookie
@@ -70,12 +72,14 @@ Do **not** add a second `(family)` route group at the workspace level. Keep fami
 
 | Path | Cookie | Behaviour |
 |------|--------|-----------|
-| `/family` | none | Door form (`AuthShell` on the page) |
+| `/family` | none | Redirect to `/{slug}/sign-in?who=family` |
 | `/family` | valid | `page.tsx` redirects to `/family/home` |
-| `/family/*` nested | none | `(app)/layout.tsx` → `requireFamilySession` → `/family` |
+| `/family/*` nested | none | `(app)/layout.tsx` → `requireFamilySession` → `/family` → sign-in |
 | `/family/*` nested | valid | Wrap in `FamilyShell` (not `ShellLayout`) |
 
-`family/page.tsx` is form-only. Sign-out is `familySignOutAction` from FamilyShell.
+`family/page.tsx` is a redirect only (cookie → home, else the family form on `/sign-in`). Proof form lives on `/{slug}/sign-in?who=family`. Sign-out is `familySignOutAction` from FamilyShell (lands on `/family`, which bounces to the chooser with family selected).
+
+The family cookie may be **set** from `/sign-in`; Path stays `/family`, so **pages** after login must stay under `/family`.
 
 ## Feature folders
 
@@ -83,6 +87,7 @@ Do **not** add a second `(family)` route group at the workspace level. Keep fami
 
 | File | Role |
 |------|------|
+| `components/workspace-how-are-you.tsx` | How are you? cards on `/{slug}/sign-in` |
 | `components/family-sign-in-form.tsx` | Admission + DOB (done) |
 | `actions/family-sign-in.ts` | Set/clear cookie (done) |
 | `actions/add-child.ts` | Append `studentIds` + `parent_links` |
@@ -164,8 +169,10 @@ Pilot slug: `edubridge-pilot-bridge`. Seed child: `EBS-2024-006` / `2013-06-06` 
 
 | URL | Who | Session |
 |-----|-----|---------|
-| `/edubridge-pilot-bridge/sign-in` | Staff | Supabase |
-| `/edubridge-pilot-bridge/family` | Family door | None (form) |
+| `/edubridge-pilot-bridge/sign-in` | How are you? | None |
+| `/edubridge-pilot-bridge/sign-in?who=school` | Staff | Supabase |
+| `/edubridge-pilot-bridge/sign-in?who=family` | Family proof | Sets HMAC, then `/family/home` |
+| `/edubridge-pilot-bridge/family` | Redirect | Cookie → `/family/home`; else `/sign-in?who=family` |
 | `/edubridge-pilot-bridge/family/home` | Family app | HMAC |
 | `/edubridge-pilot-bridge/family/fees` | Family (read-only dues) | HMAC |
 | `/edubridge-pilot-bridge/family/progress` | Family | HMAC |
@@ -177,7 +184,7 @@ Pilot slug: `edubridge-pilot-bridge`. Seed child: `EBS-2024-006` / `2013-06-06` 
 
 Production (ADR-006, not built yet): host is the school, paths drop the slug (`/family/home`). Cookie Path `/family` still covers them.
 
-PWA (later, not Slice 1): on the school origin, `start_url: "/family"`, `scope: "/family"`. That only works if we never put family UI outside `/family`.
+PWA (later, not Slice 1): on the school origin, `start_url: "/family"`, `scope: "/family"`. Anonymous `/family` redirects to `/sign-in?who=family`; after proof, pages stay under `/family` so the cookie is sent. Do not put FamilyShell outside `/family`.
 
 ## What each slice ships
 
@@ -186,9 +193,11 @@ Full checklist (same boxes): [implementation-plan.md](../../features/student-das
 ### Slice 1 — family chrome + hub
 
 - [x] Module + `FamilyShell` + signed-in `/family` → `/family/home`
-- [x] Nested `/family/*` without cookie → `/family`
+- [x] How are you? chooser on `/{slug}/sign-in` (School vs Parent or student; `?who=` skips)
+- [x] Admission match ignores hyphens/spaces (`EBS2024006` = `EBS-2024-006`)
+- [x] Nested `/family/*` without cookie → `/family` → `/sign-in?who=family`
 - [x] `familyModules` + bottom nav: Home, Fees, Progress, Exams, Events
-- [x] Home hub cards; Fees read-only (or honest empty); Progress / Exams / Events empty until tables exist
+- [x] Home hub cards; Fees read-only (or honest empty); Progress / Exams / Events filled in Slice 3
 - [x] Sign out via `familySignOutAction`; cookie still not staff Team/Fees
 - [x] No new migration; no invented scores; no family pay form
 
@@ -232,8 +241,11 @@ app/[workspace]/(public)/family/home/page.tsx
   → @/features/student-dashboard   (FamilyHome)
   → @/lib/tenancy/family-session   (session)
 
+app/[workspace]/(public)/sign-in/page.tsx
+  → @/features/auth                (chooser, SignInForm, FamilySignInForm)
+
 app/[workspace]/(public)/family/page.tsx
-  → @/features/auth                (form, AuthShell)
+  → redirect cookie → /family/home, else /sign-in?who=family
 
 app/[workspace]/(staff)/students/page.tsx
   → @/features/student-dashboard

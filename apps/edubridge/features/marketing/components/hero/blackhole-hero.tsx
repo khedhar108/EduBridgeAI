@@ -6,6 +6,7 @@ import { HeroEntrance } from "../marketing-motion";
 import { BlackholeCore } from "./blackhole-core";
 import { ModuleOrbit } from "./module-orbit";
 import { DropOfEducation } from "./drop-of-education";
+import { PLATFORM_NAME } from "@/lib/brand";
 
 /**
  * Marketing hero: a gravitational well pulls every module into one orbit;
@@ -22,7 +23,7 @@ export function BlackholeHero() {
 
       <header className="relative z-10 mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
         <p className="font-serif text-xl tracking-tight text-foreground sm:text-2xl">
-          EduBridge
+          {PLATFORM_NAME}
         </p>
         <nav className="flex items-center gap-4">
           <Link
@@ -31,8 +32,14 @@ export function BlackholeHero() {
           >
             Modules
           </Link>
+          <Link
+            href="/sign-in"
+            className="hidden text-sm text-muted-foreground transition-colors hover:text-foreground sm:inline"
+          >
+            Sign in
+          </Link>
           <Button asChild className="h-10 cursor-pointer px-5 active:scale-[0.98]">
-            <Link href="/sign-in">Sign in</Link>
+            <Link href="/register">Register</Link>
           </Button>
         </nav>
       </header>
@@ -65,13 +72,13 @@ export function BlackholeHero() {
                   size="lg"
                   className="h-12 cursor-pointer px-6 text-base active:scale-[0.98]"
                 >
-                  <Link href="/sign-in">Sign in</Link>
+                  <Link href="/register">Register your school</Link>
                 </Button>
                 <Link
-                  href="/modules"
+                  href="/sign-in"
                   className="cursor-pointer text-sm font-medium text-foreground underline-offset-4 transition-colors hover:text-primary hover:underline"
                 >
-                  Trace the orbit
+                  Sign in
                 </Link>
               </div>
             </HeroEntrance>

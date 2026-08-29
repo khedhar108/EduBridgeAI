@@ -6,8 +6,9 @@ Feature-specific documentation. Each feature gets its own folder with a consiste
 
 | Feature | Status | Docs |
 |---------|--------|------|
+| Legal (T&C, privacy, cookies, consent) | Done (draft until entity named) | [legal](./legal/README.md) |
 | Fees (early ledger + accountant) | In progress | [fees](./fees/README.md) |
-| Student dashboard | Family hub + parent wrapper (`0009`); school `/students` attendance (`0010`); marks CRUD open | [student-dashboard](./student-dashboard/README.md) |
+| Student dashboard | Family hub + parent wrapper (`0009`); school `/students` attendance (`0010`); SIS create spec in [wayfinder](../wayfinder/student-registration.md); marks CRUD open | [student-dashboard](./student-dashboard/README.md) |
 | Mastra integration (customer feedback template) | In progress | [mastra-integration-via-customer-feedback-summarization-template](./mastra-integration-via-customer-feedback-summarization-template/README.md) |
 
 ## Folder template (copy for new features)

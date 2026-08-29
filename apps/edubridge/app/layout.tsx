@@ -4,6 +4,8 @@ import localFont from "next/font/local";
 import "@repo/ui/styles.css";
 import "./globals.css";
 import { Providers } from "./providers";
+import { PLATFORM_NAME, PLATFORM_TAGLINE } from "@/lib/brand";
+import { CookieBanner } from "@/features/legal";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -20,8 +22,8 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: "EduBridge",
-  description: "Multi-tenant school platform",
+  title: PLATFORM_NAME,
+  description: PLATFORM_TAGLINE,
   icons: {
     icon: [
       { url: "/brand/logo-mark-drop.svg", type: "image/svg+xml" },
@@ -30,7 +32,7 @@ export const metadata: Metadata = {
     apple: "/brand/logo-mark-drop.svg",
   },
   openGraph: {
-    images: [{ url: "/brand/logo-mark-drop.svg", width: 200, height: 200, alt: "EduBridge" }],
+    images: [{ url: "/brand/logo-mark-drop.svg", width: 200, height: 200, alt: PLATFORM_NAME }],
   },
 };
 
@@ -45,7 +47,10 @@ export default function RootLayout({
         suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} font-sans antialiased`}
       >
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <CookieBanner />
+        </Providers>
       </body>
     </html>
   );

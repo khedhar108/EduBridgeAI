@@ -44,6 +44,7 @@ Also in repo: shadcn, mastra, aceternity-ui, ui-ux-pro-max, ponytail, caveman-co
    - Mastra/AI → [architecture/ai-platform.md](../architecture/ai-platform.md) + `.agents/skills/mastra`
    - Agent architecture/memory → [architecture/agent-ecosystem.md](../architecture/agent-ecosystem.md)
    - Parent app/PWA/store → [architecture/mobile-app.md](../architecture/mobile-app.md)
+   - School URLs / Vercel / family cookie dual-mode → [architecture/workspace-urls.md](../architecture/workspace-urls.md) + [platform-launch map](../wayfinder/platform-launch.md)
 
 ## Key facts (avoid guessing)
 

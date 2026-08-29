@@ -7,6 +7,7 @@ import {
   UsersIcon,
 } from "lucide-react";
 import { Reveal, Stagger, StaggerItem } from "./marketing-motion";
+import { PLATFORM_NAME } from "@/lib/brand";
 
 const SECURITY_PILLARS = [
   {
@@ -63,7 +64,7 @@ export function MarketingSecurityReveal() {
             Clear only where your role belongs.
           </h3>
           <p className="max-w-[58ch] text-base leading-relaxed text-muted-foreground sm:text-lg">
-            EduBridge is multi-tenant by design. Fees, attendance, report
+            {PLATFORM_NAME} is multi-tenant by design. Fees, attendance, report
             cards, and parent views live in your school workspace. Platform
             operators do not browse another school&apos;s rows from product
             screens.

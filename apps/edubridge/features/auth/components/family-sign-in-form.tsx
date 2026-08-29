@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState } from "react";
-import Link from "next/link";
 import { Button } from "@repo/ui/components/button";
 import { Input } from "@repo/ui/components/input";
 import { Spinner } from "@repo/ui/components/spinner";
@@ -10,6 +9,7 @@ import {
   familySignInAction,
   type FamilySignInState,
 } from "../actions/family-sign-in";
+import { TermsAcceptCheckbox } from "./terms-accept-checkbox";
 
 const initial: FamilySignInState = {};
 
@@ -70,7 +70,11 @@ export function FamilySignInForm({ workspace, schoolName }: Props) {
           maxLength={64}
           className="h-11"
           disabled={pending}
+          placeholder="EBS2024006"
         />
+        <p className="text-xs text-muted-foreground">
+          On the ID card or fee receipt. Hyphens and spaces are optional.
+        </p>
       </div>
 
       <div className="flex flex-col gap-2">
@@ -94,6 +98,8 @@ export function FamilySignInForm({ workspace, schoolName }: Props) {
         </p>
       </div>
 
+      <TermsAcceptCheckbox disabled={pending} />
+
       {state.error ? (
         <p className="text-sm text-destructive" role="alert">
           {state.error}
@@ -110,16 +116,6 @@ export function FamilySignInForm({ workspace, schoolName }: Props) {
           Local seed: EBS-2024-006, 2013-06-06 (Reyansh).
         </p>
       ) : null}
-
-      <p className="text-center text-sm text-muted-foreground">
-        Staff?{" "}
-        <Link
-          href={`/${workspace}/sign-in`}
-          className="font-medium text-foreground underline-offset-4 hover:underline"
-        >
-          Staff sign-in
-        </Link>
-      </p>
     </form>
   );
 }
