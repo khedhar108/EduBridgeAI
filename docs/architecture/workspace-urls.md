@@ -3,7 +3,8 @@
 > How every school gets an isolated URL without a second app or a second database.
 > **Target** (Phase 6) is not live on `edubridge.app` until Coolify DNS + TLS exist.
 > The **app rewrite** (slice C) is in code: local `/{slug}` still works; `{slug}.localhost`
-> and `{slug}.edubridge.app` rewrite onto the same `[workspace]` tree.
+> `{slug}.dev.edubridge.app`, and `{slug}.edubridge.app` rewrite onto the same
+> `[workspace]` tree.
 
 Related: [ADR-006](../decisions/ADR-006-workspace-subdomains.md),
 [platform-boundaries.md](./platform-boundaries.md),
@@ -15,17 +16,30 @@ HITL: [Coolify + Hetzner](../wayfinder/tickets/task-coolify-hetzner.md).
 ## What this is called
 
 **Subdomain-based multi-tenancy** (wildcard-subdomain SaaS).
-One Next.js app. `proxy.ts` reads `Host` / `X-Forwarded-Host` and rewrites
-`{slug}.edubridge.app/...` onto the existing `/[workspace]/...` tree. Wildcard
-DNS + one wildcard TLS cert (`*.edubridge.app`) cover every school without
-per-school setup. Coolify Traefik does the cert; the app does the rewrite.
+One Next.js app. `proxy.ts` reads the trusted Host and rewrites
+`{slug}.{WORKSPACE_ROOT_DOMAIN}/...` onto the existing `/[workspace]/...` tree.
+Wildcard DNS + one wildcard TLS cert per environment cover every school without
+per-school setup. Vercel owns the delegated staging child zone; Coolify Traefik
+owns production TLS; the app performs the same rewrite on both.
 
 References (external):
 
-- [Coolify wildcard certs — SaaS (one app, every subdomain)](https://coolify.io/docs/knowledge-base/proxy/traefik/wildcard-certs#saas--route-every-subdomain-to-one-application)
-- [Coolify Traefik DNS-01 (Hetzner tab)](https://coolify.io/docs/knowledge-base/proxy/traefik/dns-challenge)
-- [vercel/platforms](https://github.com/vercel/platforms) — same Next.js 16 `proxy.ts` pattern (hosting-agnostic)
+Coolify (production host):
+
+- [Wildcard certs — SaaS (one app, every subdomain)](https://coolify.io/docs/knowledge-base/proxy/traefik/wildcard-certs#saas--route-every-subdomain-to-one-application)
+- [Traefik DNS-01 (Hetzner tab)](https://coolify.io/docs/knowledge-base/proxy/traefik/dns-challenge)
+- [Installation — hardware is the VPS](https://coolify.io/docs/get-started/installation)
+- [Walkthrough: Coolify + Traefik 3.1 wildcard](https://medium.com/@haiderpatanwala/deploying-a-multi-tenant-saas-app-in-coolify-with-traefik-3-1-b2add8a8ff52) — same shape as our ticket; app port is **3000**, not 80; also route **apex** `edubridge.app`
+
+Vercel (staging host + app pattern):
+
+- [vercel/platforms](https://github.com/vercel/platforms) — same Next.js `proxy.ts` host rewrite
+- [Multi-tenant limits](https://vercel.com/docs/platforms/multi-tenant-platforms/limits) — wildcard on **all plans**; Hobby 50 named domains; Pro unlimited (soft 100k)
+- [Configuring wildcard domains](https://vercel.com/docs/platforms/multi-tenant-platforms/configuring-domains)
+- [Working with domains](https://vercel.com/docs/domains/working-with-domains)
+- [Why wildcard needs Vercel nameservers](https://vercel.com/kb/guide/why-use-domain-nameservers-method-wildcard-domains)
 - [Next.js 16 proxy](https://nextjs.org/docs/app/api-reference/file-conventions/proxy)
+- [B2B Multi-Tenant Starter Kit](https://vercel.com/templates/other/b2-b-multi-tenant-starter-kit) — **not our model** (Stack Auth teams/orgs, not `{slug}.host`). Use platforms, not this kit.
 
 ## Locked facts
 
@@ -36,8 +50,9 @@ References (external):
 | Slug shape | kebab + `-bridge` suffix; reserved names in `RESERVED_WORKSPACE_SLUGS` |
 | Local (keep forever) | `localhost:3000/{slug}/…` |
 | Local optional | `{slug}.localhost:3000` (browsers map `*.localhost` to loopback) |
+| Staging | `{slug}.dev.edubridge.app/…` on Vercel from `development` |
 | Production | `{slug}.edubridge.app/…` once DNS + TLS exist |
-| Hosting (this effort) | **Coolify on a Hetzner VPS.** Same `proxy.ts`. Vercel remains a compatible alternative (same rewrite). |
+| Hosting | Vercel staging; **Coolify on a Hetzner VPS** for production. Same `proxy.ts`. |
 | Plans | Paid `normal` / `pro` / `max`; 15-day **Max** trial; expiry → read-only. No free tier |
 | Admin login | There is no separate admin door. School admin is **staff**. Chooser → School |
 
@@ -53,7 +68,8 @@ References (external):
 
 Chooser is `{slug}.edubridge.app/sign-in`. Family cookie Path `/family` matches because family pages are `/family/*` on that host.
 
-Admin **home** always shows the shareable host `{slug}.edubridge.app` (copy button), including on localhost, so the live URL is visible before DNS is on.
+Admin **home** shows the shareable host for the configured environment
+(`{slug}.dev.edubridge.app` on staging, `{slug}.edubridge.app` otherwise).
 
 ## Today vs that target
 
@@ -72,7 +88,7 @@ Admin **home** always shows the shareable host `{slug}.edubridge.app` (copy butt
 Path-based workspaces are not a prototype to delete. They are the **local and fallback** contract.
 
 1. **Never remove** `app/[workspace]/` routes. Feature code always receives the slug param.
-2. **Host rewrite is additive.** Production host `{slug}.edubridge.app/fees` rewrites internally to `/{slug}/fees`. The browser URL stays the subdomain.
+2. **Host rewrite is additive.** `{slug}.{WORKSPACE_ROOT_DOMAIN}/fees` rewrites internally to `/{slug}/fees`. The browser URL stays the subdomain.
 3. **Local path URLs stay valid:** `localhost:3000/{slug}/sign-in` still opens the chooser.
 4. **Optional local subdomain:** `{slug}.localhost:3000` — no `/etc/hosts` required.
 5. Hostname/slug only **selects** the school candidate. Access still needs `school_members`, platform admin, or a support grant.
@@ -84,6 +100,7 @@ flowchart LR
   host -->|"edubridge.app / www"| mkt[Marketing + register]
   host -->|"platform.edubridge.app"| plat["Rewrite to /platform/*"]
   host -->|"slug.edubridge.app"| ws["Rewrite to /slug/*"]
+  host -->|"slug.dev.edubridge.app"| ws
   host -->|"localhost:3000"| path[Path /slug as today]
   host -->|"slug.localhost:3000"| ws
   ws --> sess["getSessionContext slug — unchanged"]
@@ -93,8 +110,8 @@ flowchart LR
 
 | Cookie | Isolation | Never |
 |--------|-----------|-------|
-| Supabase staff session | **Host-only** (no `Domain` attribute). Each school host is its own session | `Domain=.edubridge.app` (would leak staff across schools) |
-| Family HMAC (`edubridge.family`) | School host → `Path=/family`. Path-mode (localhost, apex, Coolify preview) → `Path=/{slug}/family` | Same `Domain=.edubridge.app` |
+| Supabase staff session | **Host-only** (no `Domain` attribute). Each school host is its own session | Parent `Domain` on either staging or production |
+| Family HMAC (`edubridge.family`) | School host → `Path=/family`. Path-mode (localhost, apex, generated Vercel preview) → `Path=/{slug}/family` | Parent `Domain` on either staging or production |
 
 `familyCookiePath` keys off **Host**, not `NODE_ENV`. A path-only production URL is safe for family.
 
@@ -105,14 +122,14 @@ flowchart LR
 - Host parser (`lib/tenancy/workspace-host.ts`)
 - `proxy.ts` Host rewrite + slug-prefix 308 + host-aware staff `/sign-in` redirect
 - Host-aware family cookie Path
-- Admin home **School URL** card (`{slug}.edubridge.app` + copy)
+- Admin home **School URL** card (configured environment host + copy)
 - `getSessionContext(schoolSlug)` — path slug only; keep it that way (rewrite supplies the param)
 
 ## What does not exist yet (HITL / later slices)
 
 - Domain owned + `A` / `*.` → Hetzner VPS + Traefik DNS-01 wildcard cert
-- Coolify Dockerfile / `output: "standalone"` (needed to **run** on Coolify, not for the rewrite itself)
-- CI workflows
+- `dev.edubridge.app` child-zone delegation + wildcard staging domain in Vercel
+- Coolify pulling GHCR (HITL) — Dockerfile/standalone already in-repo
 - `plans` / `subscriptions` / `module_entitlements` (Control Hub `capability_overrides` is **permissions**, not SaaS module flags)
 - Host-aware post-register redirect to `https://{slug}.edubridge.app` (slice D)
 
@@ -129,9 +146,9 @@ Only these files make the subdomain **work in Next** and **show on admin home**.
 | `apps/edubridge/app/[workspace]/(staff)/page.tsx` | School URL on **admin home** |
 | `apps/edubridge/features/shell/components/workspace-public-url.tsx` | Copyable `{slug}.edubridge.app` |
 | `apps/edubridge/features/registration/components/welcome-setup-card.tsx` | Same host on the welcome card |
-| `apps/edubridge/.env.example` | `NEXT_PUBLIC_SITE_URL` = apex |
+| `apps/edubridge/.env.example` | Deployment identity, root domain, and public auth origin |
 
-**Not in this slice:** Dockerfile, `output: "standalone"`, billing schema, Control Hub, rewriting hundreds of links, cookie `Domain=`.
+**Not in this slice:** billing schema, Control Hub, rewriting hundreds of links, cookie `Domain=`.
 
 ## Hosting — Coolify on Hetzner (production path)
 
@@ -146,11 +163,10 @@ Checklist lives on [task-coolify-hetzner.md](../wayfinder/tickets/task-coolify-h
 1. **Hetzner VPS** (Ubuntu) + install Coolify. Open 80/443 (and SSH). Postgres stays **Supabase** — do not run tenant data on the VPS.
 2. **DNS** at the registrar (or Hetzner DNS): apex `A` → VPS IPv4; wildcard `A` `*.edubridge.app` → same IP. Optional `AAAA` if you use IPv6. Do **not** put Cloudflare orange-cloud / Tunnel in front of arbitrary tenant hosts — tunnels do not cover `{every-slug}.edubridge.app`. Grey-cloud (DNS only) is fine.
 3. **Traefik DNS-01** in Coolify — wildcard certs cannot use HTTP-01. Coolify’s documented provider tab includes **Hetzner** ([DNS challenge](https://coolify.io/docs/knowledge-base/proxy/traefik/dns-challenge)). Create a Hetzner DNS API token; paste it in Coolify. Cloudflare / Route 53 also work if DNS lives there instead.
-4. **Coolify application** (when you deploy): Domain field **empty**; custom Traefik labels `HostRegexp` so **every** subdomain hits this one container; listen port **3000** (not the docs’ example `80`). `HOSTNAME=0.0.0.0`. GitHub → Coolify auto-deploy on `main` still works.
-5. **Next on Coolify** needs `output: "standalone"` + a Dockerfile (or Nixpacks equivalent). That is a **later deploy file**, not required for the rewrite to work on localhost / `{slug}.localhost`.
-6. Env on the Coolify app: same secrets as local (Supabase, `DATABASE_URL` pooler, `FAMILY_SESSION_SECRET`, `IMPERSONATION_SECRET`). `NEXT_PUBLIC_SITE_URL=https://edubridge.app`.
-7. **Supabase Auth** redirect URLs: apex + wildcard school hosts + `/auth/callback` ([task-supabase-auth-urls.md](../wayfinder/tickets/task-supabase-auth-urls.md)).
-8. `apps/agent` is a **second** Coolify service (or Generative AI stays off). See [grill-agent-hosting.md](../wayfinder/tickets/grill-agent-hosting.md).
+4. **Coolify application:** pull `ghcr.io/<org>/edubridge_ai:production` (GitHub Actions builds it). Domain field **empty**; Traefik `HostRegexp`; port **3000**; `HOSTNAME=0.0.0.0`. Do not compile on the VPS.
+5. Env: `APP_ENV=production`, `WORKSPACE_ROOT_DOMAIN=edubridge.app`, Supabase, pooler `DATABASE_URL`, signing secrets, `NEXT_PUBLIC_SITE_URL=https://edubridge.app`. **Omit `NODE_ENV`.**
+6. **Supabase Auth** redirect URLs: apex + wildcard school hosts + `/auth/callback` ([task-supabase-auth-urls.md](../wayfinder/tickets/task-supabase-auth-urls.md)).
+7. `apps/agent` is a **second** Coolify service (or Generative AI stays off). See [grill-agent-hosting.md](../wayfinder/tickets/grill-agent-hosting.md).
 
 ### What Traefik vs Next each own
 
@@ -162,9 +178,14 @@ Checklist lives on [task-coolify-hetzner.md](../wayfinder/tickets/task-coolify-h
 
 If Traefik only has `edubridge.app` (no wildcard / no `HostRegexp`), Next never sees `dps-jaipur-bridge.edubridge.app` and the admin URL will not open, even though the rewrite code is correct.
 
-### Vercel (compatible, not the plan)
+### Vercel staging
 
-Same `proxy.ts`. Wildcard cert on Vercel requires **Vercel nameservers**. Tickets: [research-vercel-turborepo.md](../wayfinder/tickets/research-vercel-turborepo.md), [task-vercel-project-and-env.md](../wayfinder/tickets/task-vercel-project-and-env.md). Do not mix “nameservers at Vercel” with “A records to Hetzner” for the same zone.
+The `development` branch deploys to a separate Vercel staging project using
+`dev.edubridge.app` and `*.dev.edubridge.app`. Delegate only that child zone to
+the Vercel nameservers assigned to the project. Production `edubridge.app`
+records stay with Hetzner/Coolify. See
+[deployment-environments.md](./deployment-environments.md) and
+[task-vercel-project-and-env.md](../wayfinder/tickets/task-vercel-project-and-env.md).
 
 ## Plans vs Control Hub
 
@@ -182,8 +203,8 @@ Do not skip ahead. Checkboxes live on [platform-launch.md](../wayfinder/platform
 | Slice | Goal | Do not touch |
 |-------|------|----------------|
 | **0 — docs** | Architecture + open map | — |
-| **A — CI** | `lint` / `check-types` / `build` on PRs | Routing, cookies, schema |
-| **B — DNS + Coolify + Auth URLs** | Apex + `*.edubridge.app` on Hetzner; Traefik DNS-01; Supabase redirects | Dockerfile until you actually deploy the container |
+| **A — CI** | `ci-cd.yml` lint / types / test / build; GHCR on `main` | Routing, cookies, schema, `db:migrate` |
+| **B — DNS + Coolify + Auth URLs** | Apex + `*.edubridge.app` on Hetzner; Traefik DNS-01; pull GHCR | Building the app on the VPS |
 | **C — host rewrite** | `proxy.ts` + host-aware family Path + admin School URL | Billing tables; removing path routes |
 | **D — post-register host** | Founder lands on `{slug}.edubridge.app` in prod | Local path redirect still `/{slug}` |
 | **E — plans / trial / flags** | 15-day Max trial + entitlements + read-only | Payments provider until research ADR; Control Hub schema |

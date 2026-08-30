@@ -78,3 +78,5 @@ One line.
 | 0030 | [Public school registration](./0030-school-registration.md) | 2026-08-29 | `/register` wizard, instant school + first admin, founder password recovery |
 | 0031 | [Workspace URL architecture](./0031-workspace-url-architecture.md) | 2026-08-29 | Dual-mode URL doc + open platform-launch checkboxes; no routing change |
 | 0032 | [Host rewrite + Coolify path](./0032-host-rewrite-coolify.md) | 2026-08-29 | `proxy.ts` subdomain rewrite; admin School URL; Coolify+Hetzner HITL |
+| 0033 | [Deployment env + GHCR](./0033-deployment-environments.md) | 2026-08-29 | NODE_ENV ownership, `*.dev.edubridge.app`, standalone Docker, one CI/CD workflow |
+| 0034 | [Mastra Coolify host](./0034-mastra-coolify-host.md) | 2026-08-30 | OSS agent on Coolify; not Mastra Cloud; grill closed |

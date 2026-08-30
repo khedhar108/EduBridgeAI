@@ -18,15 +18,31 @@ export class MastraGatewayError extends Error {
   }
 }
 
-export const mastraClient = new MastraClient({
-  baseUrl: process.env.MASTRA_API_URL ?? "http://localhost:4111",
-  retries: 2,
-  backoffMs: 300,
-  maxBackoffMs: 2_000,
-  headers: {
-    "X-EduBridge-Client": "apps-edubridge",
-  },
-});
+let mastraClient: MastraClient | null = null;
+
+function getMastraClient(): MastraClient {
+  if (mastraClient) return mastraClient;
+
+  const configuredUrl = process.env.MASTRA_API_URL?.trim();
+  if (!configuredUrl && process.env.NODE_ENV === "production") {
+    throw new MastraGatewayError(
+      "AI service is not configured for this environment.",
+      503,
+    );
+  }
+
+  mastraClient = new MastraClient({
+    baseUrl: configuredUrl ?? "http://localhost:4111",
+    retries: 2,
+    backoffMs: 300,
+    maxBackoffMs: 2_000,
+    headers: {
+      "X-EduBridge-Client": "apps-edubridge",
+    },
+  });
+
+  return mastraClient;
+}
 
 export function assertAgentId(agentId: string): AgentId {
   if (allowedAgentIds.has(agentId)) {
@@ -117,7 +133,7 @@ export async function streamAgentToAiSdk({
   requestContext,
 }: StreamAgentOptions) {
   const resolvedAgentId = assertAgentId(agentId);
-  const agent = mastraClient.getAgent(resolvedAgentId);
+  const agent = getMastraClient().getAgent(resolvedAgentId);
 
   const response = (await agent.stream(
     messages as Parameters<ReturnType<MastraClient["getAgent"]>["stream"]>[0],
@@ -159,7 +175,7 @@ export async function executeAgentTool<TOutput>({
   requestContext?: Record<string, string>;
 }): Promise<TOutput> {
   const resolvedAgentId = assertAgentId(agentId);
-  const agent = mastraClient.getAgent(resolvedAgentId);
+  const agent = getMastraClient().getAgent(resolvedAgentId);
 
   return agent.executeTool(toolId, {
     data,

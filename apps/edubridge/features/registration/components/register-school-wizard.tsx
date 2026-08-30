@@ -12,6 +12,11 @@ import { readConsentFromDocument } from "@/lib/legal/consent";
 import { PRIVACY_PATH, TERMS_PATH } from "@/lib/legal/paths";
 import { suggestSlugFromSchoolName } from "@/lib/tenancy/school-slug";
 import {
+  emailDomain,
+  isEligibleSchoolEmailDomain,
+} from "@/lib/tenancy/email-domain";
+import { PasswordField } from "@repo/ui/components/password-field";
+import {
   checkSlugAction,
   startSchoolRegisterAction,
   type RegisterSchoolState,
@@ -79,9 +84,13 @@ export function RegisterSchoolWizard() {
 
   const canNextSchool =
     schoolName.trim().length >= 2 && stateName.length >= 2 && city.trim().length >= 2;
+  const emailDomainValue = emailDomain(email);
+  const emailOk = Boolean(
+    emailDomainValue && isEligibleSchoolEmailDomain(emailDomainValue),
+  );
   const canNextYou =
     fullName.trim().length >= 2 &&
-    email.includes("@") &&
+    emailOk &&
     username.length >= 3 &&
     password.length >= 8 &&
     password === passwordConfirm;
@@ -215,8 +224,9 @@ export function RegisterSchoolWizard() {
               onChange={(event) => setEmail(event.target.value)}
             />
             <p className="text-xs text-muted-foreground">
-              Not Gmail or Yahoo — this domain becomes the school&apos;s official
-              inbox.
+              {process.env.NODE_ENV === "production"
+                ? "School or business inbox only — not Gmail, Yahoo, or Outlook. This domain becomes the school's official email."
+                : "Any email works while developing (pnpm dev). Vercel and Coolify use NODE_ENV=production and require a school or business inbox."}
             </p>
           </Field>
           <Field label="Username" htmlFor="username">
@@ -235,34 +245,29 @@ export function RegisterSchoolWizard() {
               }}
             />
           </Field>
-          <Field label="Password" htmlFor="password">
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="new-password"
-              required
-              minLength={8}
-              className="h-11"
-              disabled={pending}
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-            />
-          </Field>
-          <Field label="Confirm password" htmlFor="passwordConfirm">
-            <Input
-              id="passwordConfirm"
-              name="passwordConfirm"
-              type="password"
-              autoComplete="new-password"
-              required
-              minLength={8}
-              className="h-11"
-              disabled={pending}
-              value={passwordConfirm}
-              onChange={(event) => setPasswordConfirm(event.target.value)}
-            />
-          </Field>
+          <PasswordField
+            id="password"
+            name="password"
+            label="Password"
+            autoComplete="new-password"
+            disabled={pending}
+            value={password}
+            onChange={setPassword}
+          />
+          <PasswordField
+            id="passwordConfirm"
+            name="passwordConfirm"
+            label="Confirm password"
+            autoComplete="new-password"
+            disabled={pending}
+            value={passwordConfirm}
+            onChange={setPasswordConfirm}
+            hint={
+              passwordConfirm.length > 0 && password !== passwordConfirm ? (
+                <p className="text-xs text-destructive">Passwords do not match.</p>
+              ) : null
+            }
+          />
         </div>
       ) : null}
 

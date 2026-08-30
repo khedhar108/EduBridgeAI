@@ -24,7 +24,7 @@ export type FamilySessionPayload = {
 };
 
 export type FamilyCookieOrigin = {
-  /** True when Host is `{slug}.{PLATFORM_DOMAIN}` or `{slug}.localhost`. */
+  /** True when Host is `{slug}.{WORKSPACE_ROOT_DOMAIN}` or `{slug}.localhost`. */
   hostMode: boolean;
   schoolSlug: string;
 };
@@ -40,7 +40,7 @@ function getSecret(): string {
 export function familyCookiePath(origin: FamilyCookieOrigin): string {
   const slug = origin.schoolSlug.trim().toLowerCase();
   if (origin.hostMode) {
-    // School isolation is the host (`{slug}.edubridge.app`). Never Domain=.edubridge.app.
+    // School isolation is the host. Never set a shared parent Domain.
     return "/family";
   }
   return `/${slug}/family`;

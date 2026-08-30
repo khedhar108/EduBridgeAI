@@ -2,12 +2,12 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import { Input } from "@repo/ui/components/input";
 import { Spinner } from "@repo/ui/components/spinner";
 import { useActionToast } from "@repo/ui/hooks/use-action-toast";
 import { signInAction, type SignInState } from "../actions/sign-in";
+import { PasswordField } from "@repo/ui/components/password-field";
 import {
   DEMO_PREFILL_EVENT,
   consumeDemoPrefill,
@@ -86,7 +86,6 @@ export function SignInForm({ surface, next, emailPrefill, workspace }: Props) {
   const [email, setEmail] = useState(emailPrefill ?? "");
   const [schoolSlug, setSchoolSlug] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
 
   const formRef = useRef<HTMLFormElement>(null);
@@ -216,49 +215,25 @@ export function SignInForm({ surface, next, emailPrefill, workspace }: Props) {
         />
       </div>
 
-      <div className="flex flex-col gap-2">
-        <label
-          htmlFor="password"
-          className="text-sm font-medium text-foreground"
-        >
-          Password
-        </label>
-        <div className="relative">
-          <Input
-            id="password"
-            name="password"
-            type={showPassword ? "text" : "password"}
-            autoComplete="current-password"
-            required
-            minLength={8}
-            className="h-11 pr-10"
-            disabled={pending}
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword((show) => !show)}
-            aria-label={showPassword ? "Hide password" : "Show password"}
-            aria-pressed={showPassword}
-            className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground transition-colors hover:text-foreground focus:outline-none focus-visible:text-foreground"
-          >
-            {showPassword ? (
-              <EyeOff className="size-4" />
-            ) : (
-              <Eye className="size-4" />
-            )}
-          </button>
-        </div>
-        <p className="text-right">
-          <Link
-            href="/forgot-password"
-            className="text-xs font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-          >
-            Forgot password?
-          </Link>
-        </p>
-      </div>
+      <PasswordField
+        id="password"
+        name="password"
+        label="Password"
+        autoComplete="current-password"
+        disabled={pending}
+        value={password}
+        onChange={setPassword}
+        hint={
+          <p className="text-right">
+            <Link
+              href="/forgot-password"
+              className="text-xs font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </p>
+        }
+      />
 
       <label className="flex items-center gap-2 text-sm text-muted-foreground">
         <input

@@ -7,7 +7,9 @@
 > single source of truth for privileged actions; RLS remains the backstop.
 > Admin module-grouped Switches are **Control Hub**
 > ([control-hub.md](../../wayfinder/control-hub.md)). The directory Switch is
-> member active/inactive, not a capability grant.
+> member active/inactive, not a capability grant. Hub may grant extras beyond
+> role defaults after confirm; RLS still backstops writes the role cannot
+> perform.
 
 Related: [rbac-model.md](./rbac-model.md) · [auth README](./README.md) ·
 [multi-tenancy.md](../multi-tenancy.md) · [Control Hub](../../wayfinder/control-hub.md)

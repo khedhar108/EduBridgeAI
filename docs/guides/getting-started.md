@@ -25,6 +25,11 @@ pnpm dev                 # edubridge + agent → http://localhost:3000
 
 Start at [docs/README.md](../README.md) for the full documentation index.
 
+Deployment: [deployment-environments.md](../architecture/deployment-environments.md)
+(`NODE_ENV` is not set in `.env` files).
+AI: [ai-platform.md](../architecture/ai-platform.md) — `pnpm dev` starts Next
+`:3000` and Mastra `:4111`; hosted AI is a second Coolify service, not Mastra Cloud.
+
 ## Next steps
 
 - UI components: [TAILWIND_SHADCN_GUIDE.md](../../TAILWIND_SHADCN_GUIDE.md)

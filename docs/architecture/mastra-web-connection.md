@@ -1,6 +1,8 @@
 # Mastra ↔ Web Connection
 
-How `apps/agent` (Mastra on `:4111`) connects to `apps/web` (Next.js on `:3000`), where every piece lives, and how to add the multi-provider model picker.
+How `apps/agent` (Mastra on `:4111`) connects to the Next product app, where every piece lives, and how to add the multi-provider model picker.
+
+Hosted topology (Coolify, not Mastra Cloud): [AI platform — where it runs](./ai-platform.md#where-it-runs). The product app is `apps/edubridge` (`lib/mastra-client.ts`); `apps/web` is the Mastra demo only.
 
 ---
 

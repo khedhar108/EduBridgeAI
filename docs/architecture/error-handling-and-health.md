@@ -15,6 +15,7 @@ apps/edubridge/
     error.tsx            # segment runtime error boundary ("use client")
     global-error.tsx     # root runtime error boundary ("use client")
     api/health/route.ts  # GET /api/health — aggregate status + DB check
+    api/live/route.ts    # GET /api/live — liveness, no database
     status/page.tsx      # dev-only status dashboard (server gate + client view)
   features/shell/components/
     not-found-screen.tsx # animated 404 (server component, CSS motion)
@@ -72,6 +73,9 @@ Existing route handlers/actions are **not** retrofitted in this change. Adopting
 ## 4. Health checks
 
 ### Endpoint
+
+`GET /api/live` is liveness only (`{ "status": "ok" }`, no database). Docker and
+Coolify probes use this so a slow Postgres does not kill the container.
 
 `GET /api/health` returns an aggregate, following Kubernetes-style readiness semantics:
 

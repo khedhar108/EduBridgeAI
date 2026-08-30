@@ -1,4 +1,7 @@
-import { PLATFORM_DOMAIN } from "../brand";
+import {
+  getWorkspaceRootDomain,
+  shouldTrustForwardedHost,
+} from "../deployment-environment";
 import { RESERVED_WORKSPACE_SLUGS } from "./school-slug";
 
 export type ParsedWorkspaceHost =
@@ -6,12 +9,16 @@ export type ParsedWorkspaceHost =
   | { kind: "platform" }
   | { kind: "school"; slug: string };
 
-/** First Host / X-Forwarded-Host value, lowercase, port stripped. */
-export function hostnameFromHeaders(headerList: Headers): string {
-  const raw =
-    headerList.get("x-forwarded-host")?.split(",")[0]?.trim() ??
-    headerList.get("host") ??
-    "";
+/** First trusted Host value, lowercase, port stripped. */
+export function hostnameFromHeaders(
+  headerList: Headers,
+  trustForwardedHost: boolean = shouldTrustForwardedHost(),
+): string {
+  const raw = trustForwardedHost
+    ? (headerList.get("x-forwarded-host")?.split(",")[0]?.trim() ??
+      headerList.get("host") ??
+      "")
+    : (headerList.get("host") ?? "");
   return stripPort(raw.toLowerCase());
 }
 
@@ -29,12 +36,12 @@ export function stripPort(host: string): string {
 }
 
 /**
- * Apex = marketing + path `/{slug}`. School = `{slug}.{PLATFORM_DOMAIN}` or
- * `{slug}.localhost`. Nested labels (`a.b.edubridge.app`) stay apex (no custom domains).
+ * Apex = marketing + path `/{slug}`. School = `{slug}.{rootDomain}` or
+ * `{slug}.localhost`. Nested labels stay apex (no customer custom domains).
  */
 export function parseWorkspaceHost(
   hostname: string,
-  rootDomain: string = PLATFORM_DOMAIN,
+  rootDomain: string = getWorkspaceRootDomain(),
 ): ParsedWorkspaceHost {
   const host = hostname.trim().toLowerCase();
   if (!host) return { kind: "apex" };
@@ -68,8 +75,12 @@ export function parseWorkspaceHost(
   return { kind: "school", slug };
 }
 
-export function isSchoolHostForSlug(hostname: string, schoolSlug: string): boolean {
-  const parsed = parseWorkspaceHost(hostname);
+export function isSchoolHostForSlug(
+  hostname: string,
+  schoolSlug: string,
+  rootDomain: string = getWorkspaceRootDomain(),
+): boolean {
+  const parsed = parseWorkspaceHost(hostname, rootDomain);
   return (
     parsed.kind === "school" &&
     parsed.slug === schoolSlug.trim().toLowerCase()
@@ -88,15 +99,16 @@ export type WorkspaceUrlDisplay = {
 export function workspaceUrlDisplay(
   schoolSlug: string,
   hostname: string,
+  rootDomain: string = getWorkspaceRootDomain(),
 ): WorkspaceUrlDisplay {
   const slug = schoolSlug.trim().toLowerCase();
-  const shareHost = `${slug}.${PLATFORM_DOMAIN}`;
+  const shareHost = `${slug}.${rootDomain}`;
   const isLoopback = hostname === "localhost" || hostname === "127.0.0.1";
   return {
     slug,
     shareHost,
     shareUrl: `https://${shareHost}`,
-    onSchoolHost: isSchoolHostForSlug(hostname, slug),
+    onSchoolHost: isSchoolHostForSlug(hostname, slug, rootDomain),
     localHint: isLoopback ? `http://localhost:3000/${slug}` : `/${slug}`,
   };
 }

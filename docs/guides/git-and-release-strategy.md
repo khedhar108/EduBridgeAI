@@ -17,8 +17,8 @@ feature/<short-name>  ──PR──►  development  ──PR──►  main
 
 | Branch | Purpose | Who deploys from it |
 |--------|---------|---------------------|
-| `main` | Always production-ready | End users |
-| `development` | Integration branch | Staging / internal test URLs |
+| `main` | Always production-ready | Coolify + Hetzner (`*.edubridge.app`) |
+| `development` | Integration branch | Vercel staging (`*.dev.edubridge.app`) |
 | `feature/<short-name>` | One concern, short-lived | Optional PR preview URLs |
 | `hotfix/<short-name>` | Urgent fix branched from `main` | Production, then sync to `development` |
 
@@ -28,7 +28,7 @@ feature/<short-name>  ──PR──►  development  ──PR──►  main
 - Do not push feature work directly to `main`.
 - Do not keep long-lived personal branches.
 - Protect `main` and `development` on GitHub (PR required, CI green) once more than one person commits.
-- CI workflows are **not in the repo yet**. Slice A on [platform-launch.md](../wayfinder/platform-launch.md) adds `pnpm lint` / `check-types` / `build` on PRs. Until then, run those locally before merge. Never put `pnpm db:migrate` in CI.
+- CI/CD lives in `.github/workflows/ci-cd.yml`. `verify` runs on PRs/pushes to `development` and `main`. Image publish, smoke, and Coolify deploy run only on `main`. Vercel deploys `development` through Git integration. Never put `pnpm db:migrate` in CI. Never set `NODE_ENV` in platform env vars.
 
 ### Naming examples
 
@@ -43,7 +43,7 @@ feature/<short-name>  ──PR──►  development  ──PR──►  main
 2. Branch: `git checkout -b feature/<short-name>`
 3. Implement; keep commits small and conventional (below)
 4. Push and open **PR → `development`** (squash merge preferred)
-5. Verify on **staging** (test URL from `development`)
+5. Verify on **Vercel staging** under `*.dev.edubridge.app`
 6. When ready for users: open **PR `development` → `main`**, merge, deploy production
 
 ### Hotfix
@@ -134,7 +134,7 @@ Keep `[Unreleased]` in `CHANGELOG.md` while work lands on `development`. When cu
 ## Rollback
 
 1. Prefer `git revert` of the merge commit on `main` (safe, auditable) over hard resets.
-2. Deploy the reverted `main`.
+2. Coolify: pin the previous GHCR tag (`sha-<commit>`). Do not rebuild on the VPS.
 3. Sync `development` so staging matches (merge or revert the same change there).
 4. Fix forward on a new `feature/*` or `hotfix/*` branch.
 

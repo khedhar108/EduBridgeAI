@@ -99,26 +99,37 @@ Transaction mode (`:6543`) is optimized for short-lived connections in serverles
 ### apps/agent (Mastra server)
 
 ```env
-# Required
+# Required on hosted agent (not local LibSQL)
 OPENAI_API_KEY=sk-...
 DATABASE_URL=postgresql://postgres.[project]:[password]@db.[project].supabase.co:5432/postgres
+AGENT_SERVICE_SECRET=<same as Next>
 
 # Optional
 PORT=4111
 NODE_OPTIONS=--max-old-space-size=4096
 ```
 
-### apps/web (Next.js)
+### apps/edubridge (Next.js)
 
 ```env
-# Development
+# Local
 MASTRA_API_URL=http://localhost:4111
 
-# Production
-MASTRA_API_URL=https://your-agent-service.example.com
+# Staging (Vercel) — only after Coolify agent-staging exists
+MASTRA_API_URL=https://agent-staging.edubridge.app
+
+# Production (Coolify Next) — only after Coolify agent exists
+MASTRA_API_URL=http://<agent-service>:4111
+# or https://agent.edubridge.app
 ```
 
-**Critical:** Never add `DATABASE_URL` to `apps/web`. The web app only talks to Mastra via HTTP, never directly to the database.
+Hosted Next **must omit** `MASTRA_API_URL` until that agent is up; the client
+throws 503 rather than calling a missing host. See
+[where it runs](./ai-platform.md#where-it-runs).
+
+**Critical:** Never add Mastra’s `DATABASE_URL` to `apps/edubridge`. The web app
+only talks to Mastra via HTTP. Next’s own `DATABASE_URL` is the **transaction
+pooler (`:6543`)** for Drizzle — different string, different process.
 
 ## Mastra Storage Configuration
 
@@ -184,10 +195,10 @@ Using `schemaName: "mastra"` keeps Mastra's internal tables separate from your p
 
 ### Application Level
 
-- [ ] `DATABASE_URL` only in `apps/agent`, never in `apps/web`
-- [ ] `OPENAI_API_KEY` only in `apps/agent`
-- [ ] `MASTRA_API_URL` in `apps/web` points to deployed agent URL
-- [ ] Add API key or JWT auth between web and agent in production
+- [ ] `DATABASE_URL` (5432) only in `apps/agent`, never in `apps/edubridge`
+- [ ] Model API keys only in `apps/agent`
+- [ ] `MASTRA_API_URL` in `apps/edubridge` points at the agent for that environment
+- [ ] `AGENT_SERVICE_SECRET` on both; JWT between Next and agent ([agent-auth](./auth/agent-auth.md))
 
 ### Connection String Security
 
@@ -230,7 +241,10 @@ On most platforms (Railway, Render, Fly.io, etc.):
 3. Start command: `pnpm mastra start` or `node .mastra/output/index.mjs`
 4. Set `DATABASE_URL` and `OPENAI_API_KEY` as secrets
 
-See [Mastra deployment docs](https://mastra.ai/docs/deployment/mastra-server).
+See [Mastra deployment docs](https://mastra.ai/docs/deployment/mastra-server)
+and [where it runs](./ai-platform.md#where-it-runs). Coolify is the host
+([ADR-010](../decisions/ADR-010-mastra-coolify-host.md)); do not use Railway/Render
+as a second paid box.
 
 ## Troubleshooting
 

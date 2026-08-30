@@ -3,11 +3,12 @@ export const ROLE_SUMMARIES: Record<string, string> = {
   school_admin:
     "Full control of this school. There is one school admin, and that role cannot be granted here.",
   coordinator:
-    "Manages staff accounts. Cannot change roles, archive members, impersonate, or open Fees.",
+    "Manages staff accounts. Extra permissions (Fees writes, archive, Login as) stay off until you enable them here.",
   accountant:
-    "Records what students paid. Does not publish fee structures (admin only).",
-  teacher: "Works with assigned class-subjects. Cannot manage members or fees.",
-  staff: "School-office access without teaching or fees.",
+    "Records what students paid. Publish structures and other extras stay off until enabled here.",
+  teacher:
+    "Works with assigned class-subjects. Extra modules stay off until enabled here.",
+  staff: "School-office access. Extra modules stay off until enabled here.",
   student: "Sees only their own records.",
   parent: "Sees linked children's records.",
 };

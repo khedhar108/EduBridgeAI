@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start --port 3000",
     "lint": "eslint --max-warnings 0",
+    "test": "tsx --test lib/tenancy/workspace-host.test.ts",
     "check-types": "next typegen && tsc --noEmit",
     "clean": "rimraf .next .turbo node_modules"
   },
@@ -39,6 +40,7 @@
     "@types/three": "catalog:",
     "eslint": "catalog:",
     "tailwindcss": "catalog:",
+    "tsx": "catalog:",
     "typescript": "catalog:"
   }
 }

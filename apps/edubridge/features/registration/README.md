@@ -13,7 +13,15 @@ Admin home shows the shareable host `{slug}.edubridge.app`. Dual-mode: [workspac
 
 ## Roles
 
-Anyone (official school-domain email). Becomes the one `school_admin`.
+Anyone (official school or business email in production; any valid email in
+development). Becomes the one `school_admin`.
+
+## Email gate
+
+`lib/tenancy/email-domain.ts` — production rejects free providers (Gmail,
+Yahoo, Outlook, …). Development accepts any domain so founders can register
+with a personal inbox locally. The same gate runs on the server; do not rely
+on the wizard copy alone.
 
 ## Key files
 

@@ -25,7 +25,7 @@ School admin opens **Control Hub** (`/{slug}/settings/control`): modules as grou
 - [ ] Slice 5 — per-member extras (`member_capability_grants`) + 90-day `staff_sign_in_events`
 - [ ] SIS cutover — `/fees/register` stops creating students ([student-registration.md](./student-registration.md))
 
-Locked forever (not checkboxes): archive, change role, Login as, admin column, `fees.structure` on coordinator.
+Admin column stays on. Other Hub cells are live; grants outside a role default confirm first. Coordinator fee writes still need slice 3b RLS to succeed at the database.
 
 ## Notes
 
@@ -41,9 +41,9 @@ Do in this order. Do not skip to persist before actions use `assertCapability`.
 | Slice | Modify | Do not touch |
 | --- | --- | --- |
 | **1 — done** | `lib/auth/capabilities.ts`; Fees actions/pages; `features/shell/modules.ts` + icon maps; `settings/control` page; this map | Schema, RLS, SIS form, impersonation |
-| **2 — done** | `schools.capability_overrides` jsonb; `can()` merge; Hub save + `admin_audit_events`; enable overridable Switches | Per-member table; marks RLS |
-| **3a — done** | Coordinator fee **SELECT** + `fee_plans.is_demo`; unlock Hub `fees.view` for coordinator | Write policies, unique fee-assignment index, Hub collect/structure for coordinator |
-| **3b** | Split `fee_plans_write` vs `fee_payments_insert` so Hub `fees.collect` can include coordinator | Unique fee-assignment index |
+| **2 — done** | `schools.capability_overrides` jsonb; `can()` merge; Hub save + `admin_audit_events`; all non-admin Hub Switches persist (confirm when outside role default) | Per-member table; marks RLS |
+| **3a — done** | Coordinator fee **SELECT** + `fee_plans.is_demo`; Hub `fees.view` for coordinator | Write policies, unique fee-assignment index |
+| **3b** | Split `fee_plans_write` vs `fee_payments_insert` so coordinator `fees.collect` writes succeed | Unique fee-assignment index |
 | **4 — done** | `modulesForSession` uses `can()` so Fees appears when `fees.view` is on | Family cookie |
 | **5** | `member_capability_grants`; 90-day `staff_sign_in_events` | Custom roles |
 
@@ -52,7 +52,7 @@ Do in this order. Do not skip to persist before actions use `assertCapability`.
 - [Where identity files live](./tickets/research-where-identity-files-live.md) — Storage (SIS map; not Hub).
 - Grant shape: role defaults + member extras, not a per-email matrix.
 - Login as stays; add 90-day history later ([90-day login store](./tickets/research-staff-login-history.md)).
-- Flags: Hub Switch = capability. Fees split: `fees.structure` admin-only default; `fees.collect` admin+accountant, may add coordinator; who-changed already on `fee_audit_events`.
+- Flags: Hub Switch = capability. Fees split: `fees.structure` admin-only default; `fees.collect` admin+accountant, may add coordinator; who-changed already on `fee_audit_events`. Extra grants confirm first. RLS still backstops writes slice 3b has not opened.
 - Identity key: `school_members.user_id`.
 
 ## Not yet specified

@@ -11,16 +11,16 @@ Canonical map: `docs/wayfinder/control-hub.md`. Code: `apps/edubridge/lib/auth/c
 
 - **Defaults** live in `CAPABILITIES` (role lists). Grouped by module prefix: `members.*`, `students.*`, `fees.*`, `team.*`.
 - **Overrides** (slice 2) live on the school (`capability_overrides`). `can()` = override list ?? default. Member extras union in later. Key is `user_id`, never email.
-- **RLS** still backstops. Do not ship a live Switch for a write the database cannot honour.
+- **RLS** still backstops. Hub may turn a Switch on; Postgres can still refuse the write (slice 3b for coordinator fee writes).
 - Actions: `assertCapability`. Fees: `fees.structure` (publish) vs `fees.collect` (payments) vs `fees.view`.
 
 ## Locked vs overridable
 
-**Locked:** `members.archive`, `members.changeRole`, `members.impersonate`; cannot grant `school_admin`; coordinator cannot target admin/coordinator. Admin column on Hub is always on.
+**Always on:** school admin column; `control.view` stays admin-only. Cannot grant `school_admin`. Coordinator still cannot target admin/coordinator (`can()` target-role guard).
 
-**Overridable:** `students.view`, `students.register`, `fees.view`, `fees.collect`, `fees.structure` (default admin-only). Subject scope is `teacher_assignments`, not a Hub flag.
+**Overridable:** every other Hub flag. Granting a permission a role does not have by default confirms, then persists on `capability_overrides`. Subject scope is `teacher_assignments`, not a Hub flag.
 
-Honest Hub: do not enable a Switch Postgres cannot honour. Coordinator `fees.view` is live after fee SELECT RLS (slice 3a). Coordinator `fees.collect` / `fees.structure` stay locked until write RLS (slice 3b). Accountant `fees.structure` is live (RLS already allows accountant plan writes).
+Hub Switches are live for extras. RLS still backstops writes slice 3b has not opened. Coordinator `fees.view` is live after fee SELECT RLS (slice 3a). Accountant `fees.structure` writes already work in Postgres.
 
 ## Do not
 
@@ -34,4 +34,4 @@ assertCapability(ctx, "fees.collect");
 
 - No Casbin / per-email ACL / custom roles.
 - No Fees fields on the SIS form.
-- Control Hub is settings, not a new app. Overridable Switches persist on `schools.capability_overrides`. Locked rows stay display-only.
+- Control Hub is settings, not a new app. Overridable Switches persist on `schools.capability_overrides`. Admin column stays on.

@@ -73,21 +73,14 @@ export const HUB_ROLES: SchoolRole[] = [
 
 const HUB_ROLE_SET = new Set<string>(HUB_ROLES);
 
-/** Hub may not change these. Admin column stays on. */
-export const LOCKED_CAPABILITIES = new Set<Capability>([
-  "control.view",
-  "members.archive",
-  "members.changeRole",
-  "members.impersonate",
-]);
+/** Hub never grants Control Hub itself. Admin column stays on. */
+export const LOCKED_CAPABILITIES = new Set<Capability>(["control.view"]);
 
-export const OVERRIDABLE_CAPABILITIES = new Set<Capability>([
-  "students.view",
-  "students.register",
-  "fees.view",
-  "fees.collect",
-  "fees.structure",
-]);
+export const OVERRIDABLE_CAPABILITIES = new Set<Capability>(
+  (Object.keys(CAPABILITIES) as Capability[]).filter(
+    (key) => !LOCKED_CAPABILITIES.has(key),
+  ),
+);
 
 export function isCapability(value: string): value is Capability {
   return Object.hasOwn(CAPABILITIES, value);
@@ -107,16 +100,16 @@ export function asCapabilityOverrides(
 }
 
 export function isHubCellLocked(capability: Capability, role: SchoolRole): boolean {
-  if (role === "school_admin") return true;
-  if (!OVERRIDABLE_CAPABILITIES.has(capability)) return true;
-  // Fees writes stay admin|accountant. Coordinator collect waits on write RLS.
-  if (capability === "fees.structure") return role !== "accountant";
-  if (capability === "fees.collect") return role !== "accountant";
-  if (capability === "fees.view") {
-    return role !== "accountant" && role !== "coordinator";
-  }
-  if (capability === "students.register") return role !== "coordinator";
-  return false;
+  return role === "school_admin" || LOCKED_CAPABILITIES.has(capability);
+}
+
+/** Confirm before granting a permission the role does not have by default. */
+export function hubCellNeedsConfirm(
+  capability: Capability,
+  role: SchoolRole,
+): boolean {
+  if (isHubCellLocked(capability, role)) return false;
+  return !CAPABILITIES[capability].includes(role);
 }
 
 function sameRoles(a: SchoolRole[], b: SchoolRole[]): boolean {
@@ -138,9 +131,6 @@ export function rolesFor(
   const next = raw.filter((role): role is SchoolRole => HUB_ROLE_SET.has(role));
   if (defaults.includes("school_admin") && !next.includes("school_admin")) {
     next.unshift("school_admin");
-  }
-  if (capability === "fees.structure") {
-    return next.filter((role) => role !== "coordinator");
   }
   return next.length > 0 ? next : defaults;
 }
@@ -183,42 +173,114 @@ export function withHubFlag(
 export const CAPABILITY_GROUPS: {
   id: string;
   title: string;
-  items: { key: Capability; label: string }[];
+  items: { key: Capability; label: string; hint: string }[];
 }[] = [
   {
     id: "team",
     title: "Team",
     items: [
-      { key: "team.view", label: "Open Team" },
-      { key: "members.viewDirectory", label: "View directory" },
-      { key: "members.provision", label: "Add member" },
-      { key: "members.resetPassword", label: "Reset password" },
-      { key: "members.activate", label: "Activate join" },
-      { key: "members.deactivate", label: "Deactivate" },
-      { key: "members.reactivate", label: "Reactivate" },
-      { key: "members.archive", label: "Archive" },
-      { key: "members.changeRole", label: "Change role" },
-      { key: "members.impersonate", label: "Login as" },
+      {
+        key: "team.view",
+        label: "Open Team",
+        hint: "Shows the Team page in the sidebar.",
+      },
+      {
+        key: "members.viewDirectory",
+        label: "View directory",
+        hint: "Lists staff in this school, including inactive and archived members.",
+      },
+      {
+        key: "members.provision",
+        label: "Add member",
+        hint: "Creates a staff account with a username and password set by the office.",
+      },
+      {
+        key: "members.resetPassword",
+        label: "Reset password",
+        hint: "Sets a new password for a staff member. Cannot target yourself or the school admin.",
+      },
+      {
+        key: "members.activate",
+        label: "Activate join",
+        hint: "Approves someone who signed up with the school email domain.",
+      },
+      {
+        key: "members.deactivate",
+        label: "Deactivate",
+        hint: "Pauses sign-in. The member stays in the directory and can be restored.",
+      },
+      {
+        key: "members.reactivate",
+        label: "Reactivate",
+        hint: "Turns an inactive member back on. Archived members cannot be restored this way.",
+      },
+      {
+        key: "members.archive",
+        label: "Archive",
+        hint: "Permanent offboarding. The member cannot sign in and cannot be reactivated.",
+      },
+      {
+        key: "members.changeRole",
+        label: "Change role",
+        hint: "Moves a live member to another staff role. Cannot grant school admin.",
+      },
+      {
+        key: "members.impersonate",
+        label: "Login as",
+        hint: "Views the workspace as that member for 30 minutes. Your own session stays signed in.",
+      },
     ],
   },
   {
     id: "students",
     title: "Students",
     items: [
-      { key: "students.view", label: "Open Students" },
-      { key: "students.register", label: "Register student (SIS)" },
-      { key: "students.recordAttendance", label: "Record attendance" },
-      { key: "students.recordActivities", label: "Record activities" },
-      { key: "students.manageStructure", label: "Manage classes" },
+      {
+        key: "students.view",
+        label: "Open Students",
+        hint: "Shows the Students page in the sidebar.",
+      },
+      {
+        key: "students.register",
+        label: "Register student (SIS)",
+        hint: "Adds a student record through school registration, not the Fees register.",
+      },
+      {
+        key: "students.recordAttendance",
+        label: "Record attendance",
+        hint: "Marks present or absent for classes the member can access.",
+      },
+      {
+        key: "students.recordActivities",
+        label: "Record activities",
+        hint: "Logs class activities for classes the member can access.",
+      },
+      {
+        key: "students.manageStructure",
+        label: "Manage classes",
+        hint: "Creates and edits classes, subjects, and teacher assignments.",
+      },
     ],
   },
   {
     id: "fees",
     title: "Fees",
     items: [
-      { key: "fees.view", label: "Open Fees" },
-      { key: "fees.structure", label: "Publish fee structures" },
-      { key: "fees.collect", label: "Record payments" },
+      {
+        key: "fees.view",
+        label: "Open Fees",
+        hint: "Shows the Fees page and lets the role read fee records.",
+      },
+      {
+        key: "fees.structure",
+        label: "Publish fee structures",
+        hint: "Creates and publishes fee plans. New publishes do not rewrite old assignments.",
+      },
+      {
+        key: "fees.collect",
+        label: "Record payments",
+        hint: "Records a payment against a student assignment. Payments are append-only.",
+      },
     ],
   },
 ];
@@ -251,11 +313,13 @@ export function buildHubMatrix(
   items: {
     key: Capability;
     label: string;
+    hint: string;
     cells: {
       role: SchoolRole;
       roleLabel: string;
       on: boolean;
       locked: boolean;
+      caution: boolean;
     }[];
   }[];
 }[] {
@@ -265,11 +329,13 @@ export function buildHubMatrix(
     items: group.items.map((item) => ({
       key: item.key,
       label: item.label,
+      hint: item.hint,
       cells: HUB_ROLES.map((role) => ({
         role,
         roleLabel: role.replace(/_/g, " "),
         on: rolesFor(item.key, overrides).includes(role),
         locked: isHubCellLocked(item.key, role),
+        caution: hubCellNeedsConfirm(item.key, role),
       })),
     })),
   }));

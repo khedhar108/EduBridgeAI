@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { ConfirmDialog } from "@repo/ui/components/confirm-dialog";
+import { InfoHint } from "@repo/ui/components/info-hint";
 import { Switch } from "@repo/ui/components/switch";
 import { setHubFlagAction } from "../actions/set-hub-flag";
 
@@ -10,55 +12,52 @@ export type HubMatrixGroup = {
   items: {
     key: string;
     label: string;
+    hint: string;
     cells: {
       role: string;
       roleLabel: string;
       on: boolean;
       locked: boolean;
+      caution: boolean;
     }[];
   }[];
 };
 
-function HubFlagSwitch({
-  workspace,
-  capability,
-  role,
-  label,
-  roleLabel,
-  on,
-  locked,
-  onError,
-}: {
-  workspace: string;
+type PendingGrant = {
   capability: string;
   role: string;
   label: string;
   roleLabel: string;
+};
+
+function HubFlagSwitch({
+  label,
+  roleLabel,
+  on,
+  locked,
+  pending,
+  onToggle,
+}: {
+  label: string;
+  roleLabel: string;
   on: boolean;
   locked: boolean;
-  onError: (message: string | null) => void;
+  pending: boolean;
+  onToggle: (checked: boolean) => void;
 }) {
-  const [pending, startTransition] = useTransition();
-
   return (
     <Switch
       checked={on}
       disabled={locked || pending}
       size="sm"
+      className={locked ? "disabled:opacity-100" : undefined}
+      title={locked ? "Always on for school admin" : undefined}
       aria-label={`${label} for ${roleLabel}`}
       onCheckedChange={
         locked
           ? undefined
           : (checked) => {
-              startTransition(async () => {
-                const result = await setHubFlagAction(
-                  workspace,
-                  capability,
-                  role,
-                  checked,
-                );
-                onError(result.error ?? null);
-              });
+              onToggle(checked);
             }
       }
     />
@@ -73,6 +72,20 @@ export function ControlHubMatrix({
   groups: HubMatrixGroup[];
 }) {
   const [error, setError] = useState<string | null>(null);
+  const [pendingGrant, setPendingGrant] = useState<PendingGrant | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  function save(capability: string, role: string, enabled: boolean) {
+    startTransition(async () => {
+      const result = await setHubFlagAction(
+        workspace,
+        capability,
+        role,
+        enabled,
+      );
+      setError(result.error ?? null);
+    });
+  }
 
   return (
     <div className="flex flex-col gap-10">
@@ -105,18 +118,38 @@ export function ControlHubMatrix({
                     key={item.key}
                     className="border-b border-border last:border-0"
                   >
-                    <td className="px-3 py-2">{item.label}</td>
+                    <td className="px-3 py-2">
+                      <span className="inline-flex items-center gap-0.5">
+                        {item.label}
+                        <InfoHint
+                          label={`About ${item.label}`}
+                          title={item.label}
+                          side="right"
+                        >
+                          {item.hint}
+                        </InfoHint>
+                      </span>
+                    </td>
                     {item.cells.map((cell) => (
                       <td key={cell.role} className="px-3 py-2 text-center">
                         <HubFlagSwitch
-                          workspace={workspace}
-                          capability={item.key}
-                          role={cell.role}
                           label={item.label}
                           roleLabel={cell.roleLabel}
                           on={cell.on}
                           locked={cell.locked}
-                          onError={setError}
+                          pending={pending}
+                          onToggle={(checked) => {
+                            if (cell.caution && checked) {
+                              setPendingGrant({
+                                capability: item.key,
+                                role: cell.role,
+                                label: item.label,
+                                roleLabel: cell.roleLabel,
+                              });
+                              return;
+                            }
+                            save(item.key, cell.role, checked);
+                          }}
                         />
                       </td>
                     ))}
@@ -127,6 +160,34 @@ export function ControlHubMatrix({
           </div>
         </section>
       ))}
+      <ConfirmDialog
+        open={pendingGrant !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingGrant(null);
+        }}
+        title={
+          pendingGrant
+            ? `Give ${pendingGrant.roleLabel} “${pendingGrant.label}”?`
+            : "Enable permission?"
+        }
+        description={
+          pendingGrant ? (
+            <span>
+              {pendingGrant.roleLabel} does not have this by default. They
+              get “{pendingGrant.label}” on their next request.
+            </span>
+          ) : null
+        }
+        confirmLabel="Enable"
+        confirmVariant="default"
+        pending={pending}
+        onConfirm={() => {
+          if (!pendingGrant) return;
+          const next = pendingGrant;
+          setPendingGrant(null);
+          save(next.capability, next.role, true);
+        }}
+      />
     </div>
   );
 }

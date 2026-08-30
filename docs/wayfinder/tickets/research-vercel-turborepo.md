@@ -1,20 +1,36 @@
 # How Vercel builds this pnpm monorepo
 
 Type: `wayfinder:research` (AFK)  
-Status: **parked** (optional — production host is Coolify + Hetzner)  
+Status: **resolved** (Vercel is staging; production remains Coolify + Hetzner)  
 Map: [platform-launch.md](../platform-launch.md)
 
 ## Question
 
-What exact Vercel project settings does `apps/edubridge` need in this Turborepo (root directory, install command, build command, output, Node 22, `transpilePackages` for `@repo/*`) so `main` deploys without breaking local `pnpm dev`?
+What exact Vercel project settings does `apps/edubridge` need in this Turborepo
+so `development` deploys without breaking local `pnpm dev`?
 
-## Notes
+## Resolution
 
-- Root: `pnpm@9.15.4`, Node `>=22.13.0`, `pnpm build:edubridge` / filter `edubridge...`
-- Next config today has **no** `output: "standalone"` — required for Coolify Docker; Vercel does not need it
-- No `vercel.json` in the repo yet
-- Do not recommend `pnpm db:migrate` in the Vercel build
-- Capture: env var names already used (`NEXT_PUBLIC_SITE_URL`, `DATABASE_URL`, Supabase keys, `FAMILY_SESSION_SECRET`, `IMPERSONATION_SECRET`, `MASTRA_API_URL`)
+| Setting | Value |
+| --- | --- |
+| Project purpose | Staging only |
+| Production Branch | `development` |
+| Root Directory | `apps/edubridge` |
+| Install Command | Vercel automatic pnpm workspace install |
+| Build Command | Vercel automatic `turbo run build` (root filter inferred) |
+| Framework | Next.js (app: `apps/edubridge`) |
+| Node.js | 22.x |
+| Package manager | Root `packageManager` (`pnpm@9.15.4`) |
+| Output directory | Framework default |
+
+`transpilePackages` already covers the workspace packages used by the app.
+Vercel does not need Next standalone output or a Dockerfile. No `vercel.json` is
+required while these project settings remain explicit in the dashboard.
+
+Do not run `pnpm db:migrate` in the Vercel build. Environment names and isolation
+requirements live in
+[deployment-environments.md](../../architecture/deployment-environments.md).
+Wildcard staging is not a Pro-only SKU — see that doc’s **Plan and capacity**.
 
 ## Blocked by
 
@@ -22,4 +38,5 @@ None.
 
 ## Close when
 
-A short resolution on this ticket: settings table + any repo file we must add (`vercel.json` or not). Then [Create Vercel project and env](./task-vercel-project-and-env.md) can proceed.
+Resolved above. [Create Vercel project and env](./task-vercel-project-and-env.md)
+can proceed as a human-in-the-loop staging task.

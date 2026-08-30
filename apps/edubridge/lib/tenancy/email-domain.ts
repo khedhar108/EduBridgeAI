@@ -28,7 +28,22 @@ export function isFreeEmailDomain(domain: string): boolean {
   return FREE_EMAIL_DOMAINS.has(domain.toLowerCase());
 }
 
-/** True when domain can be used for school domain-join (not a free provider). */
+/**
+ * School/business inbox for register and domain-join.
+ * Local (`NODE_ENV=development`): any non-empty domain so test inboxes work.
+ * Production build (Vercel staging + Coolify): reject free providers.
+ */
 export function isEligibleSchoolEmailDomain(domain: string): boolean {
-  return domain.length > 0 && !isFreeEmailDomain(domain);
+  if (!domain) return false;
+  if (process.env.NODE_ENV !== "production") return true;
+  return !isFreeEmailDomain(domain);
+}
+
+export function schoolEmailGateError(email: string): string | null {
+  const domain = emailDomain(email);
+  if (!domain) return "Enter a valid email address.";
+  if (!isEligibleSchoolEmailDomain(domain)) {
+    return "Use your official school or business email (not Gmail, Yahoo, Outlook, or other personal inboxes).";
+  }
+  return null;
 }

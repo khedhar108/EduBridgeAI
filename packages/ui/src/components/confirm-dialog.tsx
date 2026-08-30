@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { XIcon } from "lucide-react"
 
 import {
   AlertDialog,
@@ -54,7 +55,17 @@ function ConfirmDialog({
         <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
       ) : null}
       <AlertDialogContent>
-        <AlertDialogHeader>
+        <AlertDialogCancel
+          variant="destructive"
+          size="icon-sm"
+          className="absolute top-4 right-4"
+          disabled={pending}
+          aria-label="Close"
+        >
+          <XIcon />
+          <span className="sr-only">Close</span>
+        </AlertDialogCancel>
+        <AlertDialogHeader className="pr-10">
           <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription asChild>
             <div className="flex flex-col gap-2">{description}</div>

@@ -1,6 +1,8 @@
 # Auth: local test vs production (Phase 0)
 
-Supabase Auth + Postgres is the same project for local Next and “prod-like” flows right now — your app on `localhost:3000` talks to **EduDatabase**. Difference is mostly **URLs and how you create the first admin**.
+Local Next may use the development Supabase project. Vercel staging must use a
+separate non-production Supabase project, while Coolify production uses the
+production project. Credentials and tenant data never cross those boundaries.
 
 ## Two ways people get in
 
@@ -34,13 +36,14 @@ Admission number + student DOB → read-only family cookie. No mass passwords. P
 
 ## Different local vs production
 
-| | Local (now) | Coolify apex only (no wildcard yet) | After DNS + TLS |
-|--|-------------|-------------------------------------|-----------------|
-| App URL | `http://localhost:3000/{slug}` or `{slug}.localhost:3000` | `{apex}/{slug}` | `https://{slug}.edubridge.app` |
-| First admin | `/register` or seed | `/register` creates admin | Same, then slice D redirects to school host |
-| Host routing | Path `/edubridge-pilot-bridge` **or** rewrite on `{slug}.localhost` | Path on apex; rewrite ready | Subdomain rewrite (ADR-006) |
-| Family cookie Path | Host-aware (`/{slug}/family` vs `/family`) | Same | `/family` on school host |
-| Family entry | `/{slug}/sign-in` → Parent or student | Same chooser | Same chooser on workspace host |
+| | Local | Vercel staging | Coolify production |
+|--|-------|----------------|--------------------|
+| App URL | `http://localhost:3000/{slug}` or `{slug}.localhost:3000` | `https://{slug}.dev.edubridge.app` | `https://{slug}.edubridge.app` |
+| Runtime | `NODE_ENV=development`, `APP_ENV=local` | `NODE_ENV=production`, `APP_ENV=staging` | `NODE_ENV=production`, `APP_ENV=production` |
+| First admin | `/register` or seed | `/register` creates a synthetic-data admin | `/register` creates admin |
+| Host routing | Path or `{slug}.localhost` | Staging subdomain rewrite | Production subdomain rewrite |
+| Family cookie Path | Host-aware (`/{slug}/family` vs `/family`) | `/family` on school host | `/family` on school host |
+| Email gate | Any valid domain | School/business domain required | School/business domain required |
 
 Full table: [workspace-urls.md](../architecture/workspace-urls.md). Open slices: [platform-launch.md](../wayfinder/platform-launch.md).
 
@@ -97,7 +100,10 @@ pnpm --filter edubridge dev
 
 ### Brand-new school (first-time registration)
 
-Public `/register` (Phase 6.1 thin slice). Official school-domain email (not Gmail) → OTP or magic link → workspace at `/{slug}` as the one school admin. Location (India state/city) is stored on `schools`. Trial/billing is not in this slice.
+Public `/register` (Phase 6.1 thin slice). Production builds require a school or
+business inbox (not Gmail/Yahoo/Outlook); local `pnpm dev` (`NODE_ENV=development`)
+accepts any valid email. Vercel staging and Coolify production both use
+`NODE_ENV=production` and the same inbox rules.
 
 Production also needs, in the Supabase Auth dashboard:
 
@@ -115,15 +121,34 @@ Local: `/{slug}/sign-in` → Parent or student → `/{slug}/family/home`. Cookie
 1. As admin → directory → Add member (e.g. Gmail) → tell them the password  
 2. Or `/join-school` with `someone@pilot-school.edu` → admin Activate  
 
-Gmail cannot domain-join.
+Gmail cannot domain-join when `NODE_ENV=production`. Locally (`NODE_ENV=development`),
+any email domain can join if it matches that school's official domain.
 
 ## Env checklist (local)
 
 `apps/edubridge/.env.local` needs:
 
+- Do **not** set `NODE_ENV` — `pnpm dev` sets `development`
+- `APP_ENV=local` (optional locally; explicit is clearer)
+- `NEXT_PUBLIC_SITE_URL=http://localhost:3000`
 - `DATABASE_URL` (pooler)
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY` (required to add staff and reset passwords)
 
 Migrations on DB: `0000` core, `0002` membership_requests, later fees/admin/archive. Auth test users seeded in EduDatabase (see table above). Drop `invitations` with `0011_drop-invitations` when permitted.
+
+## Env checklist (Vercel staging / Coolify production)
+
+Omit `NODE_ENV` on both platforms. Next’s production build already sets
+`production`. Canonical table: [deployment-environments.md](../architecture/deployment-environments.md).
+
+| | Vercel | Coolify |
+|--|--------|---------|
+| `APP_ENV` | `staging` | `production` |
+| `WORKSPACE_ROOT_DOMAIN` | `dev.edubridge.app` | `edubridge.app` |
+| `NEXT_PUBLIC_SITE_URL` | `https://dev.edubridge.app` | `https://edubridge.app` |
+| `NODE_ENV` | omit | omit |
+
+HITL tickets: [Vercel staging](../wayfinder/tickets/task-vercel-project-and-env.md),
+[Coolify](../wayfinder/tickets/task-coolify-hetzner.md).

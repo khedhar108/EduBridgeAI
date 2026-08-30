@@ -8,7 +8,7 @@ import {
   resetMemberPasswordAction,
   type ResetMemberPasswordState,
 } from "../actions/reset-member-password";
-import { PasswordField } from "./password-field";
+import { PasswordField } from "@repo/ui/components/password-field";
 
 const initial: ResetMemberPasswordState = {};
 

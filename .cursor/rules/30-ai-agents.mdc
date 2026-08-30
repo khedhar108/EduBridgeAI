@@ -6,7 +6,7 @@ globs: ["apps/agent/**"]
 
 # Agent Harness Rules (non-negotiable)
 
-Canonical references: `docs/architecture/agent-ecosystem.md` (topology, memory, token rules) and `docs/architecture/auth/agent-auth.md` (service tokens).
+Canonical references: `docs/architecture/ai-platform.md` (Coolify host, env split), `docs/architecture/agent-ecosystem.md` (topology, memory, token rules), and `docs/architecture/auth/agent-auth.md` (service tokens).
 
 ## Boundary
 

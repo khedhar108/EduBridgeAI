@@ -3,12 +3,17 @@
   "ui": "tui",
   "globalDependencies": ["**/.env.*local", "**/.env"],
   "globalEnv": [
+    "APP_ENV",
     "DATABASE_URL",
     "MIGRATION_DATABASE_URL",
     "IMPERSONATION_SECRET",
     "FAMILY_SESSION_SECRET",
     "SUPABASE_SERVICE_ROLE_KEY",
     "MASTRA_API_URL",
+    "NEXT_PUBLIC_SITE_URL",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "WORKSPACE_ROOT_DOMAIN",
     "NODE_ENV"
   ],
   "tasks": {

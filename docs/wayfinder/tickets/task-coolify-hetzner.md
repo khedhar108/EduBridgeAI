@@ -15,6 +15,11 @@ App rewrite is already in `proxy.ts`. This ticket is DNS, TLS, and the Coolify a
 
 Wildcard SaaS = one container, many Hosts. Coolify documents that shape ([SaaS HostRegexp](https://coolify.io/docs/knowledge-base/proxy/traefik/wildcard-certs#saas--route-every-subdomain-to-one-application)). Hetzner is a first-class DNS-01 provider tab in Coolify ([DNS challenge](https://coolify.io/docs/knowledge-base/proxy/traefik/dns-challenge)). Tenant Postgres stays on **Supabase**.
 
+Self-host Coolify is **free**; you pay the VPS. Official minimum: 2 CPU / 2 GB /
+30 GB ([installation](https://coolify.io/docs/get-started/installation)). Size
+for Traefik + Coolify + the Next image — pull GHCR so the box does not compile.
+Walkthrough (port **3000**, also cover apex): [Coolify + Traefik 3.1](https://medium.com/@haiderpatanwala/deploying-a-multi-tenant-saas-app-in-coolify-with-traefik-3-1-b2add8a8ff52).
+
 ## Checklist (human)
 
 1. Create/confirm a Hetzner Cloud VPS (Ubuntu). Note the IPv4 (and IPv6 if used).
@@ -26,12 +31,17 @@ Wildcard SaaS = one container, many Hosts. Coolify documents that shape ([SaaS H
    - Optional `AAAA` if the VPS has IPv6
 5. Coolify Traefik: switch ACME to **DNS-01**, provider **Hetzner**, paste a DNS API token with zone rights for `edubridge.app`.
 6. Confirm a cert covering `edubridge.app` and `*.edubridge.app` (not one cert per school).
-7. Coolify app for `apps/edubridge` (when Dockerfile/standalone exists):
+7. Coolify app (prebuilt GHCR image, **do not** build from Git on the VPS):
+   - Source: Docker image `ghcr.io/<org>/edubridge_ai:production` (or `sha-<commit>`)
    - Domain field **empty**
    - Custom labels so Traefik `HostRegexp` sends **every** subdomain to this app
    - Listen / published port **3000**
    - `HOSTNAME=0.0.0.0`
-   - Env: Supabase + pooler `DATABASE_URL` + `FAMILY_SESSION_SECRET` + `IMPERSONATION_SECRET` + `NEXT_PUBLIC_SITE_URL=https://edubridge.app`
+   - Health check: `GET /api/live` (liveness). `/api/health` is DB readiness.
+   - Env: `APP_ENV=production`, `WORKSPACE_ROOT_DOMAIN=edubridge.app`, pooler `DATABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `FAMILY_SESSION_SECRET`, `IMPERSONATION_SECRET`, `NEXT_PUBLIC_SITE_URL=https://edubridge.app`
+   - Omit `NODE_ENV` (Next already sets `production`)
+   - Omit `MASTRA_API_URL` until Coolify **agent** exists
+     ([ADR-010](../../decisions/ADR-010-mastra-coolify-host.md))
 8. Do **not** use Cloudflare Tunnel for tenant hosts. Grey-cloud DNS only is OK.
 9. After the app is reachable: [Supabase Auth URLs](./task-supabase-auth-urls.md).
 
@@ -46,7 +56,11 @@ Wildcard SaaS = one container, many Hosts. Coolify documents that shape ([SaaS H
 ## Blocked by
 
 - [Buy edubridge.app](./task-buy-edubridge-app-dns.md) (can proceed on VPS install in parallel)
-- Dockerfile / `output: "standalone"` when you first **deploy** (not for local `{slug}.localhost` tests)
+- GitHub **Environments → `production`** secrets: `NEXT_PUBLIC_SUPABASE_URL`,
+  `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `COOLIFY_WEBHOOK`, `COOLIFY_TOKEN`.
+  `SUPABASE_SERVICE_ROLE_KEY` stays on Coolify runtime, not GitHub.
+  How-to: [deployment-environments.md](../../architecture/deployment-environments.md#github-secrets-how-to-open-what-to-add).
+  Coolify must **pull GHCR**, not build from Git.
 
 ## Close when
 

@@ -47,7 +47,7 @@ mount.
 2. **Domain join** — email domain matches `schools.official_email_domain` →
    pending `membership_requests` → admin activates with role on Team.
 
-Password reset is office-only for staff they created (directory Actions). Founders use `/forgot-password`. Domain match never auto-grants workspace access or `school_admin`.
+Password reset is office-only for staff they created (directory Actions). Founders use `/forgot-password`. Domain match never auto-grants workspace access or `school_admin`. Production `/register` and `/join-school` require a school or business inbox; development accepts any email (`lib/tenancy/email-domain.ts`). Password show/hide is `@repo/ui` `PasswordField`.
 
 ## Roles
 

@@ -21,7 +21,7 @@
 | Enable CAPTCHA on sign-up/OTP endpoints before public registration | Phase 5 launch requirement |
 | Invite tokens: removed. Office sets username + password; reset is directory-only | `provisionMemberAction` / `resetMemberPasswordAction` |
 | Family access: admission + DOB, rate-limited, read-only session | [family-access.md](./family-access.md) (Phase 1) |
-| School admin registration requires official-domain email (block free providers) | Phase 6 |
+| School admin registration requires official-domain email (block free providers in production; development accepts any inbox) | Phase 6 |
 
 ## Passwords and OTP
 

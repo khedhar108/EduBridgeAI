@@ -6,7 +6,7 @@ import { createServerSupabaseClient } from "@/lib/auth/supabase-server";
 import { getPublicOrigin } from "@/lib/auth/public-origin";
 import {
   emailDomain,
-  isEligibleSchoolEmailDomain,
+  schoolEmailGateError,
 } from "@/lib/tenancy/email-domain";
 import { pendingSchoolMetadata } from "@/lib/tenancy/pending-school";
 import {
@@ -70,13 +70,10 @@ export async function startSchoolRegisterAction(
   if (!terms.ok) return { error: terms.error };
 
   const email = parsed.data.email.toLowerCase();
+  const emailError = schoolEmailGateError(email);
+  if (emailError) return { error: emailError };
   const domain = emailDomain(email);
-  if (!domain || !isEligibleSchoolEmailDomain(domain)) {
-    return {
-      error:
-        "Use your official school email (not Gmail/Yahoo/etc.). Personal inboxes cannot open a school.",
-    };
-  }
+  if (!domain) return { error: "Enter a valid email address." };
 
   const slug = normalizeWorkspaceSlug(parsed.data.slug);
   const slugError = workspaceSlugError(slug);

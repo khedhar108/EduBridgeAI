@@ -25,13 +25,14 @@ export default async function ControlHubPage({ params }: Props) {
           <h1 className="text-2xl font-semibold tracking-tight">Control Hub</h1>
           <InfoHint label="About Control Hub" title="Permission flags">
             Each switch is a capability for a role. School admin is always on.
-            Archive, change role, and Login as stay locked. Coordinator Fees
-            collect waits until database policies match.
+            Turning on a permission a role does not have by default asks for
+            confirmation first.
           </InfoHint>
         </div>
         <p className="text-sm text-muted-foreground">
-          Overridable switches save immediately. Locked rows stay on their
-          defaults. Who recorded a payment is already on the Fees audit trail.
+          Default-on switches save immediately. Grants outside a role default
+          confirm first. Who recorded a payment is already on the Fees audit
+          trail.
         </p>
       </div>
 

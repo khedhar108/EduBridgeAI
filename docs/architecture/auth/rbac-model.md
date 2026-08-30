@@ -124,8 +124,9 @@ comes from untrusted client input as the sole authority.
 
 When a school is registered with `official_email_domain` (e.g. `dps.edu.in`):
 
-1. A user signs up / signs in with an email on that domain (consumer inboxes like
-   `gmail.com` are rejected for this path).
+1. A user signs up / signs in with an email on that domain (in production,
+   consumer inboxes like `gmail.com` are rejected for this path; development
+   accepts any domain so local Gmail can match a school opened with Gmail).
 2. Server matches email domain → school and upserts a **pending**
    `membership_requests` row. No workspace access yet (not in `school_members`).
 3. User lands on an “awaiting activation” screen.

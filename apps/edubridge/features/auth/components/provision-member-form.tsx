@@ -12,7 +12,7 @@ import {
 } from "../actions/provision-member";
 import { provisionRoles } from "../lib/schemas";
 import { suggestUsername } from "../lib/username";
-import { PasswordField } from "./password-field";
+import { PasswordField } from "@repo/ui/components/password-field";
 import { UsernameField } from "./username-field";
 
 const initial: ProvisionMemberState = {};

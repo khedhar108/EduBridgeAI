@@ -18,18 +18,22 @@ route later. Custom domains per school are not required yet.
    - Platform console: `platform.edubridge.app`
    - School workspace: `<slug>.edubridge.app` where `slug` matches `schools.slug`
      and ends with `-bridge` (e.g. `dps-jaipur-bridge.edubridge.app`)
-2. **Local development**
+2. **Staging**
+   - Public / marketing: `dev.edubridge.app`
+   - Platform console: `platform.dev.edubridge.app`
+   - School workspace: `<slug>.dev.edubridge.app`
+3. **Local development**
    - Path fallback: `localhost:3000/<slug>` and `localhost:3000/platform`
    - No requirement for local wildcard DNS or `/etc/hosts` gymnastics
-3. **Routing seam**
+4. **Routing seam**
    - Next.js `proxy.ts` (Next 16; not deprecated `middleware.ts`) resolves the
      Host header once and rewrites internally to the existing App Router trees
      (`[workspace]`, `platform`, marketing). Feature modules always receive the
      same workspace slug parameter in prod and dev.
-4. **Authorization**
+5. **Authorization**
    - Hostname/slug only **selects** the school candidate. Access still requires
      `school_members`, platform admin row, or an active support grant.
-5. **Out of scope**
+6. **Out of scope**
    - Customer custom domains (CNAME) — future ADR if needed
    - Separate deployments per school
 
@@ -47,6 +51,8 @@ route later. Custom domains per school are not required yet.
 
 - Production needs wildcard TLS and DNS (`*.edubridge.app`) on Coolify/Hetzner
   ([workspace-urls.md](../architecture/workspace-urls.md)).
+- Staging needs delegated child-zone DNS and wildcard TLS for
+  `*.dev.edubridge.app` on Vercel.
 - Cookie domain / SameSite strategy must be designed so auth works across
   apex and subdomains (document at Phase 6 implement time).
 - Reserved subdomains (`www`, `platform`, `api`, `app`, …) must never collide
@@ -60,6 +66,7 @@ Architecture: [workspace-urls.md](../architecture/workspace-urls.md).
 - [x] Path-based `/[workspace]` for local (Phase 0)
 - [x] Slug ends `-bridge`; reserved names blocked at registration
 - [ ] Wildcard DNS + certificate for `*.edubridge.app` (Coolify Traefik DNS-01 on Hetzner)
+- [ ] Child-zone delegation + wildcard staging domain for `*.dev.edubridge.app` (Vercel)
 - [x] `proxy.ts`: map `platform.*` → `/platform/*`; map school subdomains →
   `/[workspace]/…` after validating slug shape; reject unknown reserved names
 - [x] Keep path URLs working in local/non-prod (do not delete `[workspace]` routes)
