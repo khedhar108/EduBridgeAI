@@ -47,6 +47,7 @@ If you are an AI coding agent working in this repository, follow these rules bef
 | [docs/guides/README.md](./docs/guides/README.md)                                     | You need how-to guides and conventions                                            |
 | [docs/guides/database-workflow.md](./docs/guides/database-workflow.md)               | You change any table, run migrations, or seed data                                |
 | [docs/guides/feature-folder-structure.md](./docs/guides/feature-folder-structure.md) | You create or modify a module in `apps/edubridge/features/`                       |
+| [docs/guides/tanstack-query-adoption.md](./docs/guides/tanstack-query-adoption.md)   | You add a client cache island, mutation, or live lookup (routing → action → Drizzle) |
 | [docs/design/README.md](./docs/design/README.md)                                     | You touch UI, theming, layout consistency, or component libraries                 |
 | [docs/design/MASTER.md](./docs/design/MASTER.md)                                     | You need the locked light-only visual system (source of truth)                    |
 | [docs/agents/README.md](./docs/agents/README.md)                                     | You need extended AI-agent guidance and context strategy                          |
