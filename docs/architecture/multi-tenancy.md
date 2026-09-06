@@ -12,7 +12,8 @@ Durable SaaS boundaries (three authz contexts, folders, URLs):
 
 All schools share one Supabase Postgres project. Tenant rows carry a
 `school_id`; RLS enforces isolation. Physical databases per school are not part
-of Phase 0.
+of Phase 0. Data isolation vs resource fairness (noisy neighbor):
+[ADR-012](../decisions/ADR-012-tenant-resource-fairness.md).
 
 ```mermaid
 erDiagram
