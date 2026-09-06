@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { UserPlus } from "lucide-react";
 import { Badge } from "@repo/ui/components/badge";
 import { Button } from "@repo/ui/components/button";
@@ -25,10 +25,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/ui/components/select";
-import { archiveMemberAction } from "../actions/archive-member";
-import { changeMemberRoleAction } from "../actions/change-member-role";
 import { startImpersonationAction } from "../actions/impersonate";
-import { toggleMemberActiveAction } from "../actions/toggle-member-active";
+import { CacheClearForm } from "@/lib/query/clear-form";
+import { QueryIsland } from "@/lib/query/island";
+import { useStaffMemberActions } from "../hooks/use-staff-member-actions";
 import { ROLE_SUMMARIES } from "../lib/role-copy";
 import { grantableRoles } from "../lib/schemas";
 import type { MemberDirectoryEntry } from "../queries/list-members";
@@ -37,6 +37,8 @@ import { ResetMemberPasswordForm } from "./reset-member-password-form";
 
 type StaffDirectoryProps = {
   workspace: string;
+  schoolId?: string;
+  userId?: string;
   members: MemberDirectoryEntry[];
   currentUserId: string;
   currentRole: string;
@@ -70,8 +72,18 @@ function HeaderHint({
   );
 }
 
-export function StaffDirectory({
+export function StaffDirectory(props: StaffDirectoryProps) {
+  return (
+    <QueryIsland>
+      <StaffDirectoryFields {...props} />
+    </QueryIsland>
+  );
+}
+
+function StaffDirectoryFields({
   workspace,
+  schoolId,
+  userId,
   members,
   currentUserId,
   currentRole,
@@ -95,7 +107,12 @@ export function StaffDirectory({
             {members.length} {members.length === 1 ? "member" : "members"}
           </p>
           {canProvision ? (
-            <AddMemberDialog workspace={workspace} currentRole={currentRole} />
+            <AddMemberDialog
+              workspace={workspace}
+              schoolId={schoolId}
+              userId={userId}
+              currentRole={currentRole}
+            />
           ) : null}
         </div>
       </div>
@@ -145,6 +162,8 @@ export function StaffDirectory({
               <MemberRow
                 key={m.userId}
                 workspace={workspace}
+                schoolId={schoolId}
+                userId={userId}
                 member={m}
                 currentUserId={currentUserId}
                 isAdmin={isAdmin}
@@ -160,9 +179,13 @@ export function StaffDirectory({
 
 function AddMemberDialog({
   workspace,
+  schoolId,
+  userId,
   currentRole,
 }: {
   workspace: string;
+  schoolId?: string;
+  userId?: string;
   currentRole: string;
 }) {
   const [open, setOpen] = useState(false);
@@ -186,6 +209,8 @@ function AddMemberDialog({
         {open ? (
           <ProvisionMemberForm
             workspace={workspace}
+            schoolId={schoolId}
+            userId={userId}
             currentRole={currentRole}
             onSuccess={() => setOpen(false)}
           />
@@ -197,18 +222,28 @@ function AddMemberDialog({
 
 function MemberRow({
   workspace,
+  schoolId,
+  userId,
   member: m,
   currentUserId,
   isAdmin,
   isManager,
 }: {
   workspace: string;
+  schoolId?: string;
+  userId?: string;
   member: MemberDirectoryEntry;
   currentUserId: string;
   isAdmin: boolean;
   isManager: boolean;
 }) {
-  const [pending, startTransition] = useTransition();
+  const { changeRole, toggleActive, archive } = useStaffMemberActions(
+    workspace,
+    schoolId,
+    userId,
+  );
+  const pending =
+    changeRole.isPending || toggleActive.isPending || archive.isPending;
   const [pendingRole, setPendingRole] = useState<string | null>(null);
   const isSelf = m.userId === currentUserId;
   const isArchived = m.archivedAt !== null;
@@ -302,17 +337,17 @@ function MemberRow({
                 if (!pendingRole) return;
                 const nextRole = pendingRole;
                 setPendingRole(null);
-                startTransition(async () => {
-                  const result = await changeMemberRoleAction(
-                    workspace,
-                    m.userId,
-                    nextRole,
-                  );
-                  notifyAction(
-                    result,
-                    `${m.fullName} is now ${roleLabel(nextRole)}`,
-                  );
-                });
+                changeRole.mutate(
+                  { targetUserId: m.userId, nextRole },
+                  {
+                    onSuccess: (result) => {
+                      notifyAction(
+                        result,
+                        `${m.fullName} is now ${roleLabel(nextRole)}`,
+                      );
+                    },
+                  },
+                );
               }}
             />
           </>
@@ -351,36 +386,41 @@ function MemberRow({
               }
               onCheckedChange={(checked) => {
                 if (isArchived) return;
-                startTransition(async () => {
-                  const result = await toggleMemberActiveAction(
-                    workspace,
-                    m.userId,
-                    checked ? "activate" : "deactivate",
-                  );
-                  notifyAction(
-                    result,
-                    checked
-                      ? `${m.fullName} can sign in again`
-                      : `${m.fullName} paused`,
-                  );
-                });
+                toggleActive.mutate(
+                  {
+                    targetUserId: m.userId,
+                    action: checked ? "activate" : "deactivate",
+                  },
+                  {
+                    onSuccess: (result) => {
+                      notifyAction(
+                        result,
+                        checked
+                          ? `${m.fullName} can sign in again`
+                          : `${m.fullName} paused`,
+                      );
+                    },
+                  },
+                );
               }}
             />
           ) : null}
           {canResetPassword ? (
             <ResetPasswordDialog
               workspace={workspace}
+              schoolId={schoolId}
+              userId={userId}
               targetUserId={m.userId}
               memberName={m.fullName}
             />
           ) : null}
           {canImpersonate ? (
-            <form action={startImpersonationAction.bind(null, workspace)}>
+            <CacheClearForm action={startImpersonationAction.bind(null, workspace)}>
               <input type="hidden" name="targetUserId" value={m.userId} />
               <Button type="submit" variant="outline" size="xs" disabled={pending}>
                 Login as
               </Button>
-            </form>
+            </CacheClearForm>
           ) : null}
           {canArchive ? (
             <ConfirmDialog
@@ -405,9 +445,10 @@ function MemberRow({
                 </Button>
               }
               onConfirm={() => {
-                startTransition(async () => {
-                  const result = await archiveMemberAction(workspace, m.userId);
-                  notifyAction(result, `${m.fullName} archived`);
+                archive.mutate(m.userId, {
+                  onSuccess: (result) => {
+                    notifyAction(result, `${m.fullName} archived`);
+                  },
                 });
               }}
             />
@@ -426,10 +467,14 @@ function MemberRow({
 
 function ResetPasswordDialog({
   workspace,
+  schoolId,
+  userId,
   targetUserId,
   memberName,
 }: {
   workspace: string;
+  schoolId?: string;
+  userId?: string;
   targetUserId: string;
   memberName: string;
 }) {
@@ -452,6 +497,8 @@ function ResetPasswordDialog({
         {open ? (
           <ResetMemberPasswordForm
             workspace={workspace}
+            schoolId={schoolId}
+            userId={userId}
             targetUserId={targetUserId}
             memberName={memberName}
             onSuccess={() => setOpen(false)}

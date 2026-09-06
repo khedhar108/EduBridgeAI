@@ -1,15 +1,14 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@repo/ui/components/button";
 import { InfoHint } from "@repo/ui/components/info-hint";
 import { Input } from "@repo/ui/components/input";
 import { Spinner } from "@repo/ui/components/spinner";
 import { useActionToast } from "@repo/ui/hooks/use-action-toast";
-import {
-  provisionMemberAction,
-  type ProvisionMemberState,
-} from "../actions/provision-member";
+import { QueryIsland } from "@/lib/query/island";
+import type { ProvisionMemberState } from "../actions/provision-member";
+import { useProvisionMember } from "../hooks/use-provision-member";
 import { provisionRoles } from "../lib/schemas";
 import { suggestUsername } from "../lib/username";
 import { PasswordField } from "@repo/ui/components/password-field";
@@ -26,17 +25,33 @@ const ROLE_LABELS: Record<(typeof provisionRoles)[number], string> = {
 
 type Props = {
   workspace: string;
+  schoolId?: string;
+  userId?: string;
   currentRole: string;
   onSuccess?: () => void;
 };
 
-export function ProvisionMemberForm({
+export function ProvisionMemberForm(props: Props) {
+  return (
+    <QueryIsland>
+      <ProvisionMemberFields {...props} />
+    </QueryIsland>
+  );
+}
+
+function ProvisionMemberFields({
   workspace,
+  schoolId,
+  userId,
   currentRole,
   onSuccess,
 }: Props) {
-  const bound = provisionMemberAction.bind(null, workspace);
-  const [state, formAction, pending] = useActionState(bound, initial);
+  const { mutate, isPending: pending, data: mutationResult } = useProvisionMember(
+    workspace,
+    schoolId,
+    userId,
+  );
+  const state = mutationResult ?? initial;
   const [email, setEmail] = useState("");
   useActionToast(state, "Account created. Give them the username and password.");
 
@@ -50,7 +65,12 @@ export function ProvisionMemberForm({
       : provisionRoles;
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <form
+      action={(formData) => {
+        mutate(formData);
+      }}
+      className="flex flex-col gap-4"
+    >
       <div className="flex flex-col gap-2">
         <label htmlFor="fullName" className="text-sm font-medium">
           Full name

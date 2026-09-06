@@ -1,14 +1,13 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@repo/ui/components/button";
 import { Input } from "@repo/ui/components/input";
 import { Spinner } from "@repo/ui/components/spinner";
 import { useActionToast } from "@repo/ui/hooks/use-action-toast";
-import {
-  publishFeePlanAction,
-  type PublishFeePlanState,
-} from "../actions/publish-fee-plan";
+import { QueryIsland } from "@/lib/query/island";
+import type { PublishFeePlanState } from "../actions/publish-fee-plan";
+import { usePublishFeePlan } from "../hooks/use-publish-fee-plan";
 import { DEMO_FEE_HEADS } from "../lib/demo-heads";
 import { formatInr, headCodeFromLabel } from "../lib/money";
 
@@ -46,6 +45,8 @@ function demoRows(): HeadRow[] {
 
 type Props = {
   workspace: string;
+  schoolId?: string;
+  userId?: string;
   planId?: string;
   defaultName?: string;
   defaultClassLabel?: string;
@@ -54,8 +55,18 @@ type Props = {
   startFromDemo?: boolean;
 };
 
-export function PublishFeePlanForm({
+export function PublishFeePlanForm(props: Props) {
+  return (
+    <QueryIsland>
+      <PublishFeePlanFields {...props} />
+    </QueryIsland>
+  );
+}
+
+function PublishFeePlanFields({
   workspace,
+  schoolId,
+  userId,
   planId,
   defaultName = "",
   defaultClassLabel = "",
@@ -63,8 +74,12 @@ export function PublishFeePlanForm({
   defaultHeadsJson,
   startFromDemo = false,
 }: Props) {
-  const bound = publishFeePlanAction.bind(null, workspace);
-  const [state, formAction, pending] = useActionState(bound, initial);
+  const { mutate, isPending: pending, data: mutationResult } = usePublishFeePlan(
+    workspace,
+    schoolId,
+    userId,
+  );
+  const state = mutationResult ?? initial;
   useActionToast(state, "Fee plan version published.");
 
   const [fromDemo, setFromDemo] = useState(startFromDemo && !planId);
@@ -93,7 +108,12 @@ export function PublishFeePlanForm({
   }
 
   return (
-    <form action={formAction} className="flex flex-col gap-6">
+    <form
+      action={(formData) => {
+        mutate(formData);
+      }}
+      className="flex flex-col gap-6"
+    >
       {planId ? <input type="hidden" name="planId" value={planId} /> : null}
       <input type="hidden" name="headsJson" value={headsJson} />
       {fromDemo ? <input type="hidden" name="fromDemo" value="1" /> : null}

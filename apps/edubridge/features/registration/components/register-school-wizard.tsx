@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { Button } from "@repo/ui/components/button";
 import { Input } from "@repo/ui/components/input";
@@ -10,17 +10,16 @@ import { PLATFORM_NAME } from "@/lib/brand";
 import { LEGAL_DOCS_IN_FORCE, TERMS_VERSION } from "@/lib/legal/constants";
 import { readConsentFromDocument } from "@/lib/legal/consent";
 import { PRIVACY_PATH, TERMS_PATH } from "@/lib/legal/paths";
+import { QueryIsland } from "@/lib/query/island";
 import { suggestSlugFromSchoolName } from "@/lib/tenancy/school-slug";
 import {
   emailDomain,
   isEligibleSchoolEmailDomain,
 } from "@/lib/tenancy/email-domain";
 import { PasswordField } from "@repo/ui/components/password-field";
-import {
-  checkSlugAction,
-  startSchoolRegisterAction,
-  type RegisterSchoolState,
-} from "../actions/register-school";
+import type { RegisterSchoolState } from "../actions/register-school";
+import { useSlugCheck } from "../hooks/use-slug-check";
+import { useStartSchoolRegister } from "../hooks/use-start-school-register";
 import { INDIA_STATES } from "../lib/india-states";
 
 const initial: RegisterSchoolState = {};
@@ -37,10 +36,17 @@ function suggestUsername(email: string): string {
 }
 
 export function RegisterSchoolWizard() {
-  const [state, formAction, pending] = useActionState(
-    startSchoolRegisterAction,
-    initial,
+  return (
+    <QueryIsland>
+      <RegisterSchoolFields />
+    </QueryIsland>
   );
+}
+
+function RegisterSchoolFields() {
+  const { mutate, isPending: pending, data: mutationResult } =
+    useStartSchoolRegister();
+  const state = mutationResult ?? initial;
   useActionToast(state);
   const [step, setStep] = useState(0);
   const [schoolName, setSchoolName] = useState("");
@@ -55,7 +61,6 @@ export function RegisterSchoolWizard() {
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [slug, setSlug] = useState("");
   const [slugTouched, setSlugTouched] = useState(false);
-  const [slugHint, setSlugHint] = useState<string | null>(null);
   const [ticked, setTicked] = useState(false);
   const [alreadyAccepted, setAlreadyAccepted] = useState(false);
 
@@ -72,15 +77,18 @@ export function RegisterSchoolWizard() {
     if (!slugTouched) setSlug(suggestSlugFromSchoolName(schoolName));
   }, [schoolName, slugTouched]);
 
-  useEffect(() => {
-    if (!slug || step !== 2) return;
-    const timer = setTimeout(() => {
-      void checkSlugAction(slug).then((result) => {
-        setSlugHint(result.available ? null : (result.reason ?? "Unavailable"));
-      });
-    }, 400);
-    return () => clearTimeout(timer);
-  }, [slug, step]);
+  const slugCheck = useSlugCheck(slug, step === 2);
+  const slugWaiting = slug !== slugCheck.debounced || slugCheck.isFetching;
+  const slugHint =
+    !slug || step !== 2
+      ? null
+      : slugCheck.formatError
+        ? slugCheck.formatError
+        : slugWaiting
+          ? null
+          : slugCheck.data && !slugCheck.data.available
+            ? (slugCheck.data.reason ?? "Unavailable")
+            : null;
 
   const canNextSchool =
     schoolName.trim().length >= 2 && stateName.length >= 2 && city.trim().length >= 2;
@@ -100,7 +108,12 @@ export function RegisterSchoolWizard() {
     : `I acknowledge the draft Terms and Privacy Policy (not yet in force)`;
 
   return (
-    <form action={formAction} className="flex flex-col gap-5">
+    <form
+      action={(formData) => {
+        mutate(formData);
+      }}
+      className="flex flex-col gap-5"
+    >
       <input type="hidden" name="country" value="IN" />
       {step !== 0 ? (
         <>

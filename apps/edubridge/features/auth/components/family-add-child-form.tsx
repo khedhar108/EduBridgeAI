@@ -1,14 +1,12 @@
 "use client";
 
-import { useActionState } from "react";
 import { Button } from "@repo/ui/components/button";
 import { Input } from "@repo/ui/components/input";
 import { Spinner } from "@repo/ui/components/spinner";
 import { useActionToast } from "@repo/ui/hooks/use-action-toast";
-import {
-  familyAddChildAction,
-  type FamilyAddChildState,
-} from "../actions/add-child";
+import { QueryIsland } from "@/lib/query/island";
+import type { FamilyAddChildState } from "../actions/add-child";
+import { useFamilyAddChild } from "../hooks/use-family-add-child";
 
 const initial: FamilyAddChildState = {};
 
@@ -17,15 +15,27 @@ type Props = {
   schoolName: string;
 };
 
-export function FamilyAddChildForm({ workspace, schoolName }: Props) {
-  const [state, formAction, pending] = useActionState(
-    familyAddChildAction,
-    initial,
+export function FamilyAddChildForm(props: Props) {
+  return (
+    <QueryIsland>
+      <FamilyAddChildFields {...props} />
+    </QueryIsland>
   );
+}
+
+function FamilyAddChildFields({ workspace, schoolName }: Props) {
+  const { mutate, isPending: pending, data: mutationResult } =
+    useFamilyAddChild();
+  const state = mutationResult ?? initial;
   useActionToast(state);
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <form
+      action={(formData) => {
+        mutate(formData);
+      }}
+      className="flex flex-col gap-4"
+    >
       <input type="hidden" name="workspace" value={workspace} />
 
       <div className="flex flex-col gap-2">

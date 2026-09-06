@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { ConfirmDialog } from "@repo/ui/components/confirm-dialog";
 import { InfoHint } from "@repo/ui/components/info-hint";
 import { Switch } from "@repo/ui/components/switch";
-import { setHubFlagAction } from "../actions/set-hub-flag";
+import { QueryIsland } from "@/lib/query/island";
+import { useSetHubFlag } from "../hooks/use-set-hub-flag";
 
 export type HubMatrixGroup = {
   id: string;
@@ -66,25 +67,58 @@ function HubFlagSwitch({
 
 export function ControlHubMatrix({
   workspace,
+  schoolId,
+  userId,
   groups,
 }: {
   workspace: string;
+  schoolId?: string;
+  userId?: string;
+  groups: HubMatrixGroup[];
+}) {
+  return (
+    <QueryIsland>
+      <ControlHubFields
+        workspace={workspace}
+        schoolId={schoolId}
+        userId={userId}
+        groups={groups}
+      />
+    </QueryIsland>
+  );
+}
+
+function ControlHubFields({
+  workspace,
+  schoolId,
+  userId,
+  groups,
+}: {
+  workspace: string;
+  schoolId?: string;
+  userId?: string;
   groups: HubMatrixGroup[];
 }) {
   const [error, setError] = useState<string | null>(null);
   const [pendingGrant, setPendingGrant] = useState<PendingGrant | null>(null);
-  const [pending, startTransition] = useTransition();
+  const { mutate, isPending: pending } = useSetHubFlag(
+    workspace,
+    schoolId,
+    userId,
+  );
 
   function save(capability: string, role: string, enabled: boolean) {
-    startTransition(async () => {
-      const result = await setHubFlagAction(
-        workspace,
-        capability,
-        role,
-        enabled,
-      );
-      setError(result.error ?? null);
-    });
+    mutate(
+      { capability, role, enabled },
+      {
+        onSuccess: (result) => {
+          setError(result.error ?? null);
+        },
+        onError: (err) => {
+          setError(err.message);
+        },
+      },
+    );
   }
 
   return (

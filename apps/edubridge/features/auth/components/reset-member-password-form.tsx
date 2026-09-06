@@ -1,32 +1,44 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useEffect } from "react";
 import { Button } from "@repo/ui/components/button";
 import { Spinner } from "@repo/ui/components/spinner";
 import { useActionToast } from "@repo/ui/hooks/use-action-toast";
-import {
-  resetMemberPasswordAction,
-  type ResetMemberPasswordState,
-} from "../actions/reset-member-password";
+import { QueryIsland } from "@/lib/query/island";
+import type { ResetMemberPasswordState } from "../actions/reset-member-password";
+import { useResetMemberPassword } from "../hooks/use-reset-member-password";
 import { PasswordField } from "@repo/ui/components/password-field";
 
 const initial: ResetMemberPasswordState = {};
 
 type Props = {
   workspace: string;
+  schoolId?: string;
+  userId?: string;
   targetUserId: string;
   memberName: string;
   onSuccess?: () => void;
 };
 
-export function ResetMemberPasswordForm({
+export function ResetMemberPasswordForm(props: Props) {
+  return (
+    <QueryIsland>
+      <ResetMemberPasswordFields {...props} />
+    </QueryIsland>
+  );
+}
+
+function ResetMemberPasswordFields({
   workspace,
+  schoolId,
+  userId,
   targetUserId,
   memberName,
   onSuccess,
 }: Props) {
-  const bound = resetMemberPasswordAction.bind(null, workspace);
-  const [state, formAction, pending] = useActionState(bound, initial);
+  const { mutate, isPending: pending, data: mutationResult } =
+    useResetMemberPassword(workspace, schoolId, userId);
+  const state = mutationResult ?? initial;
   useActionToast(state, `Password updated for ${memberName}`);
 
   useEffect(() => {
@@ -34,7 +46,12 @@ export function ResetMemberPasswordForm({
   }, [state.ok, onSuccess]);
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <form
+      action={(formData) => {
+        mutate(formData);
+      }}
+      className="flex flex-col gap-4"
+    >
       <input type="hidden" name="targetUserId" value={targetUserId} />
       <PasswordField
         id={`reset-password-${targetUserId}`}

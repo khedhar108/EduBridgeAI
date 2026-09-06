@@ -1,14 +1,13 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useState } from "react";
 import { Button } from "@repo/ui/components/button";
 import { Input } from "@repo/ui/components/input";
 import { Spinner } from "@repo/ui/components/spinner";
 import { useActionToast } from "@repo/ui/hooks/use-action-toast";
-import {
-  schoolDomainSignUpAction,
-  type SchoolDomainSignUpState,
-} from "../actions/school-domain-sign-up";
+import { QueryIsland } from "@/lib/query/island";
+import type { SchoolDomainSignUpState } from "../actions/school-domain-sign-up";
+import { useSchoolDomainSignUp } from "../hooks/use-school-domain-sign-up";
 import { UsernameField } from "./username-field";
 import { PasswordField } from "@repo/ui/components/password-field";
 import { suggestUsername } from "../lib/username";
@@ -17,15 +16,27 @@ import { TermsAcceptCheckbox } from "./terms-accept-checkbox";
 const initial: SchoolDomainSignUpState = {};
 
 export function SchoolDomainSignUpForm() {
-  const [state, formAction, pending] = useActionState(
-    schoolDomainSignUpAction,
-    initial,
+  return (
+    <QueryIsland>
+      <SchoolDomainSignUpFields />
+    </QueryIsland>
   );
+}
+
+function SchoolDomainSignUpFields() {
+  const { mutate, isPending: pending, data: mutationResult } =
+    useSchoolDomainSignUp();
+  const state = mutationResult ?? initial;
   useActionToast(state);
   const [email, setEmail] = useState("");
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <form
+      action={(formData) => {
+        mutate(formData);
+      }}
+      className="flex flex-col gap-4"
+    >
       <p className="text-sm text-muted-foreground">
         Use your official school or business email. Access stays pending until a
         school admin activates you from the team dashboard.

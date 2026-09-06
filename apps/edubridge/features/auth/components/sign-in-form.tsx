@@ -1,12 +1,14 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Button } from "@repo/ui/components/button";
 import { Input } from "@repo/ui/components/input";
 import { Spinner } from "@repo/ui/components/spinner";
 import { useActionToast } from "@repo/ui/hooks/use-action-toast";
-import { signInAction, type SignInState } from "../actions/sign-in";
+import { QueryIsland } from "@/lib/query/island";
+import type { SignInState } from "../actions/sign-in";
+import { useSignIn } from "../hooks/use-sign-in";
 import { PasswordField } from "@repo/ui/components/password-field";
 import {
   DEMO_PREFILL_EVENT,
@@ -80,8 +82,17 @@ function clearRemembered() {
   }
 }
 
-export function SignInForm({ surface, next, emailPrefill, workspace }: Props) {
-  const [state, formAction, pending] = useActionState(signInAction, initial);
+export function SignInForm(props: Props) {
+  return (
+    <QueryIsland>
+      <SignInFields {...props} />
+    </QueryIsland>
+  );
+}
+
+function SignInFields({ surface, next, emailPrefill, workspace }: Props) {
+  const { mutate, isPending: pending, data: mutationResult } = useSignIn();
+  const state = mutationResult ?? initial;
   useActionToast(state);
   const [email, setEmail] = useState(emailPrefill ?? "");
   const [schoolSlug, setSchoolSlug] = useState("");
@@ -165,7 +176,9 @@ export function SignInForm({ surface, next, emailPrefill, workspace }: Props) {
   return (
     <form
       ref={formRef}
-      action={formAction}
+      action={(formData) => {
+        mutate(formData);
+      }}
       onSubmit={onSubmit}
       className="flex flex-col gap-4"
     >

@@ -1,27 +1,39 @@
 "use client";
 
-import { useActionState } from "react";
 import { Button } from "@repo/ui/components/button";
 import { Input } from "@repo/ui/components/input";
 import { Spinner } from "@repo/ui/components/spinner";
 import { useActionToast } from "@repo/ui/hooks/use-action-toast";
+import { QueryIsland } from "@/lib/query/island";
+import type { VerifyRegisterState } from "../actions/register-school";
 import {
-  resendRegisterOtpAction,
-  verifyRegisterOtpAction,
-  type VerifyRegisterState,
-} from "../actions/register-school";
+  useResendRegisterOtp,
+  useVerifyRegisterOtp,
+} from "../hooks/use-verify-register";
 
 const initial: VerifyRegisterState = {};
 
 export function VerifyRegisterForm({ email }: { email: string }) {
-  const [verifyState, verifyAction, verifyPending] = useActionState(
-    verifyRegisterOtpAction,
-    initial,
+  return (
+    <QueryIsland>
+      <VerifyRegisterFields email={email} />
+    </QueryIsland>
   );
-  const [resendState, resendAction, resendPending] = useActionState(
-    resendRegisterOtpAction,
-    initial,
-  );
+}
+
+function VerifyRegisterFields({ email }: { email: string }) {
+  const {
+    mutate: verify,
+    isPending: verifyPending,
+    data: verifyResult,
+  } = useVerifyRegisterOtp();
+  const {
+    mutate: resend,
+    isPending: resendPending,
+    data: resendResult,
+  } = useResendRegisterOtp();
+  const verifyState = verifyResult ?? initial;
+  const resendState = resendResult ?? initial;
   useActionToast(verifyState);
   useActionToast(resendState, "Code sent. Check your school inbox.");
 
@@ -29,7 +41,12 @@ export function VerifyRegisterForm({ email }: { email: string }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <form action={verifyAction} className="flex flex-col gap-4">
+      <form
+        action={(formData) => {
+          verify(formData);
+        }}
+        className="flex flex-col gap-4"
+      >
         <input type="hidden" name="email" value={email} />
         <div className="flex flex-col gap-2">
           <label htmlFor="token" className="text-sm font-medium">
@@ -55,7 +72,11 @@ export function VerifyRegisterForm({ email }: { email: string }) {
           Verify and open workspace
         </Button>
       </form>
-      <form action={resendAction}>
+      <form
+        action={(formData) => {
+          resend(formData);
+        }}
+      >
         <input type="hidden" name="email" value={email} />
         <Button
           type="submit"

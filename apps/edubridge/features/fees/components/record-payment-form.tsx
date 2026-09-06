@@ -1,14 +1,12 @@
 "use client";
 
-import { useActionState } from "react";
 import { Button } from "@repo/ui/components/button";
 import { Input } from "@repo/ui/components/input";
 import { Spinner } from "@repo/ui/components/spinner";
 import { useActionToast } from "@repo/ui/hooks/use-action-toast";
-import {
-  recordPaymentAction,
-  type RecordPaymentState,
-} from "../actions/record-payment";
+import { QueryIsland } from "@/lib/query/island";
+import type { RecordPaymentState } from "../actions/record-payment";
+import { useRecordPayment } from "../hooks/use-record-payment";
 
 const initial: RecordPaymentState = {};
 
@@ -19,13 +17,31 @@ type AssignmentOption = {
 
 type Props = {
   workspace: string;
+  schoolId?: string;
+  userId?: string;
   assignments: AssignmentOption[];
 };
 
-export function RecordPaymentForm({ workspace, assignments }: Props) {
-  const bound = recordPaymentAction.bind(null, workspace);
-  const [state, formAction, pending] = useActionState(bound, initial);
-  useActionToast(state, "Payment recorded.");
+export function RecordPaymentForm(props: Props) {
+  return (
+    <QueryIsland>
+      <RecordPaymentFields {...props} />
+    </QueryIsland>
+  );
+}
+
+function RecordPaymentFields({
+  workspace,
+  schoolId,
+  userId,
+  assignments,
+}: Props) {
+  const { mutate, isPending, data: mutationResult } = useRecordPayment(
+    workspace,
+    schoolId,
+    userId,
+  );
+  useActionToast(mutationResult ?? initial, "Payment recorded.");
 
   if (assignments.length === 0) {
     return (
@@ -36,7 +52,12 @@ export function RecordPaymentForm({ workspace, assignments }: Props) {
   }
 
   return (
-    <form action={formAction} className="flex max-w-xl flex-col gap-4">
+    <form
+      action={(formData) => {
+        mutate(formData);
+      }}
+      className="flex max-w-xl flex-col gap-4"
+    >
       <div className="flex flex-col gap-2">
         <label htmlFor="assignmentId" className="text-sm font-medium">
           Student fee assignment
@@ -45,7 +66,7 @@ export function RecordPaymentForm({ workspace, assignments }: Props) {
           id="assignmentId"
           name="assignmentId"
           required
-          disabled={pending}
+          disabled={isPending}
           className="border-input bg-background h-11 rounded-md border px-3 text-sm"
         >
           {assignments.map((a) => (
@@ -67,7 +88,7 @@ export function RecordPaymentForm({ workspace, assignments }: Props) {
             type="number"
             min={1}
             required
-            disabled={pending}
+            disabled={isPending}
             className="h-11"
           />
         </div>
@@ -79,7 +100,7 @@ export function RecordPaymentForm({ workspace, assignments }: Props) {
             id="method"
             name="method"
             required
-            disabled={pending}
+            disabled={isPending}
             defaultValue="cash"
             className="border-input bg-background h-11 rounded-md border px-3 text-sm"
           >
@@ -99,7 +120,7 @@ export function RecordPaymentForm({ workspace, assignments }: Props) {
         <Input
           id="reference"
           name="reference"
-          disabled={pending}
+          disabled={isPending}
           className="h-11"
           placeholder="UPI ref / cheque no."
         />
@@ -109,11 +130,11 @@ export function RecordPaymentForm({ workspace, assignments }: Props) {
         <label htmlFor="note" className="text-sm font-medium">
           Note
         </label>
-        <Input id="note" name="note" disabled={pending} className="h-11" />
+        <Input id="note" name="note" disabled={isPending} className="h-11" />
       </div>
 
-      <Button type="submit" className="h-11" disabled={pending}>
-        {pending ? <Spinner className="size-4" /> : null}
+      <Button type="submit" className="h-11" disabled={isPending}>
+        {isPending ? <Spinner className="size-4" /> : null}
         Record payment
       </Button>
     </form>
