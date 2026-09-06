@@ -15,7 +15,7 @@ Lock the spec first. Then implement SIS create only. Then retarget Fees. Slice 3
 - Skills: `ponytail`, `edubridge-erp-landscape`, `nextjs-supabase-auth`, `supabase-postgres-best-practices`. Storage uses `@supabase/ssr` (ADR-004); Drizzle still owns table rows.
 - Standing: thin Fees create exists today (`registerStudentAction` on `/{slug}/fees/register`) and is the wrong home. `students.photo_url` exists and is unused. EduDatabase has **zero** Storage buckets. Coordinator cannot open `/students` (nav + `students.view` omit coordinator). RLS `students_write_admin_accountant` blocks coordinator INSERT.
 - Ask before `pnpm db:generate` / `pnpm db:migrate`. Do not drop `student_fee_assignments_student_unique` in the SIS schema PR.
-- Form stack is locked: native `FormData` + `useActionState` + Zod. Do not install React Hook Form for this form.
+- Form stack is locked: native `FormData` + TanStack Query `useMutation` + Zod. Do not install React Hook Form for this form.
 - Capability `students.register` is **not** `MONEY_ROLES`. Do not fold coordinator into accountant writes.
 
 ```mermaid

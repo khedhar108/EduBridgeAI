@@ -80,3 +80,8 @@ One line.
 | 0032 | [Host rewrite + Coolify path](./0032-host-rewrite-coolify.md) | 2026-08-29 | `proxy.ts` subdomain rewrite; admin School URL; Coolify+Hetzner HITL |
 | 0033 | [Deployment env + GHCR](./0033-deployment-environments.md) | 2026-08-29 | NODE_ENV ownership, `*.dev.edubridge.app`, standalone Docker, one CI/CD workflow |
 | 0034 | [Mastra Coolify host](./0034-mastra-coolify-host.md) | 2026-08-30 | OSS agent on Coolify; not Mastra Cloud; grill closed |
+| 0035 | [TanStack Query + username](./0035-tanstack-query-username.md) | 2026-09-02 | QueryProvider + debounced username `useQuery`; other features unchanged |
+| 0036 | [TanStack Query student attendance](./0036-tanstack-query-student-attendance.md) | 2026-09-04 | `useRecordAttendance` mutation + `QueryIsland` around grid; RSC first paint intact |
+| 0037 | [TanStack Query fees mutations](./0037-tanstack-query-fees.md) | 2026-09-04 | Payment + register `useMutation`; publish plan and schema untouched |
+| 0038 | [TanStack Query hub + cache clear](./0038-tanstack-query-hub-cache-clear.md) | 2026-09-04 | Hub `useMutation`; `queryClient.clear()` on sign-out / impersonation |
+| 0039 | [TanStack Query remaining mutations](./0039-tanstack-query-remaining-mutations.md) | 2026-09-04 | Remaining forms use `useActionMutation`; slug check via `useQuery` |

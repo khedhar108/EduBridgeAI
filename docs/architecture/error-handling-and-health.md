@@ -120,4 +120,5 @@ This is intentionally **lighter** than the existing `app/db-check/page.tsx`, whi
 
 - [Shell layout](../design/shell-layout.md) — routes inside vs. outside the workspace shell.
 - [Data access](./data-access.md) — Drizzle/RLS/`withTenant`.
+- [TanStack Query](../guides/tanstack-query-adoption.md) — `lib/query` error types vs `lib/http.ts` vs `app/error.tsx`.
 - [Monorepo](./monorepo.md) — apps/packages layout.

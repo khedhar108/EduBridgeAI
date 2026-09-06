@@ -6,7 +6,7 @@ System-wide architecture documentation. Use this for cross-app concerns and plat
 
 | Document                                                               | Scope                                                                                     |
 | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| [Data Access](./data-access.md)                                        | Drizzle over Supabase Postgres, tenant transactions, RLS layering (ADR-004)               |
+| [Data Access](./data-access.md)                                        | Drizzle over Supabase Postgres, tenant transactions, RLS layering (ADR-004). Client cache: [TanStack Query guide](../guides/tanstack-query-adoption.md) |
 | [Multi-tenancy](./multi-tenancy.md)                                    | School schema, relationships, RLS boundary, platform-owner separation                     |
 | [Platform Boundaries](./platform-boundaries.md)                        | Three authz contexts, folder map, URL surface, Phase 0 vs 6 split                         |
 | [Workspace URLs](./workspace-urls.md)                                  | Path locally, `{slug}.edubridge.app` in prod; Coolify+Hetzner DNS; host rewrite |

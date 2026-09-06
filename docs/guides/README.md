@@ -12,3 +12,5 @@ How-to documentation and team conventions.
 | [Git and release strategy](./git-and-release-strategy.md) | Branches (`main` / `development` / `feature`), Conventional Commits, PRs, changelog, rollback |
 | [Third-party components](./third-party-components.md)     | Audit gate + inventory for vendored registry components (threeui, 21st.dev, …)                |
 | [Documenting a feature](./documenting-features.md)        | Where and how to add docs for new work                                                        |
+| [Feature-folder structure](./feature-folder-structure.md) | Module template: `hooks/`, `queries/`, `actions/`, public `index.ts`                          |
+| [TanStack Query](./tanstack-query-adoption.md)            | RSC first paint vs TQ after paint; inventory of hooks vs lists that stay server |
