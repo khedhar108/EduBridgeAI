@@ -112,6 +112,9 @@ Mirror the shadcn skill critical rules:
 | Need | Use |
 |------|-----|
 | Button, dialog, table, form | `@repo/ui` |
+| Static / RSC list | `@repo/ui` `Table` primitives |
+| Interactive client list (sort / page of rows) | `@repo/ui` `DataTable` for the grid. Name search and pagination are GET params + a feature query (`listDirectoryStudents`), not client filter. |
+| Spreadsheet / cell nav | Later — not Dice data-grid until marks-entry needs it |
 | Analytics chart | shadcn Chart in `@repo/ui` + AI summary block |
 | In-app assistant | CopilotKit sidebar themed to tokens + `@repo/ai-ui` pieces |
 | Landing hero animation | Aceternity or Canvas UI (marketing route) |

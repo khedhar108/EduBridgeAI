@@ -12,7 +12,8 @@ Durable SaaS boundaries (three authz contexts, folders, URLs):
 
 All schools share one Supabase Postgres project. Tenant rows carry a
 `school_id`; RLS enforces isolation. Physical databases per school are not part
-of Phase 0.
+of Phase 0. Data isolation vs resource fairness (noisy neighbor):
+[ADR-012](../decisions/ADR-012-tenant-resource-fairness.md).
 
 ```mermaid
 erDiagram
@@ -71,9 +72,11 @@ The first migration and a rollback-only isolation test live under
 
 ## Workspace URLs
 
-- **Phase 0 / local:** path-based `/{slug}` (slug ends `-bridge`).
-- **Production (Phase 6):** `<slug>.edubridge.app` via host rewrite in `proxy.ts`
-  ([ADR-006](../decisions/ADR-006-workspace-subdomains.md)).
+Canonical: [workspace-urls.md](./workspace-urls.md). Execution checkboxes:
+[platform-launch.md](../wayfinder/platform-launch.md).
+
+- **Local (forever):** path-based `/{slug}` (slug ends `-bridge`); optional `{slug}.localhost`.
+- **Production:** `<slug>.edubridge.app` via host rewrite in `proxy.ts` ([ADR-006](../decisions/ADR-006-workspace-subdomains.md)). DNS/TLS: Coolify on Hetzner.
 - Hostname selects the school candidate; membership or grant authorizes access.
 
 ## Development probe

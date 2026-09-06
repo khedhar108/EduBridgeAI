@@ -1,4 +1,5 @@
 import { stopImpersonationAction } from "@/features/auth";
+import { CacheClearForm } from "@/lib/query/clear-form";
 
 type ImpersonationBannerProps = {
   workspace: string;
@@ -30,14 +31,14 @@ export function ImpersonationBanner({
           {" — "}
           signed in as {realEmail ?? "admin"}
         </p>
-        <form action={stopImpersonationAction.bind(null, workspace)}>
+        <CacheClearForm action={stopImpersonationAction.bind(null, workspace)}>
           <button
             type="submit"
             className="font-medium text-emerald-900 underline underline-offset-2 hover:no-underline"
           >
             Exit
           </button>
-        </form>
+        </CacheClearForm>
       </div>
     </div>
   );

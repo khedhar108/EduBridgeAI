@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { requireUser } from "@/lib/auth/get-user";
 import { isPlatformOwnerUser } from "@/lib/access/platform-context";
 import { ensureDomainJoinRequest } from "@/lib/tenancy/domain-join";
+import { tryProvisionPendingSchool } from "@/lib/tenancy/provision-school";
 import { listMembershipsForUser } from "@/lib/tenancy/session-context";
 
 const LAST_WORKSPACE_COOKIE = "eb_last_workspace";
@@ -10,6 +11,59 @@ const LAST_WORKSPACE_COOKIE = "eb_last_workspace";
 export function safeNextPath(next: string | null | undefined): string | null {
   if (!next || !next.startsWith("/") || next.startsWith("//")) return null;
   return next;
+}
+
+function pathSegments(path: string): string[] {
+  return path.split("/").filter(Boolean);
+}
+
+/** Global `/sign-in` and workspace `/{slug}/sign-in` or `/{slug}/family`. */
+export function isAuthDoorPath(path: string): boolean {
+  const parts = pathSegments(path);
+  const root = parts[0];
+  if (
+    root === "sign-in" ||
+    root === "register" ||
+    root === "join-school" ||
+    root === "forgot-password" ||
+    root === "update-password"
+  ) {
+    return true;
+  }
+  return parts[1] === "sign-in" || parts[1] === "family";
+}
+
+/** Default post-login path for the workspace sign-in form. */
+export function workspaceSignInNext(
+  workspace: string,
+  next?: string | null,
+): string {
+  const fallback = `/${workspace}`;
+  const safe = safeNextPath(next);
+  if (!safe || isAuthDoorPath(safe)) return fallback;
+  return safe;
+}
+
+export type WorkspaceDoorWho = "school" | "family";
+
+export function parseWorkspaceDoorWho(
+  raw: string | undefined,
+): WorkspaceDoorWho | undefined {
+  if (raw === "school" || raw === "family") return raw;
+  return undefined;
+}
+
+/** `/{slug}/sign-in` with optional `who` and staff `next`. */
+export function workspaceSignInHref(
+  workspace: string,
+  opts?: { who?: WorkspaceDoorWho; next?: string | null },
+): string {
+  const params = new URLSearchParams();
+  if (opts?.who) params.set("who", opts.who);
+  const next = safeNextPath(opts?.next ?? null);
+  if (next && opts?.who !== "family") params.set("next", next);
+  const query = params.toString();
+  return query ? `/${workspace}/sign-in?${query}` : `/${workspace}/sign-in`;
 }
 
 export async function resolvePostLoginDestination(opts?: {
@@ -35,11 +89,18 @@ export async function resolvePostLoginDestination(opts?: {
     }
   }
 
-  if (next && !next.startsWith("/platform") && !next.startsWith("/sign-in")) {
+  if (next && !next.startsWith("/platform") && !isAuthDoorPath(next)) {
     return next;
   }
 
-  const memberships = await listMembershipsForUser(user.id);
+  let memberships = await listMembershipsForUser(user.id);
+  if (memberships.length === 0) {
+    const provisioned = await tryProvisionPendingSchool(user);
+    if (provisioned?.ok) {
+      return `/${provisioned.slug}?welcome=1`;
+    }
+    memberships = await listMembershipsForUser(user.id);
+  }
   if (memberships.length === 1) {
     return `/${memberships[0]!.schoolSlug}`;
   }

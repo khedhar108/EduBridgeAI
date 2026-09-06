@@ -29,11 +29,29 @@ flowchart TD
 
 The parent app is **not a separate app** — it's the same `apps/edubridge` with a family-focused, mobile-first route surface (`/[workspace]/family/...`). School staff on desktop and parents/students on phones share one codebase; responsive design and the PWA layer serve both.
 
-**Family login:** admission number + student DOB for **parents and students** (option B). Multi-child parents use one session + child switcher. Canonical architecture: [auth/family-access.md](./auth/family-access.md). Staff keep `/sign-in` (password / invite / domain join).
+**Family login:** admission number + student DOB for **parents and students** (option B). Session is a **first-party HttpOnly cookie** (`edubridge.family`), not `localStorage` and not a Capacitor Preferences JWT. Multi-child parents use one session + child switcher (Phase 1 UI). Canonical architecture: [auth/family-access.md](./auth/family-access.md). Staff keep `/sign-in` (password / office create / domain join).
+
+## Family cookie and PWA / TWA / iOS
+
+Production school identity is the **host** (`{slug}.edubridge.app`). The family cookie stays **first-party** on that origin.
+
+| Constraint | Rule |
+|------------|------|
+| Cookie | HttpOnly + Secure-in-prod + SameSite=lax. HMAC-SHA256. Name `edubridge.family`. |
+| Production path | `Path=/family` on `{slug}.edubridge.app`. **Never** `Domain=.edubridge.app` (would share family cookies across schools). |
+| Local path | `Path=/{slug}/family` on localhost so Pilot and Oakwood do not share a cookie. |
+| Manifest (when the family surface ships) | On the **school origin**: `start_url: "/family"`, `scope: "/family"` so the installed app cannot navigate into Team/Fees as “the app.” |
+| Staff | Desktop/browser; not the Play Store parent app. |
+| TWA | `assetlinks.json` per school host (or `*.edubridge.app` + package) — still first-party cookies. |
+| Storage | **Do not** store the family session in `localStorage` or Capacitor Preferences. That is the wrapper-pain / ITP path. |
+| TTL | Sliding ~30 days on the family door (phones expect “stay in the app”). Re-proof on a new device. |
+| iOS App Store wrapper (later) | Smoke-test WKWebView cookie persistence before submit; default remains TWA + iOS home screen. |
+
+Two siblings at two schools = two PWA installs (two hosts), which is the correct isolation.
 
 ## What makes the app "PWA-ready" (start in Phase 0–1, cheap habits)
 
-1. **Web app manifest** — `app/manifest.ts` in Next.js: name, short_name, icons (192/512, maskable), theme_color, background_color, `display: "standalone"`, `start_url`.
+1. **Web app manifest** — `app/manifest.ts` in Next.js: name, short_name, icons (192/512, maskable), theme_color, background_color, `display: "standalone"`, family `start_url` `/family` and `scope` `/family` on the school host.
 2. **Service worker** — app-shell caching + offline fallback page. Options: Serwist (`@serwist/next`, actively maintained successor to next-pwa) or a small hand-rolled SW. MVP scope: cache static shell + show an offline notice; **do not** cache tenant API data (privacy + staleness risk with school data).
 3. **Mobile-first CSS** — Tailwind is mobile-first by default; enforce in review: every screen usable at 360px width before desktop polish.
 4. **Install prompts** — custom "Install app" affordance on the family surface (`beforeinstallprompt`), plus instructions for iOS (Share → Add to Home Screen).
@@ -58,7 +76,7 @@ Cost: one-time $25 Play Developer account.
 
 ## The parent / student family experience (requirements shaping the PWA work)
 
-- **Login: admission number + student date of birth** for parents **and** students — see [auth/family-access.md](./auth/family-access.md). No OTP, no password for mass family users. Rate-limited, generic errors, read-only scope.
+- **Login:** `/{slug}/family` — admission number + student date of birth for parents **and** students — see [auth/family-access.md](./auth/family-access.md). First-party cookie session (not `localStorage`). No OTP, no password for mass family users. Rate-limited (IP + admission + slug), generic errors, read-only scope.
 - **Parent wrapper:** after verifying one child, **Add child** with another admission+DOB; child switcher — one session for siblings.
 - **Read-only:** dashboard, attendance, marks, report cards, fee status (later). No data entry.
 - **Share/receive:** WhatsApp reports land as messages (Phase 2); the app is for pull-based checking.
@@ -67,12 +85,12 @@ Cost: one-time $25 Play Developer account.
 ## Non-goals
 
 - No React Native / Flutter / native modules — rejected: doubles the codebase for zero user benefit at our stage.
-- No Capacitor in the default path (TWA is lighter on Android; Capacitor becomes relevant only if we need deep device APIs like background push at scale).
+- No Capacitor in the default path (TWA is lighter on Android; Capacitor becomes relevant only if we need deep device APIs like background push at scale). Do not move family session into JS storage to “fix” a wrapper.
 - No offline editing of school data (read-only offline fallback only).
 
 ## Pre-store checklist (run when listing Android)
 
-- [ ] Manifest valid (maskable icons, theme colors, `display: standalone`)
+- [ ] Manifest valid (maskable icons, theme colors, `display: standalone`, `start_url`/`scope` `/family` on the school host)
 - [ ] Service worker caches shell only; no tenant data cached
 - [ ] Lighthouse PWA audit green on the family surface
 - [ ] `assetlinks.json` hosted and verified

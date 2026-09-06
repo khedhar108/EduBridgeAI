@@ -101,39 +101,52 @@ export async function activateMembershipRequestAction(
 
 export async function rejectMembershipRequestAction(
   workspace: string,
+  _prev: ActivateMemberState,
   formData: FormData,
-): Promise<void> {
+): Promise<ActivateMemberState> {
   const ctx = await getSessionContext(workspace);
-  if (!ctx) return;
-  assertCapability(ctx, "members.activate");
+  if (!ctx) {
+    return { error: "You must be signed in as a school admin or coordinator." };
+  }
+  try {
+    assertCapability(ctx, "members.activate");
+  } catch {
+    return { error: "You cannot reject membership requests." };
+  }
 
   const requestId = String(formData.get("requestId") ?? "");
-  if (!requestId) return;
+  if (!requestId) return { error: "Missing request." };
 
-  await withTenant(
-    {
-      sub: ctx.userId,
-      school_id: ctx.schoolId,
-      role: ctx.role,
-    },
-    async (tx) => {
-      await tx
-        .update(membershipRequests)
-        .set({
-          status: "rejected",
-          reviewedBy: ctx.userId,
-          reviewedAt: new Date(),
-          updatedAt: new Date(),
-        })
-        .where(
-          and(
-            eq(membershipRequests.id, requestId),
-            eq(membershipRequests.schoolId, ctx.schoolId),
-            eq(membershipRequests.status, "pending"),
-          ),
-        );
-    },
-  );
+  try {
+    await withTenant(
+      {
+        sub: ctx.userId,
+        school_id: ctx.schoolId,
+        role: ctx.role,
+      },
+      async (tx) => {
+        await tx
+          .update(membershipRequests)
+          .set({
+            status: "rejected",
+            reviewedBy: ctx.userId,
+            reviewedAt: new Date(),
+            updatedAt: new Date(),
+          })
+          .where(
+            and(
+              eq(membershipRequests.id, requestId),
+              eq(membershipRequests.schoolId, ctx.schoolId),
+              eq(membershipRequests.status, "pending"),
+            ),
+          );
+      },
+    );
+  } catch (err) {
+    console.error("rejectMembershipRequestAction failed", err);
+    return { error: "Could not reject this request. Try again." };
+  }
 
   revalidatePath(`/${workspace}/settings/team`);
+  return { ok: true };
 }

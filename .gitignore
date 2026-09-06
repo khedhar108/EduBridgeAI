@@ -110,6 +110,14 @@ docs-architecture/
 one-person-ai/
 .scratch/
 .mastra/
+.cursor/mcp.json
+
+# ---------------------------------------------------------------------------
+# Ad-hoc local DB debug scripts (use pnpm db:check / seed:dev instead)
+# ---------------------------------------------------------------------------
+packages/db/scripts/*-temp.mjs
+packages/db/scripts/diagnose-signin.mjs
+packages/db/scripts/test-tokencols.mjs
 
 # ---------------------------------------------------------------------------
 # Local DB files (Mastra / SQLite scratch)

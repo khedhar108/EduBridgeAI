@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@repo/ui/components/dropdown-menu";
+import { CacheClearForm } from "@/lib/query/clear-form";
 import { signOutAction } from "@/features/auth/actions/sign-in";
 import { formatRoleLabel } from "../nav-utils";
 
@@ -84,7 +85,7 @@ export function ProfileMenu({ email, role, schoolSlug }: ProfileMenuProps) {
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem asChild>
-            <form action={signOutAction} className="w-full">
+            <CacheClearForm action={signOutAction} className="w-full">
               <button
                 type="submit"
                 className="flex w-full cursor-pointer items-center gap-2 text-left"
@@ -92,7 +93,7 @@ export function ProfileMenu({ email, role, schoolSlug }: ProfileMenuProps) {
                 <LogOutIcon data-icon="inline-start" />
                 Sign out
               </button>
-            </form>
+            </CacheClearForm>
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>

@@ -1,29 +1,57 @@
 "use client";
 
-import { useActionState } from "react";
+import { useState } from "react";
 import { Button } from "@repo/ui/components/button";
 import { Input } from "@repo/ui/components/input";
 import { Spinner } from "@repo/ui/components/spinner";
-import {
-  registerStudentAction,
-  type RegisterStudentState,
-} from "../actions/register-student";
+import { useActionToast } from "@repo/ui/hooks/use-action-toast";
+import { QueryIsland } from "@/lib/query/island";
+import type { RegisterStudentState } from "../actions/register-student";
+import { useRegisterStudent } from "../hooks/use-register-student";
+import { formatInr, payableInr } from "../lib/money";
 
 const initial: RegisterStudentState = {};
 
 type PlanVersionOption = {
   id: string;
   label: string;
+  totalAmountInr: number;
 };
 
 type Props = {
   workspace: string;
+  schoolId?: string;
+  userId?: string;
   planVersions: PlanVersionOption[];
 };
 
-export function RegisterStudentForm({ workspace, planVersions }: Props) {
-  const bound = registerStudentAction.bind(null, workspace);
-  const [state, formAction, pending] = useActionState(bound, initial);
+export function RegisterStudentForm(props: Props) {
+  return (
+    <QueryIsland>
+      <RegisterStudentFields {...props} />
+    </QueryIsland>
+  );
+}
+
+function RegisterStudentFields({
+  workspace,
+  schoolId,
+  userId,
+  planVersions,
+}: Props) {
+  const { mutate, isPending, data: mutationResult } = useRegisterStudent(
+    workspace,
+    schoolId,
+    userId,
+  );
+  useActionToast(mutationResult ?? initial, "Student registered.");
+  const [planVersionId, setPlanVersionId] = useState(planVersions[0]?.id ?? "");
+  const [concessionPercent, setConcessionPercent] = useState(0);
+
+  const selected = planVersions.find((v) => v.id === planVersionId);
+  const net = selected
+    ? payableInr(selected.totalAmountInr, concessionPercent)
+    : 0;
 
   if (planVersions.length === 0) {
     return (
@@ -34,7 +62,12 @@ export function RegisterStudentForm({ workspace, planVersions }: Props) {
   }
 
   return (
-    <form action={formAction} className="flex max-w-xl flex-col gap-4">
+    <form
+      action={(formData) => {
+        mutate(formData);
+      }}
+      className="flex max-w-xl flex-col gap-4"
+    >
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-2">
           <label htmlFor="admissionNumber" className="text-sm font-medium">
@@ -44,7 +77,7 @@ export function RegisterStudentForm({ workspace, planVersions }: Props) {
             id="admissionNumber"
             name="admissionNumber"
             required
-            disabled={pending}
+            disabled={isPending}
             className="h-11 font-mono"
           />
         </div>
@@ -57,7 +90,7 @@ export function RegisterStudentForm({ workspace, planVersions }: Props) {
             name="dateOfBirth"
             type="date"
             required
-            disabled={pending}
+            disabled={isPending}
             className="h-11"
           />
         </div>
@@ -71,7 +104,7 @@ export function RegisterStudentForm({ workspace, planVersions }: Props) {
           id="fullName"
           name="fullName"
           required
-          disabled={pending}
+          disabled={isPending}
           className="h-11"
         />
       </div>
@@ -83,7 +116,7 @@ export function RegisterStudentForm({ workspace, planVersions }: Props) {
         <Input
           id="classLabel"
           name="classLabel"
-          disabled={pending}
+          disabled={isPending}
           className="h-11"
           placeholder="Class 1-A"
         />
@@ -98,7 +131,7 @@ export function RegisterStudentForm({ workspace, planVersions }: Props) {
             id="guardianName"
             name="guardianName"
             required
-            disabled={pending}
+            disabled={isPending}
             className="h-11"
           />
         </div>
@@ -113,7 +146,7 @@ export function RegisterStudentForm({ workspace, planVersions }: Props) {
             id="guardianRelationship"
             name="guardianRelationship"
             required
-            disabled={pending}
+            disabled={isPending}
             className="h-11"
             placeholder="Father / Mother / Guardian"
             defaultValue="Father"
@@ -128,7 +161,7 @@ export function RegisterStudentForm({ workspace, planVersions }: Props) {
         <Input
           id="guardianPhone"
           name="guardianPhone"
-          disabled={pending}
+          disabled={isPending}
           className="h-11"
         />
       </div>
@@ -141,7 +174,9 @@ export function RegisterStudentForm({ workspace, planVersions }: Props) {
           id="planVersionId"
           name="planVersionId"
           required
-          disabled={pending}
+          disabled={isPending}
+          value={planVersionId}
+          onChange={(event) => setPlanVersionId(event.target.value)}
           className="border-input bg-background h-11 rounded-md border px-3 text-sm"
         >
           {planVersions.map((v) => (
@@ -150,6 +185,10 @@ export function RegisterStudentForm({ workspace, planVersions }: Props) {
             </option>
           ))}
         </select>
+        <p className="text-xs text-muted-foreground">
+          This version is pinned. Later structure publishes do not change this
+          family&apos;s bill.
+        </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -163,9 +202,14 @@ export function RegisterStudentForm({ workspace, planVersions }: Props) {
             type="number"
             min={0}
             max={100}
-            defaultValue={0}
-            disabled={pending}
+            value={concessionPercent}
+            disabled={isPending}
             className="h-11"
+            onChange={(event) =>
+              setConcessionPercent(
+                Math.min(100, Math.max(0, Math.floor(Number(event.target.value) || 0))),
+              )
+            }
           />
         </div>
         <div className="flex flex-col gap-2">
@@ -175,23 +219,23 @@ export function RegisterStudentForm({ workspace, planVersions }: Props) {
           <Input
             id="concessionNote"
             name="concessionNote"
-            disabled={pending}
+            disabled={isPending}
             className="h-11"
           />
         </div>
       </div>
 
-      {state.error ? (
-        <p className="text-sm text-destructive" role="alert">
-          {state.error}
-        </p>
-      ) : null}
-      {state.ok ? (
-        <p className="text-sm text-muted-foreground">Student registered.</p>
-      ) : null}
+      <p className="text-sm">
+        Payable after scholarship:{" "}
+        <span className="font-medium tabular-nums">{formatInr(net)}</span>
+        <span className="text-muted-foreground">
+          {" "}
+          — not retroactive for students already billed.
+        </span>
+      </p>
 
-      <Button type="submit" className="h-11" disabled={pending}>
-        {pending ? <Spinner className="size-4" /> : null}
+      <Button type="submit" className="h-11" disabled={isPending}>
+        {isPending ? <Spinner className="size-4" /> : null}
         Register student
       </Button>
     </form>

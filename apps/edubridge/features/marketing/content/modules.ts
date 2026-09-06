@@ -8,6 +8,7 @@ import {
   SparklesIcon,
   WalletIcon,
 } from "lucide-react";
+import { PLATFORM_NAME } from "@/lib/brand";
 
 export type MarketingModule = {
   id: string;
@@ -129,7 +130,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     slug: "student-dashboard",
     title: "Student Dashboard: one place for the day-to-day",
     description:
-      "How EduBridge turns attendance, marks, and activity into a calm, role-aware view for teachers, parents, and students.",
+      `How ${PLATFORM_NAME} turns attendance, marks, and activity into a calm, role-aware view for teachers, parents, and students.`,
     readingMinutes: 4,
     moduleId: "student-dashboard",
     sections: [
@@ -157,7 +158,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     sections: [
       {
         heading: "The rule",
-        body: "Assistants draft. Humans approve. Writes go through server actions with the same role checks as the rest of EduBridge.",
+        body: `Assistants draft. Humans approve. Writes go through server actions with the same role checks as the rest of ${PLATFORM_NAME}.`,
       },
       {
         heading: "Where it shows up",

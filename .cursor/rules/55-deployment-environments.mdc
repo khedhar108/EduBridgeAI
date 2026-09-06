@@ -1,0 +1,40 @@
+# Deployment environments
+
+Canonical reference: `docs/architecture/deployment-environments.md`. Runtime
+config: `apps/edubridge/lib/deployment-environment.ts`.
+
+## Environment contract
+
+- Next.js owns `NODE_ENV`. Never set it in `.env.local`, Vercel, or Coolify.
+  `pnpm dev` → `development`; deployed `next build` → `production`.
+- Product/security gates use `NODE_ENV === "production"`, not branch name.
+- `APP_ENV` is for hostname/routing only: `local`, `staging`, `production`.
+- Local conveniences (any email, demo accounts, dev HMAC fallbacks) apply when
+  `NODE_ENV !== "production"`.
+
+| Deployment | Branch | `APP_ENV` | Workspace root |
+| --- | --- | --- | --- |
+| Local | feature work | `local` | localhost path / `*.localhost` |
+| Vercel staging | `development` | `staging` | `dev.edubridge.app` |
+| Coolify production | `main` | `production` | `edubridge.app` |
+
+## Invariants
+
+- Staging runs a production build (`NODE_ENV=production`) with separate
+  `APP_ENV`, data, and secrets from Coolify production.
+- Never expose demo credentials, seed hints, debug pages, detailed errors, or
+  predictable signing secrets when `NODE_ENV=production`.
+- Never point staging at production Supabase, service-role keys, databases, or
+  integration credentials.
+- `PLATFORM_DOMAIN` remains the branded public domain. Deployment routing uses
+  `WORKSPACE_ROOT_DOMAIN`; do not create another brand constant.
+- Generated `*.vercel.app` URLs stay in path mode. Tenant staging uses
+  `*.dev.edubridge.app`.
+- Keep cookies host-only; never set `Domain=.edubridge.app` or
+  `Domain=.dev.edubridge.app`.
+- Trust forwarded host headers only behind the configured Vercel/Traefik proxy.
+  Do not publish the application container port directly.
+- Vercel deploys `development` through Git integration. Coolify production
+  consumes a prebuilt image from `main`; builds must not run on the VPS.
+- Database migrations are an explicit approved release step, never part of
+  build, CI, application boot, or Vercel deployment.

@@ -9,6 +9,7 @@ import { HeroEntrance } from "../../components/marketing-motion";
 import { MODULE_TINT_CLASSES, getModuleTint } from "../../components/module-tints";
 import { listModulePages } from "../content";
 import { getModuleIcon } from "../lib/icons";
+import { PLATFORM_NAME } from "@/lib/brand";
 
 function ModuleIndexContent() {
   const pages = listModulePages();
@@ -25,7 +26,7 @@ function ModuleIndexContent() {
           href="/"
           className="font-serif text-xl tracking-tight text-foreground sm:text-2xl"
         >
-          EduBridge
+          {PLATFORM_NAME}
         </Link>
         <Button asChild className="h-10 cursor-pointer px-5 active:scale-[0.98]">
           <Link href="/sign-in">Sign in</Link>
@@ -40,7 +41,7 @@ function ModuleIndexContent() {
               className="inline-flex w-fit items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
               <ArrowLeftIcon className="size-4" aria-hidden />
-              EduBridge
+              {PLATFORM_NAME}
             </Link>
           </HeroEntrance>
           <HeroEntrance delay={0.06}>
@@ -51,7 +52,7 @@ function ModuleIndexContent() {
           <HeroEntrance delay={0.1}>
             <p className="leading-relaxed text-muted-foreground">
               Short product overviews for schools. Open a module to see what
-              EduBridge provides; image slots are ready when assets land.
+              {PLATFORM_NAME} provides; image slots are ready when assets land.
             </p>
           </HeroEntrance>
         </header>

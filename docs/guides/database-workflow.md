@@ -24,7 +24,7 @@ Same value, two places — not two databases:
 
 | File                        | Read by                                                                  |
 | --------------------------- | ------------------------------------------------------------------------ |
-| `packages/db/.env`          | Root DB commands: `pnpm db:migrate`, `pnpm seed:dev`, `pnpm db:generate` |
+| `packages/db/.env`          | Root DB commands: `pnpm db:migrate`, `pnpm seed:dev`, `pnpm db:generate`, `pnpm db:studio` |
 | `apps/edubridge/.env.local` | Next.js at runtime (`/db-check`, server components)                      |
 
 Node does not share env across packages. Copy the **same** `:6543` URL into both when developing locally.
@@ -64,7 +64,11 @@ pnpm db:migrate
 # 5. Optional seed
 pnpm seed:dev
 
-# 6. Verify DB state without generating or migrating
+# 6. Browse tables (Prisma Studio equivalent; same DB as localhost Next.js)
+pnpm db:studio
+# UI: https://local.drizzle.studio  — local server listens on :4983
+
+# 7. Verify DB state without generating or migrating
 pnpm db:check
 
 # 7. Verify app health
@@ -75,13 +79,15 @@ pnpm build
 
 ### Safety rules (so partial / duplicate migrations do not happen)
 
-1. **Never hand-write table DDL** into `migrations/`. Always `db:generate`, then edit the generated file (RLS only).
-2. **Never `db:migrate` a file that recreates existing objects.** Review the SQL first.
-3. Prefer `MIGRATION_DATABASE_URL` on the **session pooler `:5432`** for migrate/generate. Transaction pooler `:6543` can leave half-applied DDL when a statement fails.
-4. **Always ask the user before running `pnpm db:migrate`.**
-5. Run `pnpm db:check` for a read-only answer. It checks current schema against the snapshot in a temporary folder and local migration hashes against `drizzle.__drizzle_migrations`.
-6. If `pnpm db:check` says healthy, do not run generate or migrate.
-7. Do **not** use `pnpm db:push` on shared/dev Supabase — it skips migration history.
+1. **Schema first.** Tables, columns, indexes, checks, FKs live only in `packages/db/src/schema/*.ts`. `db:generate` writes the SQL file **and** `migrations/meta/` snapshot. Never create those files by hand.
+2. **Append RLS only.** After generate, you may append policies, grants, and helper functions. Never paste `CREATE TABLE` / `ALTER TABLE` / `CREATE INDEX` into an existing migration — that desyncs the snapshot; the next generate emits a duplicate (or a drop) and migrate fails.
+3. **Missed a column or index?** Add it to schema and generate the **next** numbered file. Do not fold it into the previous SQL, even if that file is unapplied.
+4. **Never `db:migrate` a file that recreates existing objects.** Review the SQL first.
+5. Prefer `MIGRATION_DATABASE_URL` on the **session pooler `:5432`** for migrate/generate. Transaction pooler `:6543` can leave half-applied DDL when a statement fails.
+6. **Always ask the user before running `pnpm db:migrate`.** Same for `db:generate` and schema edits.
+7. Run `pnpm db:check` for a read-only answer. It checks current schema against the snapshot in a temporary folder and local migration hashes against `drizzle.__drizzle_migrations`.
+8. If `pnpm db:check` says healthy, do not run generate or migrate.
+9. Do **not** use `pnpm db:push` on shared/dev Supabase — it skips migration history.
 
 Migration state lives in the database (`drizzle.__drizzle_migrations`). `db:migrate` applies only pending files, in order.
 

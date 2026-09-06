@@ -2,7 +2,7 @@ import Link from "next/link";
 import { AuthHeader, DemoAccountsModal, SignInForm } from "@/features/auth";
 
 type Props = {
-  searchParams: Promise<{ next?: string; error?: string }>;
+  searchParams: Promise<{ next?: string; error?: string; email?: string }>;
 };
 
 export default async function SchoolSignInPage({ searchParams }: Props) {
@@ -19,8 +19,20 @@ export default async function SchoolSignInPage({ searchParams }: Props) {
           We couldn&apos;t complete that sign-in. Try again.
         </p>
       ) : null}
-      <SignInForm surface="school" next={params.next} />
+      <SignInForm
+        surface="school"
+        next={params.next}
+        emailPrefill={params.email}
+      />
       <p className="text-center text-sm text-muted-foreground">
+        Register a new school?{" "}
+        <Link
+          href="/register"
+          className="font-medium text-foreground underline-offset-4 hover:underline"
+        >
+          Create workspace
+        </Link>
+        {" · "}
         New staff with a school email?{" "}
         <Link
           href="/join-school"

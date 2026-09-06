@@ -11,11 +11,8 @@ import {
   type FeeHead,
   withTenant,
 } from "@repo/db";
-import {
-  assertRole,
-  getSessionContext,
-} from "@/lib/tenancy/session-context";
-import { MONEY_ROLES } from "../lib/roles";
+import { getSessionContext } from "@/lib/tenancy/session-context";
+import { can } from "@/lib/auth/capabilities";
 import { feeHeadSchema, publishFeePlanSchema } from "../lib/schemas";
 
 export type PublishFeePlanState = { error?: string; ok?: boolean };
@@ -43,7 +40,11 @@ export async function publishFeePlanAction(
 ): Promise<PublishFeePlanState> {
   const ctx = await getSessionContext(workspace);
   if (!ctx) return { error: "Sign in required." };
-  assertRole(ctx, MONEY_ROLES);
+  if (!can(ctx, "fees.structure")) {
+    return { error: "You cannot publish fee structures." };
+  }
+
+  const fromDemo = formData.get("fromDemo") === "1";
 
   const parsed = publishFeePlanSchema.safeParse({
     planId: formData.get("planId") || undefined,
@@ -54,15 +55,12 @@ export async function publishFeePlanAction(
     note: formData.get("note") ?? "",
   });
   if (!parsed.success) {
-    return { error: "Check plan name, payment mode, and fee heads JSON." };
+    return { error: "Check plan name, payment mode, and fee heads." };
   }
 
   const heads = parseHeads(parsed.data.headsJson);
   if (!heads) {
-    return {
-      error:
-        'Fee heads must be a JSON array like [{"code":"registration","label":"Registration","amountInr":5000}].',
-    };
+    return { error: "Add at least one fee head with a name and amount." };
   }
 
   const totalAmountInr = heads.reduce((sum, h) => sum + h.amountInr, 0);
@@ -97,6 +95,7 @@ export async function publishFeePlanAction(
               name: parsed.data.name,
               classLabel: parsed.data.classLabel || null,
               paymentMode: parsed.data.paymentMode,
+              isDemo: false,
               updatedAt: new Date(),
             })
             .where(eq(feePlans.id, planId));
@@ -109,6 +108,7 @@ export async function publishFeePlanAction(
               classLabel: parsed.data.classLabel || null,
               paymentMode: parsed.data.paymentMode,
               createdBy: ctx.userId,
+              isDemo: fromDemo,
             })
             .returning({ id: feePlans.id });
           planId = inserted[0]?.id;
@@ -150,6 +150,7 @@ export async function publishFeePlanAction(
             totalAmountInr,
             paymentMode: parsed.data.paymentMode,
             heads,
+            fromDemo: fromDemo && nextVersion === 1,
           },
         });
       },

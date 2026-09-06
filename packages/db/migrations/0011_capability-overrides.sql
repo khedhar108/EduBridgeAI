@@ -1,0 +1,1 @@
+ALTER TABLE "schools" ADD COLUMN "capability_overrides" jsonb DEFAULT '{}'::jsonb NOT NULL;

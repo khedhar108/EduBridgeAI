@@ -17,13 +17,18 @@ pnpm -v
 git clone <repo-url>
 cd aria
 pnpm install
-pnpm dev:web    # http://localhost:3000
-pnpm dev:docs   # http://localhost:3001
+pnpm kill:dev            # optional: free leftover :3000 / :4111 / :4983
+pnpm dev                 # edubridge + agent → http://localhost:3000
 ```
 
 ## Documentation map
 
 Start at [docs/README.md](../README.md) for the full documentation index.
+
+Deployment: [deployment-environments.md](../architecture/deployment-environments.md)
+(`NODE_ENV` is not set in `.env` files).
+AI: [ai-platform.md](../architecture/ai-platform.md) — `pnpm dev` starts Next
+`:3000` and Mastra `:4111`; hosted AI is a second Coolify service, not Mastra Cloud.
 
 ## Next steps
 

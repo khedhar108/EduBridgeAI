@@ -1,7 +1,6 @@
 ---
-description: Multi-tenancy, RLS, and Drizzle data-access rules — always follow when touching code or SQL
-alwaysApply: false
-globs: ["**/*.ts", "**/*.tsx", "**/*.sql", "**/drizzle.config.*", "**/package.json"]
+description: Multi-tenancy, RLS, and Drizzle migration workflow — schema first, never hand-write DDL
+alwaysApply: true
 ---
 
 # Database Rules (non-negotiable)
@@ -26,14 +25,22 @@ Canonical reference: `docs/architecture/data-access.md`.
 
 ## Migration workflow (mandatory)
 
-1. Modify only `packages/db/src/schema/*.ts`; never create a migration SQL file or metadata entry manually.
-2. Generate from repo root with a descriptive kebab-case name: `pnpm db:generate -- --name=<short-change-name>`.
-3. Review the generated SQL before applying it. If it recreates an existing table/type, stop: snapshot history is stale.
-4. Editing the **generated** SQL is allowed only for required RLS policies, grants, auth FKs, or reviewed data migration SQL that Drizzle cannot generate.
-5. **Never run `pnpm db:migrate` without first asking the user for explicit permission.**
-6. After migration, run `pnpm db:check`; then `pnpm lint`, `pnpm check-types`, and `pnpm build`.
-7. `pnpm db:check` is read-only. If it reports healthy, do not run generate or migrate.
-8. Never use `pnpm db:push` on shared/dev/production databases.
+Schema TS is the only source of truth for tables, columns, indexes, checks, and FKs. Drizzle-kit owns migration **files** and **snapshots**. Hand-written DDL in `migrations/` desyncs the snapshot; the next `db:generate` emits a duplicate (or a drop) and `db:migrate` fails.
+
+| Change | Where |
+|--------|--------|
+| Tables, columns, indexes, checks, FKs | `packages/db/src/schema/*.ts` → then generate |
+| RLS policies, grants, helper functions, data backfill | **Append** to the generated `000N_*.sql` only |
+| `migrations/meta/*snapshot.json`, `_journal.json` | **Never** edit by hand |
+
+1. Edit only `packages/db/src/schema/*.ts`. Never create `migrations/000N_*.sql` or any `meta/` file yourself.
+2. Generate from repo root: `pnpm db:generate -- --name=<short-kebab-name>`. Ask the user first (taste: schema/generate/migrate need permission).
+3. Review the new SQL. If it `CREATE`s tables/types that already exist → **stop**. Snapshot history is stale; do not migrate.
+4. After generate, you may **append** RLS / grants / functions. Do **not** add or rewrite `CREATE TABLE` / `ALTER TABLE` / `CREATE INDEX` / `ADD CONSTRAINT` by hand — put those in schema and generate a **new** file (`0009`, not a fold into `0008`).
+5. Forgot an index after generate? Add it to schema, generate the next migration. Do not paste DDL into the previous file (snapshot will not match SQL).
+6. **Never run `pnpm db:migrate` without explicit user permission.**
+7. After migrate: `pnpm db:check`, then lint and types. `pnpm db:check` is read-only — if healthy, do not generate or migrate.
+8. Never `pnpm db:push` on shared/dev/production databases.
 
 ## Seeding Supabase auth users (mandatory)
 

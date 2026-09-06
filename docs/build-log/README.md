@@ -63,3 +63,25 @@ One line.
 | 0015 | [Auth shell + feral-blob mascot](./0015-auth-shell-blob.md) | 2026-08-23 | Split-screen auth layout, form-reactive mascot, docs audit fixes |
 | 0016 | [RBAC dashboard + admin access controls](./0016-rbac-dashboard-admin-controls.md) | 2026-08-26 | coordinator role, capabilities, impersonation, member activation, username login, platform console, 2-school seed |
 | 0017 | [Global 404, error boundaries, and health checks](./0017-error-404-health-checks.md) | 2026-08-27 | Global 404 + animated screen, error boundaries, `lib/http.ts`, `/api/health`, dev `/status` dashboard |
+| 0018 | [Member archive + role change](./0018-member-archive.md) | 2026-08-28 | Terminal archive (no hard delete), admin archive/role-change, staff-directory controls |
+| 0019 | [Family proof (match + cookie)](./0019-family-proof.md) | 2026-08-28 | Headless admission+DOB match, HMAC family cookie, isolated from staff session |
+| 0020 | [Staff workspace sign-in](./0020-staff-workspace-signin.md) | 2026-08-28 | `/{slug}/sign-in` door; username from URL slug; proxy family paths public |
+| 0021 | [Family entry form](./0021-family-entry-form.md) | 2026-08-28 | `/{slug}/family` admission+DOB form; two-door docs |
+| 0022 | [Family home chrome](./0022-family-home-chrome.md) | 2026-08-28 | FamilyShell + `/{slug}/family/home`; cookie still not staff |
+| 0023 | [Family hub pages](./0023-family-hub-pages.md) | 2026-08-28 | Home hub + Fees/Progress/Exams/Events under `/family/*` |
+| 0024 | [Family parent wrapper](./0024-family-parent-wrapper.md) | 2026-08-28 | `parent_links` sibling group + Add child + switcher |
+| 0025 | [Office-created staff accounts](./0025-office-staff-accounts.md) | 2026-08-28 | Directory Add member + reset password; invite tokens removed |
+| 0026 | [School students dashboard](./0026-school-students.md) | 2026-08-28 | `0010` academic tables, `/students` attendance, family fills |
+| 0028 | [Control Hub capability overrides](./0028-control-hub-overrides.md) | 2026-08-29 | `schools.capability_overrides`; Hub Switches persist on EduDatabase |
+| 0029 | [Visual fee structures](./0029-visual-fee-structures.md) | 2026-08-29 | Visual heads studio, version timeline, Hub-aware Fees nav |
+| 0030 | [Coordinator fee SELECT + demo flag](./0030-fee-select-coordinator.md) | 2026-08-29 | Fee SELECT includes coordinator; `is_demo`; Hub `fees.view` live |
+| 0030 | [Public school registration](./0030-school-registration.md) | 2026-08-29 | `/register` wizard, instant school + first admin, founder password recovery |
+| 0031 | [Workspace URL architecture](./0031-workspace-url-architecture.md) | 2026-08-29 | Dual-mode URL doc + open platform-launch checkboxes; no routing change |
+| 0032 | [Host rewrite + Coolify path](./0032-host-rewrite-coolify.md) | 2026-08-29 | `proxy.ts` subdomain rewrite; admin School URL; Coolify+Hetzner HITL |
+| 0033 | [Deployment env + GHCR](./0033-deployment-environments.md) | 2026-08-29 | NODE_ENV ownership, `*.dev.edubridge.app`, standalone Docker, one CI/CD workflow |
+| 0034 | [Mastra Coolify host](./0034-mastra-coolify-host.md) | 2026-08-30 | OSS agent on Coolify; not Mastra Cloud; grill closed |
+| 0035 | [TanStack Query + username](./0035-tanstack-query-username.md) | 2026-09-02 | QueryProvider + debounced username `useQuery`; other features unchanged |
+| 0036 | [TanStack Query student attendance](./0036-tanstack-query-student-attendance.md) | 2026-09-04 | `useRecordAttendance` mutation + `QueryIsland` around grid; RSC first paint intact |
+| 0037 | [TanStack Query fees mutations](./0037-tanstack-query-fees.md) | 2026-09-04 | Payment + register `useMutation`; publish plan and schema untouched |
+| 0038 | [TanStack Query hub + cache clear](./0038-tanstack-query-hub-cache-clear.md) | 2026-09-04 | Hub `useMutation`; `queryClient.clear()` on sign-out / impersonation |
+| 0039 | [TanStack Query remaining mutations](./0039-tanstack-query-remaining-mutations.md) | 2026-09-04 | Remaining forms use `useActionMutation`; slug check via `useQuery` |

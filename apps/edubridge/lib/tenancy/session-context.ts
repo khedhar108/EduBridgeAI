@@ -1,4 +1,5 @@
 import { and, eq, getDb, schoolMembers, schools, type SchoolRole } from "@repo/db";
+import { asCapabilityOverrides } from "../auth/capabilities";
 import { requireUser } from "../auth/get-user";
 import { getImpersonation } from "./impersonation";
 
@@ -8,6 +9,8 @@ export type SessionContext = {
   schoolSlug: string;
   role: SchoolRole;
   email: string | undefined;
+  /** Sparse Hub overrides for this school. Missing key = capability default. */
+  capabilityOverrides: Record<string, string[]>;
   /** Present only when an admin is impersonating this user. */
   isImpersonating?: boolean;
   realUserId?: string;
@@ -17,6 +20,10 @@ export type SessionContext = {
 /**
  * Bootstrap only: resolve membership for a workspace slug.
  * All other tenant reads/writes go through withTenant().
+ *
+ * Staff identity is Supabase `getUser()` + `school_members`. Family cookie
+ * (`edubridge.family`) is never read here — a family HMAC cannot open Team
+ * or Fees. Impersonation still requires a live admin Supabase session.
  *
  * When a valid impersonation cookie exists, the real auth user (admin) is
  * verified as an active admin of this school, then the context is swapped to
@@ -35,13 +42,17 @@ export async function getSessionContext(
       schoolSlug: schools.slug,
       role: schoolMembers.role,
       isActive: schoolMembers.isActive,
+      archivedAt: schoolMembers.archivedAt,
+      capabilityOverrides: schools.capabilityOverrides,
     })
     .from(schoolMembers)
     .innerJoin(schools, eq(schoolMembers.schoolId, schools.id))
     .where(eq(schoolMembers.userId, user.id));
 
   const match = rows.find((r) => r.schoolSlug === schoolSlug);
-  if (!match || !match.isActive) return null;
+  if (!match || !match.isActive || match.archivedAt) return null;
+
+  const capabilityOverrides = asCapabilityOverrides(match.capabilityOverrides);
 
   // Impersonation: admin views as a target member of the same school.
   const impersonation = await getImpersonation();
@@ -52,6 +63,7 @@ export async function getSessionContext(
       .select({
         role: schoolMembers.role,
         isActive: schoolMembers.isActive,
+        archivedAt: schoolMembers.archivedAt,
       })
       .from(schoolMembers)
       .where(
@@ -63,8 +75,8 @@ export async function getSessionContext(
       .limit(1);
 
     const target = targetRows[0];
-    if (!target || !target.isActive) return null;
-    if (target.role === "school_admin" || target.role === "coordinator") {
+    if (!target || !target.isActive || target.archivedAt) return null;
+    if (target.role === "school_admin") {
       return null;
     }
 
@@ -74,6 +86,7 @@ export async function getSessionContext(
       schoolSlug: match.schoolSlug,
       role: target.role as SchoolRole,
       email: impersonation.targetEmail ?? undefined,
+      capabilityOverrides,
       isImpersonating: true,
       realUserId: user.id,
       realEmail: user.email,
@@ -86,6 +99,7 @@ export async function getSessionContext(
     schoolSlug: match.schoolSlug,
     role: match.role as SchoolRole,
     email: user.email,
+    capabilityOverrides,
   };
 }
 
@@ -103,6 +117,7 @@ export type InactiveMembership = {
   schoolSlug: string;
   schoolName: string;
   role: SchoolRole;
+  archived: boolean;
 };
 
 /**
@@ -123,26 +138,27 @@ export async function getInactiveMembership(
       schoolSlug: schools.slug,
       schoolName: schools.name,
       role: schoolMembers.role,
+      isActive: schoolMembers.isActive,
+      archivedAt: schoolMembers.archivedAt,
     })
     .from(schoolMembers)
     .innerJoin(schools, eq(schoolMembers.schoolId, schools.id))
     .where(
-      and(
-        eq(schoolMembers.userId, user.id),
-        eq(schools.slug, schoolSlug),
-        eq(schoolMembers.isActive, false),
-      ),
+      and(eq(schoolMembers.userId, user.id), eq(schools.slug, schoolSlug)),
     )
     .limit(1);
 
   const match = rows[0];
   if (!match) return null;
+  const archived = match.archivedAt !== null;
+  if (match.isActive && !archived) return null;
 
   return {
     schoolId: match.schoolId,
     schoolSlug: match.schoolSlug,
     schoolName: match.schoolName,
     role: match.role as SchoolRole,
+    archived,
   };
 }
 

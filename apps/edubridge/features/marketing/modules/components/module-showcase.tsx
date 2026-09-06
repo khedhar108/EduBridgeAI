@@ -9,6 +9,7 @@ import type { ModulePage } from "../types";
 import { listModulePages } from "../content";
 import { getModuleIcon } from "../lib/icons";
 import { ModuleMediaSlot } from "./module-media-slot";
+import { PLATFORM_NAME } from "@/lib/brand";
 
 function ModuleShowcaseContent({ page }: { page: ModulePage }) {
   const Icon = getModuleIcon(page.icon);
@@ -26,7 +27,7 @@ function ModuleShowcaseContent({ page }: { page: ModulePage }) {
           href="/"
           className="font-serif text-xl tracking-tight text-foreground sm:text-2xl"
         >
-          EduBridge
+          {PLATFORM_NAME}
         </Link>
         <nav className="flex items-center gap-4">
           <Link

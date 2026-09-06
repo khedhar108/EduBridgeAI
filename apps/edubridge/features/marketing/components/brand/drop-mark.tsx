@@ -1,4 +1,5 @@
 import { cn } from "@repo/ui/lib/utils";
+import { PLATFORM_NAME } from "@/lib/brand";
 
 type DropMarkProps = {
   className?: string;
@@ -19,7 +20,7 @@ export function DropMark({ className, ...rest }: DropMarkProps) {
       viewBox="0 0 200 200"
       role={ariaHidden ? undefined : "img"}
       aria-hidden={ariaHidden || undefined}
-      aria-label={ariaHidden ? undefined : "EduBridge drop of education"}
+      aria-label={ariaHidden ? undefined : `${PLATFORM_NAME} drop of education`}
       className={cn("h-full w-full", className)}
     >
       <path

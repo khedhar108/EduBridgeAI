@@ -1,0 +1,121 @@
+import { headers } from "next/headers";
+import { notFound } from "next/navigation";
+import { withTenant } from "@repo/db";
+import { getSessionContext } from "@/lib/tenancy/session-context";
+import { hostnameFromHeaders, workspaceUrlDisplay } from "@/lib/tenancy/workspace-host";
+import { can } from "@/lib/auth/capabilities";
+import {
+  formatRoleLabel,
+  modulesForSession,
+  WorkspaceModuleCards,
+  WorkspacePublicUrl,
+} from "@/features/shell";
+import { listSchoolMembers, StaffDirectory } from "@/features/auth";
+import { listSchoolStudents, StudentsPanel } from "@/features/fees";
+import { WelcomeSetupCard } from "@/features/registration";
+
+type Props = {
+  params: Promise<{ workspace: string }>;
+  searchParams: Promise<{ welcome?: string }>;
+};
+
+export default async function WorkspaceHomePage({ params, searchParams }: Props) {
+  const { workspace } = await params;
+  const { welcome } = await searchParams;
+  const ctx = await getSessionContext(workspace);
+  if (!ctx) notFound();
+
+  const nav = modulesForSession(ctx);
+  const roleLabel = formatRoleLabel(ctx.role);
+  const firstName = ctx.email?.split("@")[0] ?? "there";
+  const showDirectory = can(ctx, "members.viewDirectory");
+  const schoolUrl =
+    ctx.role === "school_admin"
+      ? workspaceUrlDisplay(workspace, hostnameFromHeaders(await headers()))
+      : null;
+
+  const data = showDirectory
+    ? await withTenant(
+        { sub: ctx.userId, school_id: ctx.schoolId, role: ctx.role },
+        async (tx) => ({
+          members: await listSchoolMembers(tx, ctx.schoolId),
+          students: await listSchoolStudents(tx, ctx.schoolId),
+        }),
+      )
+    : { members: [], students: [] };
+
+  const activeMembers = data.members.filter(
+    (m) => m.isActive && !m.archivedAt,
+  ).length;
+
+  return (
+    <div className="flex flex-col gap-10">
+      <div className="flex flex-col gap-2">
+        <p className="text-sm font-medium text-primary capitalize">
+          {roleLabel}
+        </p>
+        <h1 className="font-serif text-3xl font-semibold tracking-tight">
+          Welcome back, {firstName}
+        </h1>
+        <p className="max-w-prose text-sm text-muted-foreground">
+          {showDirectory
+            ? `Manage your team and monitor access for ${workspace}.`
+            : `Everything for ${workspace} lives in the modules below — pick one to get started.`}
+        </p>
+      </div>
+
+      {schoolUrl ? <WorkspacePublicUrl url={schoolUrl} /> : null}
+
+      {welcome === "1" && ctx.role === "school_admin" && schoolUrl ? (
+        <WelcomeSetupCard workspace={workspace} shareHost={schoolUrl.shareHost} />
+      ) : null}
+
+      {showDirectory ? (
+        <>
+          <section className="grid gap-4 sm:grid-cols-3">
+            <Stat label="Active members" value={String(activeMembers)} />
+            <Stat label="Students" value={String(data.students.length)} />
+            <Stat
+              label="Classes"
+              value={String(
+                new Set(
+                  data.students
+                    .map((s) => s.classLabel)
+                    .filter((c): c is string => c !== null),
+                ).size,
+              )}
+            />
+          </section>
+
+          <StaffDirectory
+            workspace={workspace}
+            schoolId={ctx.schoolId}
+            userId={ctx.userId}
+            members={data.members}
+            currentUserId={ctx.userId}
+            currentRole={ctx.role}
+            canProvision={can(ctx, "members.provision")}
+          />
+
+          <StudentsPanel students={data.students} />
+        </>
+      ) : (
+        <section className="flex flex-col gap-4">
+          <h2 className="text-sm font-medium text-muted-foreground">
+            Your modules
+          </h2>
+          <WorkspaceModuleCards workspace={workspace} items={nav} />
+        </section>
+      )}
+    </div>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-md border border-border px-4 py-3">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="mt-1 text-2xl font-semibold tracking-tight">{value}</p>
+    </div>
+  );
+}

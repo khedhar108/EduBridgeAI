@@ -6,6 +6,7 @@
 
 Related: [multi-tenancy.md](./multi-tenancy.md), [auth/rbac-model.md](./auth/rbac-model.md),
 [support-access.md](./support-access.md), [ADR-006](../decisions/ADR-006-workspace-subdomains.md),
+[workspace-urls.md](./workspace-urls.md),
 [feature-folder-structure.md](../guides/feature-folder-structure.md).
 
 ## Industry model (locked)
@@ -45,15 +46,16 @@ flowchart LR
 ## URL surface (summary)
 
 Full decision: [ADR-006](../decisions/ADR-006-workspace-subdomains.md).
+How to get there without breaking path URLs: [workspace-urls.md](./workspace-urls.md),
+open checkboxes: [platform-launch.md](../wayfinder/platform-launch.md).
 
-| Audience | Production | Local development |
-|----------|------------|-------------------|
+| Audience | Production (after slice C) | Local development (keep forever) |
+|----------|----------------------------|----------------------------------|
 | Public / marketing | `edubridge.app` | `localhost:3000` |
 | Platform console | `platform.edubridge.app` | `localhost:3000/platform` |
 | School workspace | `<slug>.edubridge.app` (slug ends `-bridge`) | `localhost:3000/<slug>` |
 
-`proxy.ts` resolves host once and rewrites to thin App Router trees so feature
-code always sees the same `[workspace]` parameter.
+Today `proxy.ts` **rewrites** school and platform Hosts. `{slug}.edubridge.app` still needs Coolify DNS + TLS before it is reachable on the public internet. Feature code always sees the same `[workspace]` parameter. Admin home shows the shareable School URL.
 
 ## Folder architecture (product app)
 
@@ -65,14 +67,14 @@ apps/edubridge/
 ├── proxy.ts                         # session refresh + host → route rewrite
 ├── app/
 │   ├── (marketing)/                 # public pages; registration routes (Phase 6)
-│   ├── (auth)/                      # shared sign-in, recovery, invite accept
+│   ├── (auth)/                      # shared sign-in, recovery, domain join
 │   ├── auth/callback/               # magic-link / OAuth code exchange
 │   ├── platform/                    # platform.edubridge.app thin routes
 │   └── [workspace]/                 # school subdomain/path thin routes
 ├── features/
 │   ├── auth/                        # identity UI/actions only
 │   ├── registration/                # school creation + provisioning (Phase 6)
-│   ├── memberships/                 # school member invites + role management
+│   ├── memberships/                 # school member + role management
 │   ├── billing/                     # school-facing plan, invoices, state (Phase 6)
 │   ├── platform-console/            # owner billing/funnel/tenant metadata (Phase 6)
 │   ├── support-access/              # request/approve/enter/revoke/audit (Phase 6)
@@ -100,7 +102,7 @@ Each feature follows [feature-folder-structure.md](../guides/feature-folder-stru
 | Concern | Feature folder | Phase |
 |---------|----------------|-------|
 | Sign-in / sign-out / password / magic link | `features/auth/` | 0 |
-| Member invite inside a school | `features/memberships/` | 0 |
+| Member create inside a school | `features/auth/` (directory Add member) | 0 |
 | Workspace chrome + nav registry | `features/shell/` | 0 |
 | Public school registration | `features/registration/` | 6 |
 | School subscription / invoices | `features/billing/` | 6 |
@@ -114,8 +116,8 @@ Each feature follows [feature-folder-structure.md](../guides/feature-folder-stru
 
 - Verified identity + live `school_members` row for the resolved school → tenant context.
 - Every tenant query runs through `withTenant()`; RLS is the backstop.
-- School registration (Phase 6) is one atomic provisioning op: school, first
-  `school_admin`, trial subscription, default entitlements.
+- School registration is one atomic provisioning op: school + first
+  `school_admin`. Trial subscription and entitlements remain Phase 6.2.
 
 ### Platform console
 
@@ -132,16 +134,18 @@ RLS helpers — never insert the owner into `school_members`.
 
 ## Phase split (do not collapse)
 
-| Now (Phase 0) | Later (Phase 6) |
-|---------------|-----------------|
-| Identity + SSR clients + `getSessionContext` | Public registration + provisioning |
-| Invite-based membership | Plans, trials, payments, entitlements |
-| Path/workspace shell for pilot | Wildcard DNS + production subdomains |
-| Platform enum / admin table reserved | Full platform console UI |
-| Architecture docs for support | `support_access_grants` + RLS + UI |
+| Now | Later (open on [platform-launch](../wayfinder/platform-launch.md)) |
+|-----|---------------------------------------------------------------------|
+| Identity + SSR clients + `getSessionContext` | Host rewrite + wildcard DNS (6.6) |
+| Office-created membership + domain join | Plans, trials, payments, entitlements (6.2–6.4) |
+| Public `/register` thin slice (6.1 shipped) | Trial row + entitlements on provision |
+| Path/workspace shell | `{slug}.edubridge.app` (path fallback stays) |
+| Platform enum / admin table reserved | Full platform console UI (6.5) |
+| Architecture docs for support | `support_access_grants` + RLS + UI (6.7) |
 
-Phase 0 must not implement billing, self-serve registration, support grants, or
-wildcard DNS. It **must** leave seams so Phase 6 does not rewrite feature routes.
+Do not implement billing, wildcard DNS, or support grants in a Control Hub or
+Fees PR. Registration already exists — do not rebuild it. Leave path routes so
+6.6 is a rewrite, not a folder move.
 
 ## Acceptance checks (specification)
 

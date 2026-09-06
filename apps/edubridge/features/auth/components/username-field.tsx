@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Check, X } from "lucide-react";
 import { Input } from "@repo/ui/components/input";
 import { Spinner } from "@repo/ui/components/spinner";
-import { checkUsernameAction } from "../actions/check-username";
+import { useUsernameCheck } from "../hooks/use-username-check";
 import {
   sanitizeUsernameInput,
   validateUsername,
@@ -13,7 +13,7 @@ import {
 type Status = "idle" | "checking" | "available" | "taken" | "invalid";
 
 type Props = {
-  /** Deterministic prefill (e.g. from the invited email) — applied until the user types. */
+  /** Deterministic prefill (e.g. from the email local part) — applied until the user types. */
   suggested?: string;
   /** School slug — username uniqueness is per-school. Empty = format-only check (e.g. domain-join, where uniqueness is deferred to activation). */
   schoolSlug?: string;
@@ -28,53 +28,41 @@ type Props = {
 export function UsernameField({ suggested, schoolSlug, disabled }: Props) {
   const [value, setValue] = useState("");
   const [touched, setTouched] = useState(false);
-  const [status, setStatus] = useState<Status>("idle");
-  const [reason, setReason] = useState<string | null>(null);
-  const lastChecked = useRef<string | null>(null);
+  const { data, isFetching, isError, error, debounced } = useUsernameCheck(
+    value,
+    schoolSlug,
+  );
 
-  // Apply the deterministic suggestion until the user edits the field.
   useEffect(() => {
     if (!touched && suggested) {
       setValue(sanitizeUsernameInput(suggested));
     }
   }, [suggested, touched]);
 
-  // Debounced single-query availability check.
-  useEffect(() => {
-    if (!value) {
-      setStatus("idle");
-      setReason(null);
-      lastChecked.current = null;
-      return;
-    }
+  const formatError = value ? validateUsername(value) : null;
+  const waitingOnDebounce = value !== debounced;
+  const status: Status = !value
+    ? "idle"
+    : formatError
+      ? "invalid"
+      : waitingOnDebounce || isFetching
+        ? "checking"
+        : isError
+          ? "invalid"
+          : !schoolSlug
+            ? "available"
+            : data?.available
+              ? "available"
+              : data
+                ? "taken"
+                : "checking";
 
-    const error = validateUsername(value);
-    if (error) {
-      setStatus("invalid");
-      setReason(error);
-      return;
-    }
-
-    if (lastChecked.current === value) return;
-
-    setStatus("checking");
-    setReason(null);
-    const timer = setTimeout(() => {
-      lastChecked.current = value;
-      if (!schoolSlug) {
-        // Format-only (no DB check) — e.g. domain-join defers uniqueness to activation.
-        setStatus("available");
-        setReason(null);
-        return;
-      }
-      void checkUsernameAction(value, schoolSlug).then((result) => {
-        setStatus(result.available ? "available" : "taken");
-        setReason(result.reason ?? null);
-      });
-    }, 400);
-
-    return () => clearTimeout(timer);
-  }, [value, schoolSlug]);
+  const reason =
+    status === "invalid"
+      ? (formatError ?? error?.message ?? "Could not check username.")
+      : status === "taken"
+        ? (data?.reason ?? "Pick another username.")
+        : null;
 
   const hintColor =
     status === "available"

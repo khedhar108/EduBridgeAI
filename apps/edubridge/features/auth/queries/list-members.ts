@@ -7,13 +7,14 @@ export type MemberDirectoryEntry = {
   username: string | null;
   role: string;
   isActive: boolean;
+  archivedAt: Date | null;
   createdAt: Date;
 };
 
 /**
  * List all members of a school with their profile data for the admin
  * dashboard directory. Runs inside `withTenant` — RLS limits to the
- * caller's school.
+ * caller's school. Includes inactive and archived rows for audit.
  */
 export async function listSchoolMembers(
   tx: TenantTx,
@@ -24,6 +25,7 @@ export async function listSchoolMembers(
       userId: schoolMembers.userId,
       role: schoolMembers.role,
       isActive: schoolMembers.isActive,
+      archivedAt: schoolMembers.archivedAt,
       memberCreatedAt: schoolMembers.createdAt,
       fullName: profiles.fullName,
       email: profiles.email,
@@ -37,11 +39,11 @@ export async function listSchoolMembers(
   return rows.map((r) => ({
     userId: r.userId,
     fullName: r.fullName,
-    // email/username default to empty string for Auth FK PK safety
     email: r.email ?? null,
     username: r.username ?? null,
     role: r.role,
     isActive: r.isActive,
+    archivedAt: r.archivedAt ?? null,
     createdAt: r.memberCreatedAt,
   }));
 }

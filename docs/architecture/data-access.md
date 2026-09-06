@@ -10,7 +10,7 @@
 | Schema + migrations       | **Drizzle ORM** (`packages/db`) + `drizzle-kit` | Type-safe schema-as-code, shared by `apps/edubridge` and `apps/agent` |
 | Table CRUD in app code    | Drizzle queries only                            | One query style, compile-time safety, portable SQL                    |
 | Tenant isolation backstop | **RLS policies in SQL migrations**              | Enforced by Postgres even if app code has a bug                       |
-| Authentication            | **Supabase Auth** via `@supabase/ssr`           | Session cookies, email/password + magic link, invite flows            |
+| Authentication            | **Supabase Auth** via `@supabase/ssr`           | Session cookies, email/password + magic link, office-created staff    |
 | Storage / realtime        | Supabase client                                 | Used at the edges only, never for table CRUD                          |
 
 ## Why Drizzle + Supabase (and not the alternatives)
@@ -47,7 +47,7 @@ flowchart LR
         migrations["drizzle-kit migrations"]
     end
     subgraph Supabase["Supabase"]
-        auth["Auth (sessions, invites)"]
+        auth["Auth (sessions, staff accounts)"]
         pg["Postgres + RLS policies"]
         storage["Storage / Realtime"]
     end
@@ -319,6 +319,12 @@ From the project's `supabase-postgres-best-practices` skill, the items that shap
 - Domain code speaks **Drizzle + Postgres SQL** — moving hosts means changing `DATABASE_URL` and re-running migrations.
 - Supabase-specific surface is confined to three thin edges: `@supabase/ssr` auth wiring, storage uploads, realtime subscriptions. None of them touch the schema or the domain queries.
 - RLS policies are standard Postgres — they port to any Postgres host unchanged.
+
+## Client cache (TanStack Query)
+
+Table access stays Drizzle + `withTenant` as above. After first paint, client islands call the same server actions — they do not open a second database client and they do not talk to PostgREST.
+
+**RSC vs TQ inventory** (what is a hook vs what stays a server list): [TanStack Query in EduBridge](../guides/tanstack-query-adoption.md). Decision: [ADR-011](../decisions/ADR-011-tanstack-query-client-cache.md).
 
 ## Testing the layers
 

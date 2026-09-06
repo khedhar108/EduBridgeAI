@@ -9,11 +9,8 @@ import {
   studentFeeAssignments,
   withTenant,
 } from "@repo/db";
-import {
-  assertRole,
-  getSessionContext,
-} from "@/lib/tenancy/session-context";
-import { MONEY_ROLES } from "../lib/roles";
+import { getSessionContext } from "@/lib/tenancy/session-context";
+import { can } from "@/lib/auth/capabilities";
 import { recordPaymentSchema } from "../lib/schemas";
 
 export type RecordPaymentState = { error?: string; ok?: boolean };
@@ -25,7 +22,9 @@ export async function recordPaymentAction(
 ): Promise<RecordPaymentState> {
   const ctx = await getSessionContext(workspace);
   if (!ctx) return { error: "Sign in required." };
-  assertRole(ctx, MONEY_ROLES);
+  if (!can(ctx, "fees.collect")) {
+    return { error: "You cannot record fee payments." };
+  }
 
   const parsed = recordPaymentSchema.safeParse({
     assignmentId: formData.get("assignmentId"),

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Button } from "@repo/ui/components/button";
 import { ArrowLeftIcon } from "lucide-react";
+import { PLATFORM_NAME } from "@/lib/brand";
 import {
   BLOG_ARTICLES,
   getArticle,
@@ -17,7 +18,7 @@ export function BlogIndex() {
           className="inline-flex w-fit items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           <ArrowLeftIcon className="size-4" aria-hidden />
-          EduBridge
+          {PLATFORM_NAME}
         </Link>
         <h1 className="font-serif text-4xl tracking-tight text-foreground sm:text-5xl">
           Product notes

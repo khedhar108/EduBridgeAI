@@ -1,10 +1,12 @@
 export {
   modules,
+  familyModules,
   modulesForRole,
   PLATFORM_ROLES,
   type ModuleNavItem,
   type PlatformRole,
 } from "./modules";
+export { modulesForSession } from "./modules-for-session";
 export {
   findActiveModule,
   formatRoleLabel,
@@ -20,6 +22,7 @@ export { ShellLayout } from "./components/shell-layout";
 export { ImpersonationBanner } from "./components/impersonation-banner";
 export { AccountDisabledScreen } from "./components/account-disabled-screen";
 export { WorkspaceModuleCards } from "./components/workspace-module-cards";
+export { WorkspacePublicUrl } from "./components/workspace-public-url";
 export { NotFoundScreen } from "./components/not-found-screen";
 export { ErrorScreen } from "./components/error-screen";
 export { StatusDashboard } from "./components/status-dashboard";

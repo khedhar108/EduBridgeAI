@@ -14,6 +14,9 @@ Lightweight log of significant technical decisions.
 | [ADR-006](./ADR-006-workspace-subdomains.md) | Production school subdomains; path fallback in local; `proxy.ts` host rewrite | Accepted |
 | [ADR-007](./ADR-007-email-auth-password.md) | Email + password as the Phase 0 auth method | Accepted |
 | [ADR-008](./ADR-008-delegated-admin-impersonation.md) | Delegated administration via coordinator + signed-cookie impersonation | Accepted |
+| [ADR-010](./ADR-010-mastra-coolify-host.md) | Mastra OSS on Coolify, not Mastra Cloud | Accepted |
+| [ADR-011](./ADR-011-tanstack-query-client-cache.md) | TanStack Query as the client server-state cache | Proposed |
+| [ADR-012](./ADR-012-tenant-resource-fairness.md) | Shared-everything tenancy; fairness is staged | Accepted |
 
 ## ADR template
 

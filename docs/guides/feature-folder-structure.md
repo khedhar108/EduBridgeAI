@@ -50,7 +50,7 @@ apps/edubridge/features/student-dashboard/
 2. **One public door.** Other code imports only from the module's `index.ts`. Deep imports into another module's internals are forbidden.
 3. **Modules never import modules.** Shared needs go up, not sideways: shared UI → `packages/ui`, shared DB schema → `packages/db`, shared helpers → `apps/edubridge/lib/`.
 4. **Promote to shared only at 2+ consumers.** A component/helper used by a single module stays in that module.
-5. **queries/ and actions/ are server-only.** Never import them from client components; client components call actions or read props from server components.
+5. **queries/ are server-only. Actions are the client RPC.** Client components and `hooks/` must never import `queries/` or `@repo/db`. They **may** import `"use server"` actions (Next.js RPC stubs). Interactive after-paint reads/writes use TanStack Query in `hooks/` (`useQuery` / `useMutation` → those actions). RSC pages still load first paint via `getSessionContext` → `withTenant` → `queries/`. Inventory of which surfaces are TQ vs purposely RSC: [tanstack-query-adoption.md](./tanstack-query-adoption.md). Keys: `apps/edubridge/lib/query/keys.ts`.
 6. **Every mutation action** resolves the session context, asserts the role, and runs inside the tenant transaction (`withTenant`) — see [data-access.md](../architecture/data-access.md).
 7. **Registration.** Every module adds one entry to the shell module registry (`features/shell/modules.ts`) with `{ id, title, href, icon, allowedRoles }`. That entry is the only place navigation is defined.
 
@@ -84,16 +84,18 @@ Do not invent a second app. Thin routes and feature folders stay under `apps/edu
 
 | Feature folder | Responsibility |
 |----------------|----------------|
-| `auth/` | Identity UI/actions only |
-| `memberships/` | School invites + role management |
-| `shell/` | Workspace chrome + module registry |
+| `legal/` | Public Terms, Privacy, Cookies, site footer, cookie banner |
+| `auth/` | Identity UI/actions only (staff sign-in, family cookie set/clear) |
+| `student-dashboard/` | **Family** dashboard (`/family/*`, one child) + **school** dashboard (`/students`, class filter) — [architecture.md](../features/student-dashboard/architecture.md) |
+| `memberships/` | School member + role management |
+| `shell/` | Workspace chrome + module registry (`modules` staff, `familyModules` family) |
 | `registration/` | School signup + provisioning (Phase 6) |
 | `billing/` | School-facing subscription/invoices (Phase 6) |
 | `platform-console/` | Owner aggregates only (Phase 6) |
 | `support-access/` | JIT support grants (Phase 6) |
 | `<product-module>/` | Domain features (dashboard, report cards, …) |
 
-Shared seams: `lib/auth`, `lib/tenancy`, `lib/access` — promote only at 2+ consumers.
+Shared seams: `lib/auth`, `lib/tenancy`, `lib/access`, `lib/query` — promote only at 2+ consumers.
 
 ## Adding a new module (checklist)
 

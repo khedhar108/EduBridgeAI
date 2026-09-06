@@ -1,0 +1,20 @@
+---
+description: Brand constants come only from apps/edubridge/lib/brand.ts — never hardcode or duplicate
+alwaysApply: true
+---
+
+# Brand constants
+
+In `apps/edubridge`, **display name, tagline, public domain, and cookie prefix** come from one file: `apps/edubridge/lib/brand.ts`. Import `PLATFORM_NAME`, `PLATFORM_TAGLINE`, `PLATFORM_DOMAIN`, or `COOKIE_PREFIX` from `@/lib/brand` (or `../brand` inside `lib/`). Do not hardcode `EduBridge` / `edubridge.app` in UI, metadata, or copy. Do not add a second `PLATFORM_*` or `APP_NAME` constant elsewhere.
+
+Legal keywords (entity, court, emails, versions, `LEGAL_DOCS_IN_FORCE`) stay in `apps/edubridge/lib/legal/constants.ts`. Cookie **names** use `COOKIE_PREFIX`, never `PLATFORM_NAME`.
+
+```ts
+// ❌ BAD — parallel constant or hardcoded brand
+const APP_NAME = "EduBridge";
+<title>EduBridge</title>
+
+// ✅ GOOD — single source
+import { PLATFORM_NAME } from "@/lib/brand";
+<title>{PLATFORM_NAME}</title>
+```

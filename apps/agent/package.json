@@ -12,7 +12,7 @@
   "keywords": [],
   "author": "",
   "license": "Apache-2.0",
-  "packageManager": "pnpm@11.3.0",
+  "packageManager": "pnpm@9.15.4",
   "type": "module",
   "engines": {
     "node": ">=22.13.0"

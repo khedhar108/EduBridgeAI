@@ -10,12 +10,11 @@ unrecorded. The auth strategy
 ([strategy.md](../architecture/auth/strategy.md)) lists both email+password and
 email OTP/magic link as Phase 0 candidates — password for admins/teachers/staff,
 passwordless for parents/students — but the code had to pick one concrete method
-to build the first sign-in, invite-accept, and domain-join flows against.
+to build the first sign-in, office-create, and domain-join flows against.
 
 The implemented flows set credentials server-side:
 
-- Invite acceptance (`acceptInviteAction`) calls `supabase.auth.signUp({ email, password })`
-  with a password the invitee chooses on `/accept-invite/[token]`.
+- Office Add member (`provisionMemberAction`) calls `auth.admin.createUser({ email, password, email_confirm: true })` with a password the coordinator or admin chooses in the staff directory.
 - Domain join (`schoolDomainSignUpAction`) calls `supabase.auth.signUp({ email, password })`
   with a password the staff member chooses on `/join-school`.
 
@@ -41,7 +40,7 @@ both use email + password today.
 ### Pros
 
 - One concrete sign-in path to test and maintain for Phase 0 exit.
-- Invite/domain-join flows already set passwords server-side — no extra wiring.
+- Office create / domain-join flows already set passwords server-side — no extra wiring.
 - Parents/students are Phase 1 family access (`admission number + DOB`), so
   deferring passwordless avoids building a second auth surface before it's
   needed.
@@ -50,8 +49,8 @@ both use email + password today.
 
 ### Cons / follow-up
 
-- Password-reset support load falls on staff until passwordless parent access
-  ships — acceptable for Phase 0–1 pilot scope (staff are few and technical).
+- Password-reset support load stays on the office (directory reset) until
+  a self-serve recovery path ships — acceptable for Phase 0–1 pilot scope.
 - Must enable email-OTP (or phone OTP) before the parent app scales, to drop the
   password burden for the least-technical user group. Track as Phase 1/2 work.
 - No MFA yet for `school_admin`/`platform_owner` — Phase 5 per the strategy.

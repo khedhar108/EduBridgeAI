@@ -4,10 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/auth/supabase-server";
 import { ensureDomainJoinRequest } from "@/lib/tenancy/domain-join";
-import {
-  emailDomain,
-  isEligibleSchoolEmailDomain,
-} from "@/lib/tenancy/email-domain";
+import { persistAcceptedTerms } from "@/lib/legal/accept-terms";
+import { schoolEmailGateError } from "@/lib/tenancy/email-domain";
 import { schoolDomainSignUpSchema } from "../lib/schemas";
 
 export type SchoolDomainSignUpState = { error?: string };
@@ -32,14 +30,12 @@ export async function schoolDomainSignUpAction(
     return { error: "Enter your school email, name, a username, and a password (8+ chars)." };
   }
 
+  const terms = await persistAcceptedTerms(formData);
+  if (!terms.ok) return { error: terms.error };
+
   const email = parsed.data.email.toLowerCase();
-  const domain = emailDomain(email);
-  if (!domain || !isEligibleSchoolEmailDomain(domain)) {
-    return {
-      error:
-        "Use your official school email (not Gmail/Yahoo/etc.), or ask for an invite link.",
-    };
-  }
+  const emailError = schoolEmailGateError(email);
+  if (emailError) return { error: emailError };
 
   // Username uniqueness is checked at activation time (per-school), not here.
 
@@ -66,7 +62,7 @@ export async function schoolDomainSignUpAction(
   if (!join) {
     return {
       error:
-        "No school is registered for that email domain. Ask your admin for an invite.",
+        "No school is registered for that email domain. Ask the office to create your account.",
     };
   }
 

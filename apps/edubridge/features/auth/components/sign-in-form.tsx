@@ -1,25 +1,34 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import { Input } from "@repo/ui/components/input";
 import { Spinner } from "@repo/ui/components/spinner";
-import { signInAction, type SignInState } from "../actions/sign-in";
+import { useActionToast } from "@repo/ui/hooks/use-action-toast";
+import { QueryIsland } from "@/lib/query/island";
+import type { SignInState } from "../actions/sign-in";
+import { useSignIn } from "../hooks/use-sign-in";
+import { PasswordField } from "@repo/ui/components/password-field";
 import {
   DEMO_PREFILL_EVENT,
   consumeDemoPrefill,
 } from "../lib/demo-accounts";
+import { TermsAcceptCheckbox } from "./terms-accept-checkbox";
+import { REMEMBER_CREDS_KEY } from "@/lib/legal/cookie-inventory";
+import { readConsentFromDocument } from "@/lib/legal/consent";
+import { TERMS_VERSION } from "@/lib/legal/constants";
 
 const initial: SignInState = {};
 
 type Props = {
   surface: "school" | "platform";
   next?: string;
+  emailPrefill?: string;
+  /** When set (workspace sign-in), school comes from the URL — no slug field. */
+  workspace?: string;
 };
 
-const REMEMBER_KEY = "edubridge.remembered-creds";
 const REMEMBER_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 type RememberedCreds = {
@@ -30,7 +39,7 @@ type RememberedCreds = {
 
 function readRemembered(): RememberedCreds | null {
   try {
-    const raw = localStorage.getItem(REMEMBER_KEY);
+    const raw = localStorage.getItem(REMEMBER_CREDS_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<RememberedCreds>;
     if (
@@ -41,7 +50,7 @@ function readRemembered(): RememberedCreds | null {
       return null;
     }
     if (Date.now() > parsed.expiresAt) {
-      localStorage.removeItem(REMEMBER_KEY);
+      localStorage.removeItem(REMEMBER_CREDS_KEY);
       return null;
     }
     return {
@@ -57,7 +66,7 @@ function readRemembered(): RememberedCreds | null {
 function writeRemembered(email: string, password: string) {
   try {
     localStorage.setItem(
-      REMEMBER_KEY,
+      REMEMBER_CREDS_KEY,
       JSON.stringify({ email, password, expiresAt: Date.now() + REMEMBER_TTL }),
     );
   } catch {
@@ -67,18 +76,27 @@ function writeRemembered(email: string, password: string) {
 
 function clearRemembered() {
   try {
-    localStorage.removeItem(REMEMBER_KEY);
+    localStorage.removeItem(REMEMBER_CREDS_KEY);
   } catch {
     // ignore
   }
 }
 
-export function SignInForm({ surface, next }: Props) {
-  const [state, formAction, pending] = useActionState(signInAction, initial);
-  const [email, setEmail] = useState("");
+export function SignInForm(props: Props) {
+  return (
+    <QueryIsland>
+      <SignInFields {...props} />
+    </QueryIsland>
+  );
+}
+
+function SignInFields({ surface, next, emailPrefill, workspace }: Props) {
+  const { mutate, isPending: pending, data: mutationResult } = useSignIn();
+  const state = mutationResult ?? initial;
+  useActionToast(state);
+  const [email, setEmail] = useState(emailPrefill ?? "");
   const [schoolSlug, setSchoolSlug] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
 
   const formRef = useRef<HTMLFormElement>(null);
@@ -86,7 +104,13 @@ export function SignInForm({ surface, next }: Props) {
   const autoSubmitRef = useRef(false);
 
   // Restore credentials (remembered > demo stash) and wire the demo event.
+  // Skip remember-me auto-login when the URL already named a different email
+  // so saved admin creds don't overwrite the named account.
   useEffect(() => {
+    if (emailPrefill) {
+      setEmail(emailPrefill);
+      return;
+    }
     const remembered = readRemembered();
     if (remembered) {
       setEmail(remembered.email);
@@ -112,7 +136,7 @@ export function SignInForm({ surface, next }: Props) {
     };
     window.addEventListener(DEMO_PREFILL_EVENT, onPrefill);
     return () => window.removeEventListener(DEMO_PREFILL_EVENT, onPrefill);
-  }, []);
+  }, [emailPrefill]);
 
   // Auto-submit once when credentials were restored from "remember me",
   // so returning users skip the manual sign-in.
@@ -122,7 +146,8 @@ export function SignInForm({ surface, next }: Props) {
       email &&
       password &&
       !autoSubmitRef.current &&
-      !pending
+      !pending &&
+      readConsentFromDocument()?.termsVersion === TERMS_VERSION
     ) {
       autoSubmitRef.current = true;
       const id = setTimeout(() => formRef.current?.requestSubmit(), 60);
@@ -151,14 +176,19 @@ export function SignInForm({ surface, next }: Props) {
   return (
     <form
       ref={formRef}
-      action={formAction}
+      action={(formData) => {
+        mutate(formData);
+      }}
       onSubmit={onSubmit}
       className="flex flex-col gap-4"
     >
       <input type="hidden" name="surface" value={surface} />
       {next ? <input type="hidden" name="next" value={next} /> : null}
+      {workspace ? (
+        <input type="hidden" name="workspace" value={workspace} />
+      ) : null}
 
-      {surface === "school" ? (
+      {surface === "school" && !workspace ? (
         <div className="flex flex-col gap-2">
           <label htmlFor="schoolSlug" className="text-sm font-medium text-foreground">
             School
@@ -175,7 +205,8 @@ export function SignInForm({ surface, next }: Props) {
             onChange={(event) => setSchoolSlug(event.target.value)}
           />
           <p className="text-xs text-muted-foreground">
-            Required only when signing in with a username.
+            Required only when signing in with a username from a bookmark.
+            Email never needs it.
           </p>
         </div>
       ) : null}
@@ -197,41 +228,25 @@ export function SignInForm({ surface, next }: Props) {
         />
       </div>
 
-      <div className="flex flex-col gap-2">
-        <label
-          htmlFor="password"
-          className="text-sm font-medium text-foreground"
-        >
-          Password
-        </label>
-        <div className="relative">
-          <Input
-            id="password"
-            name="password"
-            type={showPassword ? "text" : "password"}
-            autoComplete="current-password"
-            required
-            minLength={8}
-            className="h-11 pr-10"
-            disabled={pending}
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword((show) => !show)}
-            aria-label={showPassword ? "Hide password" : "Show password"}
-            aria-pressed={showPassword}
-            className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground transition-colors hover:text-foreground focus:outline-none focus-visible:text-foreground"
-          >
-            {showPassword ? (
-              <EyeOff className="size-4" />
-            ) : (
-              <Eye className="size-4" />
-            )}
-          </button>
-        </div>
-      </div>
+      <PasswordField
+        id="password"
+        name="password"
+        label="Password"
+        autoComplete="current-password"
+        disabled={pending}
+        value={password}
+        onChange={setPassword}
+        hint={
+          <p className="text-right">
+            <Link
+              href="/forgot-password"
+              className="text-xs font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </p>
+        }
+      />
 
       <label className="flex items-center gap-2 text-sm text-muted-foreground">
         <input
@@ -243,10 +258,10 @@ export function SignInForm({ surface, next }: Props) {
         Remember me for 7 days
       </label>
 
+      <TermsAcceptCheckbox disabled={pending} />
+
       {state.error ? (
-        <p className="text-sm text-destructive" role="alert">
-          {state.error}
-        </p>
+        <p className="text-sm text-destructive">{state.error}</p>
       ) : null}
 
       <Button type="submit" className="h-11" disabled={pending}>

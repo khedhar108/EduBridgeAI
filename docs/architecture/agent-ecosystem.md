@@ -104,6 +104,7 @@ The orchestrator is deliberately last: with one or two sub-agents, routing is a 
 ## References
 
 - [agent-auth.md](./auth/agent-auth.md) — service tokens, MastraJwtAuth, scope claims
+- [ai-platform.md](./ai-platform.md) — process boundary, Coolify host, env split
 - [ai-rag.md](./ai-rag.md) — SQL-tools vs RAG split, pgvector setup
 - [Mastra memory docs](https://mastra.ai/docs/memory/overview) · [Mastra agents](https://mastra.ai/docs/agents/overview)
 - Phase files: [phase-2](../roadmap/phase-2-ai-integration.md), [phase-5](../roadmap/phase-5-timetable-maker.md), [phase-6](../roadmap/phase-6-platform-growth.md)

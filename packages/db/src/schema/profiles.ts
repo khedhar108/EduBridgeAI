@@ -22,7 +22,7 @@ export const profiles = pgTable(
     fullName: varchar("full_name", { length: 160 }).notNull(),
     /**
      * Denormalized from auth.users so member directories can render emails
-     * through Drizzle + RLS. Kept in sync at signup/invite/activate time;
+     * through Drizzle + RLS. Kept in sync at signup/provision/activate time;
      * auth.users remains the identity source of truth.
      */
     email: varchar("email", { length: 320 }),

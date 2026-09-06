@@ -26,7 +26,7 @@ try {
   // so no fixture data persists regardless of pass/fail.
   await sql.unsafe(sqlText, { prepare: false }).simple();
   process.stdout.write(
-    "RLS isolation test passed: Alpha user sees 1 school, 1 membership; cross-tenant update blocked. (rolled back)\n",
+    "RLS isolation test passed: tenant isolation, no school_members DELETE, coordinator cannot archive, archived member loses is_school_member, classes isolated. (rolled back)\n",
   );
 } catch (error) {
   const message = error.message ?? String(error);

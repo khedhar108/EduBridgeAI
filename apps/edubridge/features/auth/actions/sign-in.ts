@@ -2,17 +2,46 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { and, eq, getDb, profiles, schoolMembers, schools } from "@repo/db";
+import {
+  and,
+  eq,
+  getDb,
+  isNull,
+  profiles,
+  schoolMembers,
+  schools,
+} from "@repo/db";
 import { createServerSupabaseClient } from "@/lib/auth/supabase-server";
 import { resolvePostLoginDestination } from "../lib/redirects";
+import { persistAcceptedTerms } from "@/lib/legal/accept-terms";
 import { signInSchema } from "../lib/schemas";
 
 export type SignInState = { error?: string };
+
+/** Conservative slug check — lookup is still parameterized. */
+const SCHOOL_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+function resolveSchoolSlug(formData: FormData): string {
+  const workspace = String(formData.get("workspace") ?? "")
+    .trim()
+    .toLowerCase();
+  if (SCHOOL_SLUG_PATTERN.test(workspace)) return workspace;
+
+  const schoolSlug = String(formData.get("schoolSlug") ?? "")
+    .trim()
+    .toLowerCase();
+  if (SCHOOL_SLUG_PATTERN.test(schoolSlug)) return schoolSlug;
+
+  return "";
+}
 
 export async function signInAction(
   _prev: SignInState,
   formData: FormData,
 ): Promise<SignInState> {
+  const terms = await persistAcceptedTerms(formData);
+  if (!terms.ok) return { error: terms.error };
+
   const parsed = signInSchema.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
@@ -22,7 +51,7 @@ export async function signInAction(
   }
 
   const identifier = parsed.data.email;
-  const schoolSlug = String(formData.get("schoolSlug") ?? "").trim().toLowerCase();
+  const schoolSlug = resolveSchoolSlug(formData);
   const isEmail = identifier.includes("@");
   let signInEmail = identifier;
 
@@ -41,6 +70,7 @@ export async function signInAction(
           eq(schoolMembers.username, identifier.toLowerCase()),
           eq(schools.slug, schoolSlug),
           eq(schoolMembers.isActive, true),
+          isNull(schoolMembers.archivedAt),
         ),
       )
       .limit(1);

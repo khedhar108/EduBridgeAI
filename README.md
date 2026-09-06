@@ -47,6 +47,7 @@ If you are an AI coding agent working in this repository, follow these rules bef
 | [docs/guides/README.md](./docs/guides/README.md)                                     | You need how-to guides and conventions                                            |
 | [docs/guides/database-workflow.md](./docs/guides/database-workflow.md)               | You change any table, run migrations, or seed data                                |
 | [docs/guides/feature-folder-structure.md](./docs/guides/feature-folder-structure.md) | You create or modify a module in `apps/edubridge/features/`                       |
+| [docs/guides/tanstack-query-adoption.md](./docs/guides/tanstack-query-adoption.md)   | You add a client cache island, mutation, or live lookup (routing → action → Drizzle) |
 | [docs/design/README.md](./docs/design/README.md)                                     | You touch UI, theming, layout consistency, or component libraries                 |
 | [docs/design/MASTER.md](./docs/design/MASTER.md)                                     | You need the locked light-only visual system (source of truth)                    |
 | [docs/agents/README.md](./docs/agents/README.md)                                     | You need extended AI-agent guidance and context strategy                          |
@@ -132,6 +133,7 @@ edubridge/
 # Requires Node >=22.13.0 and pnpm 9.15+ (npm/yarn are blocked)
 pnpm install
 
+pnpm kill:dev            # stop leftover Next/Mastra/Studio (no PC reboot)
 pnpm dev                 # edubridge + Mastra agent + UI watchers
 pnpm dev:edubridge       # primary app only → http://localhost:3000
 pnpm dev:web             # Mastra demo       → http://localhost:3002
@@ -155,6 +157,7 @@ pnpm dev:all             # everything
 | `pnpm lint` / `lint:fix`                                                        | Lint monorepo                                                              |
 | `pnpm check-types`                                                              | TypeScript check                                                           |
 | `pnpm format` / `format:check`                                                  | Prettier                                                                   |
+| `pnpm kill:dev`                                                                 | Stop leftover local servers on :3000/:3001/:3002/:4111/:4983               |
 | `pnpm clean:cache`                                                              | Clear all dev caches (`.turbo`, `.next`, `.mastra`, `node_modules/.cache`) |
 | `pnpm clean:turbo`                                                              | Clear only Turborepo caches                                                |
 | `pnpm clean`                                                                    | Remove build artifacts + node_modules                                      |

@@ -11,7 +11,8 @@ Setting an exact version in `engines.node` does **not** reliably pin the runtime
 - Netlify respects `.nvmrc` over `engines.node`.
 - GitHub Actions requires explicit `actions/setup-node` configuration.
 
-The right fix is a **bounded range** plus engine enforcement, not an exact pin.
+The right fix is `.nvmrc` + Docker/CI pins, not `engine-strict`. An exact
+`engines.node` pin is advisory only.
 
 ## The DEP0205 warning
 
@@ -32,46 +33,40 @@ The warning is harmless and does not affect build output. Fixing it is an upstre
 | Local (nvm/fnm/volta) | `.nvmrc` | Repo currently pins `22.13.0`. |
 | Vercel | `engines.node` | Major versions only. Vercel currently offers 20, 22, and 24; Node 26 is not deployable there, so DEP0205 cannot occur on Vercel today. |
 | Netlify | `NODE_VERSION` env > `.nvmrc`/`.node-version` > `engines.node` | Existing `.nvmrc` already wins unless an env var overrides it. |
-| GitHub Actions | nothing automatic | Must use `actions/setup-node` with `node-version-file: '.nvmrc'`. No workflow exists in this repo yet. |
+| GitHub Actions | `actions/setup-node` + `.nvmrc` | Workflow: `.github/workflows/ci-cd.yml`. |
+| Docker / Coolify | `node:22.13.0-alpine` | Image built on GitHub, not on the VPS. |
 
 ## Current repo state
 
 | File | Value | Effect |
 |------|-------|--------|
-| `.nvmrc` | `22.13.0` | Correct local pin. |
-| `package.json` (root) | `"node": ">=22.13.0"` | Allows Node 26, which is where the warning appears. |
-| `apps/agent/package.json` | `"node": ">=22.13.0"` | Same. |
-| `.npmrc` | only `store-dir` | No `engine-strict`, so pnpm warns but does not block mismatches. |
-| `.node-version` | absent | Fine; `.nvmrc` is enough. |
-| CI workflow | absent | Nothing to update yet. |
+| `.nvmrc` | `22.13.0` | Local + CI pin (use nvm/fnm). |
+| `package.json` (root) | `"node": ">=22.13.0"` | Advisory. Do not set `engine-strict` — it would refuse a laptop on Node 24/26. |
+| Docker / GitHub Actions | `22.13.0` | Hard pin for production images. |
+| Vercel | Node **22.x** in project settings | Do not leave the dashboard on 24. |
 
 ## Recommended change
 
-Do not pin an exact version in `engines.node`. Use a bounded range that excludes the only range where DEP0205 fires while still allowing every deployment platform's supported versions.
-
-In both root `package.json` and `apps/agent/package.json`:
+Do not pin an exact version in `engines.node`. Keep an advisory floor:
 
 ```json
 "engines": {
-  "node": ">=22.13.0 <26"
+  "node": ">=22.13.0"
 }
 ```
 
-Then enforce it in `.npmrc`:
+Do **not** enable `engine-strict`. CI and Docker already pin `22.13.0`. A strict
+range would refuse a laptop on Node 24 or 26.
 
-```ini
-engine-strict=true
-```
-
-This keeps Node 22 and 24 working, blocks Node 26 from silently running in local or CI installs, and leaves the door open to re-enable Node 26 once the upstream loader packages migrate to `module.registerHooks()`.
+Set the Vercel project to Node **22.x**. Revisit only if Vercel 22 is retired.
 
 ## What still needs an upstream fix
 
-Even with the range above, this is symptom management:
+Even with the pins above, this is symptom management:
 
 1. Wait for `drizzle-kit` to bundle a `tsx` release that uses `module.registerHooks()`.
 2. Run `pnpm update` and re-test `pnpm build` on the latest allowed Node.
-3. Once no `DEP0205` appears on Node 26, the upper bound can be removed.
+3. Once no `DEP0205` appears on Node 26, the warning can be ignored as gone.
 
 Do not suppress the warning globally with `NODE_OPTIONS=--no-deprecation`. That hides all deprecations, including ones this repo might introduce later.
 
@@ -79,11 +74,9 @@ Do not suppress the warning globally with `NODE_OPTIONS=--no-deprecation`. That 
 
 ```bash
 node -v
-# Expect 22.13.0 locally.
+# Prefer 22.13.0 (`nvm use`). Other majors still install.
 
 pnpm install
-# With engine-strict=true, this fails loudly if Node is outside the range.
-
 pnpm build
 # No DEP0205 on Node 22.13.0.
 ```

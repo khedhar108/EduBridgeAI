@@ -40,7 +40,7 @@ Canonical docs: [docs/design/shell-layout.md](../../../docs/design/shell-layout.
 { id, title, href, icon, allowedRoles }
 ```
 
-- Filter with `modulesForRole(role)` on the **server**
+- Filter with `modulesForSession(ctx)` on the **server** (Hub-aware). `modulesForRole(role)` is the static list only.
 - Forbidden module URL → `notFound()` or `403` after server check
 - Icons: `lucide-react` names in registry; resolve in client components
 

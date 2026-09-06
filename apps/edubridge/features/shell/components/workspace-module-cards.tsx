@@ -1,7 +1,9 @@
 import Link from "next/link";
 import {
   ArrowUpRightIcon,
+  GraduationCapIcon,
   HomeIcon,
+  SlidersHorizontalIcon,
   UsersIcon,
   WalletIcon,
   type LucideIcon,
@@ -19,6 +21,8 @@ const MODULE_ICONS: Record<string, LucideIcon> = {
   home: HomeIcon,
   users: UsersIcon,
   wallet: WalletIcon,
+  "graduation-cap": GraduationCapIcon,
+  "sliders-horizontal": SlidersHorizontalIcon,
 };
 
 type WorkspaceModuleCardsProps = {

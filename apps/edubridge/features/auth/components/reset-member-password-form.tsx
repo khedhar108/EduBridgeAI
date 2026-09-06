@@ -1,0 +1,79 @@
+"use client";
+
+import { useEffect } from "react";
+import { Button } from "@repo/ui/components/button";
+import { Spinner } from "@repo/ui/components/spinner";
+import { useActionToast } from "@repo/ui/hooks/use-action-toast";
+import { QueryIsland } from "@/lib/query/island";
+import type { ResetMemberPasswordState } from "../actions/reset-member-password";
+import { useResetMemberPassword } from "../hooks/use-reset-member-password";
+import { PasswordField } from "@repo/ui/components/password-field";
+
+const initial: ResetMemberPasswordState = {};
+
+type Props = {
+  workspace: string;
+  schoolId?: string;
+  userId?: string;
+  targetUserId: string;
+  memberName: string;
+  onSuccess?: () => void;
+};
+
+export function ResetMemberPasswordForm(props: Props) {
+  return (
+    <QueryIsland>
+      <ResetMemberPasswordFields {...props} />
+    </QueryIsland>
+  );
+}
+
+function ResetMemberPasswordFields({
+  workspace,
+  schoolId,
+  userId,
+  targetUserId,
+  memberName,
+  onSuccess,
+}: Props) {
+  const { mutate, isPending: pending, data: mutationResult } =
+    useResetMemberPassword(workspace, schoolId, userId);
+  const state = mutationResult ?? initial;
+  useActionToast(state, `Password updated for ${memberName}`);
+
+  useEffect(() => {
+    if (state.ok) onSuccess?.();
+  }, [state.ok, onSuccess]);
+
+  return (
+    <form
+      action={(formData) => {
+        mutate(formData);
+      }}
+      className="flex flex-col gap-4"
+    >
+      <input type="hidden" name="targetUserId" value={targetUserId} />
+      <PasswordField
+        id={`reset-password-${targetUserId}`}
+        name="password"
+        label="New password"
+        disabled={pending}
+      />
+      <PasswordField
+        id={`reset-password-confirm-${targetUserId}`}
+        name="passwordConfirm"
+        label="Confirm password"
+        disabled={pending}
+      />
+      {state.error ? (
+        <p className="text-sm text-destructive" role="alert">
+          {state.error}
+        </p>
+      ) : null}
+      <Button type="submit" className="h-11" disabled={pending}>
+        {pending ? <Spinner className="size-4" /> : null}
+        Save password
+      </Button>
+    </form>
+  );
+}

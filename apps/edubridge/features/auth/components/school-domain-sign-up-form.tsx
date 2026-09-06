@@ -1,30 +1,45 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useState } from "react";
 import { Button } from "@repo/ui/components/button";
 import { Input } from "@repo/ui/components/input";
 import { Spinner } from "@repo/ui/components/spinner";
-import {
-  schoolDomainSignUpAction,
-  type SchoolDomainSignUpState,
-} from "../actions/school-domain-sign-up";
+import { useActionToast } from "@repo/ui/hooks/use-action-toast";
+import { QueryIsland } from "@/lib/query/island";
+import type { SchoolDomainSignUpState } from "../actions/school-domain-sign-up";
+import { useSchoolDomainSignUp } from "../hooks/use-school-domain-sign-up";
 import { UsernameField } from "./username-field";
+import { PasswordField } from "@repo/ui/components/password-field";
 import { suggestUsername } from "../lib/username";
+import { TermsAcceptCheckbox } from "./terms-accept-checkbox";
 
 const initial: SchoolDomainSignUpState = {};
 
 export function SchoolDomainSignUpForm() {
-  const [state, formAction, pending] = useActionState(
-    schoolDomainSignUpAction,
-    initial,
+  return (
+    <QueryIsland>
+      <SchoolDomainSignUpFields />
+    </QueryIsland>
   );
+}
+
+function SchoolDomainSignUpFields() {
+  const { mutate, isPending: pending, data: mutationResult } =
+    useSchoolDomainSignUp();
+  const state = mutationResult ?? initial;
+  useActionToast(state);
   const [email, setEmail] = useState("");
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <form
+      action={(formData) => {
+        mutate(formData);
+      }}
+      className="flex flex-col gap-4"
+    >
       <p className="text-sm text-muted-foreground">
-        Use your official school email. Access stays pending until a school
-        admin activates you from the team dashboard.
+        Use your official school or business email. Access stays pending until a
+        school admin activates you from the team dashboard.
       </p>
 
       <div className="flex flex-col gap-2">
@@ -55,30 +70,27 @@ export function SchoolDomainSignUpForm() {
           value={email}
           onChange={(event) => setEmail(event.target.value)}
         />
+        <p className="text-xs text-muted-foreground">
+          {process.env.NODE_ENV === "production"
+            ? "School or business inbox only — not Gmail, Yahoo, or Outlook."
+            : "Any email works while developing (pnpm dev). Deployed builds use production rules."}
+        </p>
       </div>
 
       <UsernameField suggested={suggestUsername(email)} disabled={pending} />
 
-      <div className="flex flex-col gap-2">
-        <label htmlFor="password" className="text-sm font-medium">
-          Password
-        </label>
-        <Input
-          id="password"
-          name="password"
-          type="password"
-          autoComplete="new-password"
-          required
-          minLength={8}
-          className="h-11"
-          disabled={pending}
-        />
-      </div>
+      <PasswordField
+        id="password"
+        name="password"
+        label="Password"
+        autoComplete="new-password"
+        disabled={pending}
+      />
+
+      <TermsAcceptCheckbox disabled={pending} />
 
       {state.error ? (
-        <p className="text-sm text-destructive" role="alert">
-          {state.error}
-        </p>
+        <p className="text-sm text-destructive">{state.error}</p>
       ) : null}
 
       <Button type="submit" className="h-11" disabled={pending}>

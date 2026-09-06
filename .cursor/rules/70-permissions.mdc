@@ -1,0 +1,37 @@
+---
+description: Permissions go through the capability map; Control Hub is the admin UI. Never invent a parallel ACL.
+alwaysApply: true
+---
+
+# Permissions (Control Hub)
+
+Canonical map: `docs/wayfinder/control-hub.md`. Code: `apps/edubridge/lib/auth/capabilities.ts`. Page: `/{slug}/settings/control` (`school_admin` only).
+
+## Source of truth
+
+- **Defaults** live in `CAPABILITIES` (role lists). Grouped by module prefix: `members.*`, `students.*`, `fees.*`, `team.*`.
+- **Overrides** (slice 2) live on the school (`capability_overrides`). `can()` = override list ?? default. Member extras union in later. Key is `user_id`, never email.
+- **RLS** still backstops. Hub may turn a Switch on; Postgres can still refuse the write (slice 3b for coordinator fee writes).
+- Actions: `assertCapability`. Fees: `fees.structure` (publish) vs `fees.collect` (payments) vs `fees.view`.
+
+## Locked vs overridable
+
+**Always on:** school admin column; `control.view` stays admin-only. Cannot grant `school_admin`. Coordinator still cannot target admin/coordinator (`can()` target-role guard).
+
+**Overridable:** every other Hub flag. Granting a permission a role does not have by default confirms, then persists on `capability_overrides`. Subject scope is `teacher_assignments`, not a Hub flag.
+
+Hub Switches are live for extras. RLS still backstops writes slice 3b has not opened. Coordinator `fees.view` is live after fee SELECT RLS (slice 3a). Accountant `fees.structure` writes already work in Postgres.
+
+## Do not
+
+```ts
+// ❌ BAD
+assertRole(ctx, ["school_admin", "accountant"]);
+
+// ✅ GOOD
+assertCapability(ctx, "fees.collect");
+```
+
+- No Casbin / per-email ACL / custom roles.
+- No Fees fields on the SIS form.
+- Control Hub is settings, not a new app. Overridable Switches persist on `schools.capability_overrides`. Admin column stays on.

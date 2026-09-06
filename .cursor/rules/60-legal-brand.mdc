@@ -1,0 +1,24 @@
+---
+description: Brand and legal copy — change keywords in constants; do not rewrite clauses or weaken consent/jurisdiction
+globs:
+  - apps/edubridge/lib/brand.ts
+  - apps/edubridge/lib/legal/**
+  - apps/edubridge/features/legal/**
+alwaysApply: false
+---
+
+# Brand and legal
+
+- Display name / tagline / domain / cookie prefix: **only** `apps/edubridge/lib/brand.ts`. Always import; never hardcode or duplicate. Cursor: `.cursor/rules/61-brand-constants.mdc`. Cookie **names** stay on `COOKIE_PREFIX`.
+- Legal keywords (entity, court, emails, versions, `LEGAL_DOCS_IN_FORCE`): `apps/edubridge/lib/legal/constants.ts`. Clause prose lives in `features/legal/content/` and interpolates those keywords.
+- Never set `LEGAL_DOCS_IN_FORCE` true unless a human named the entity and reviewed the copy.
+- Never pre-tick Terms consent. Never drop `termsVersion`. Exclusive forum stays District Court, Jhunjhunu (constants), not concurrent courts.
+- Do not claim GDPR, SOC 2, ISO, payment processing, or native apps. New trackers go in `cookie-inventory.ts` before they ship.
+
+```ts
+// ❌ BAD — rewriting a liability cap to “sound nicer”
+body: "We are not liable for anything."
+
+// ✅ GOOD — bump version and add a section; keep the cap
+export const TERMS_VERSION = "2026-09-01";
+```

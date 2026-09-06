@@ -1,13 +1,15 @@
 "use client";
 
-import { useActionState } from "react";
 import { Button } from "@repo/ui/components/button";
+import { InfoHint } from "@repo/ui/components/info-hint";
 import { Spinner } from "@repo/ui/components/spinner";
+import { useActionToast } from "@repo/ui/hooks/use-action-toast";
+import { QueryIsland } from "@/lib/query/island";
+import type { ActivateMemberState } from "../actions/activate-member";
 import {
-  activateMembershipRequestAction,
-  rejectMembershipRequestAction,
-  type ActivateMemberState,
-} from "../actions/activate-member";
+  useActivateMember,
+  useRejectMember,
+} from "../hooks/use-activate-member";
 
 const initial: ActivateMemberState = {};
 
@@ -20,11 +22,13 @@ type RequestRow = {
 
 type Props = {
   workspace: string;
+  schoolId?: string;
+  userId?: string;
   requests: RequestRow[];
 };
 
-export function PendingMembersPanel({ workspace, requests }: Props) {
-  if (requests.length === 0) {
+export function PendingMembersPanel(props: Props) {
+  if (props.requests.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
         No pending domain-join requests.
@@ -33,24 +37,45 @@ export function PendingMembersPanel({ workspace, requests }: Props) {
   }
 
   return (
-    <ul className="flex flex-col gap-4">
-      {requests.map((req) => (
-        <PendingRow key={req.id} workspace={workspace} request={req} />
-      ))}
-    </ul>
+    <QueryIsland>
+      <ul className="flex flex-col gap-4">
+        {props.requests.map((req) => (
+          <PendingRow
+            key={req.id}
+            workspace={props.workspace}
+            schoolId={props.schoolId}
+            userId={props.userId}
+            request={req}
+          />
+        ))}
+      </ul>
+    </QueryIsland>
   );
 }
 
 function PendingRow({
   workspace,
+  schoolId,
+  userId,
   request,
 }: {
   workspace: string;
+  schoolId?: string;
+  userId?: string;
   request: RequestRow;
 }) {
-  const activate = activateMembershipRequestAction.bind(null, workspace);
-  const [state, formAction, pending] = useActionState(activate, initial);
-  const reject = rejectMembershipRequestAction.bind(null, workspace);
+  const {
+    mutate: activate,
+    isPending: pending,
+    data: activateResult,
+  } = useActivateMember(workspace, schoolId, userId);
+  const {
+    mutate: reject,
+    isPending: rejectPending,
+    data: rejectResult,
+  } = useRejectMember(workspace, schoolId, userId);
+  useActionToast(activateResult ?? initial, "Member activated.");
+  useActionToast(rejectResult ?? initial, "Request rejected.");
 
   return (
     <li className="flex flex-col gap-3 border-b border-border pb-4">
@@ -62,47 +87,60 @@ function PendingRow({
         </p>
       </div>
 
-      <form action={formAction} className="flex flex-wrap items-end gap-3">
+      <form
+        action={(formData) => {
+          activate(formData);
+        }}
+        className="flex flex-wrap items-end gap-3"
+      >
         <input type="hidden" name="requestId" value={request.id} />
         <div className="flex flex-col gap-1">
-          <label htmlFor={`role-${request.id}`} className="text-xs font-medium">
-            Role
-          </label>
+          <div className="flex items-center gap-1">
+            <label htmlFor={`role-${request.id}`} className="text-xs font-medium">
+              Role
+            </label>
+            <InfoHint label="What this role grants" title="Role">
+              They join with this role. You cannot grant school admin.
+              Coordinator manages people but not fees.
+            </InfoHint>
+          </div>
           <select
             id={`role-${request.id}`}
             name="role"
             required
-            disabled={pending}
+            disabled={pending || rejectPending}
             defaultValue="teacher"
             className="border-input bg-background h-11 rounded-md border px-3 text-sm"
           >
             <option value="teacher">Teacher</option>
             <option value="staff">Staff</option>
             <option value="accountant">Accountant</option>
-            <option value="school_admin">School admin</option>
+            <option value="coordinator">Coordinator</option>
           </select>
         </div>
-        <Button type="submit" className="h-11" disabled={pending}>
+        <Button type="submit" className="h-11" disabled={pending || rejectPending}>
           {pending ? <Spinner className="size-4" /> : null}
           Activate
         </Button>
       </form>
 
-      <form action={reject}>
+      <form
+        action={(formData) => {
+          reject(formData);
+        }}
+      >
         <input type="hidden" name="requestId" value={request.id} />
-        <Button type="submit" variant="ghost" size="sm" className="h-11">
+        <Button
+          type="submit"
+          variant="ghost"
+          size="sm"
+          className="h-11"
+          disabled={pending || rejectPending}
+        >
+          {rejectPending ? <Spinner className="size-4" /> : null}
           Reject
         </Button>
       </form>
-
-      {state.error ? (
-        <p className="text-sm text-destructive" role="alert">
-          {state.error}
-        </p>
-      ) : null}
-      {state.ok ? (
-        <p className="text-sm text-muted-foreground">Activated.</p>
-      ) : null}
     </li>
   );
 }

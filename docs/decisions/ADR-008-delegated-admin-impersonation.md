@@ -5,7 +5,7 @@
 
 ## Context
 
-School admins are the only people-managers in Phase 0 (`invite`, domain-join
+School admins are the only people-managers in Phase 0 (`provision`, domain-join
 activation, `school_members` mutations). Real schools have a second person —
 the school-office coordinator / admin officer — who handles day-to-day staff
 accounts while the principal/admin retains full authority. We also needed:
@@ -36,7 +36,7 @@ Two implementation options were considered for impersonation:
    it — same pattern as `0003 accountant`). Constrain it with a **central
    capability map** (`apps/edubridge/lib/auth/capabilities.ts`) rather than
    per-call-site role lists, so future per-module overrides extend the map
-   instead of touching every action. Coordinators can invite, activate,
+   instead of touching every action. Coordinators can provision, reset passwords, activate,
    deactivate and reactivate **non-admin** members only; they can never
    grant or disable admin/coordinator accounts (no privilege escalation) and
    never see Fees or impersonate.
@@ -60,11 +60,11 @@ Two implementation options were considered for impersonation:
    identify one account without a school selector, and it trivially implies
    per-school uniqueness (seeded with tenant prefixes: `pilot-admin`,
    `oak-admin`). Password hashing and refresh-token rotation remain entirely
-   Supabase-owned. Usernames are **chosen by the user** at invite-accept /
-   domain-join (prefilled with a deterministic suggestion from the email
-   local part — never generated randomly), with a debounced single-query
-   availability check in the form and a server-side re-check before account
-   creation; the unique index settles any race.
+   Supabase-owned. Usernames are **chosen at office create** (Add member) or
+   by the user at domain-join (prefilled with a deterministic suggestion from
+   the email local part — never generated randomly), with a debounced
+   single-query availability check in the form and a server-side re-check
+   before account creation; the unique index settles any race.
 5. **Platform console reads aggregates only.** `/platform` shows school
    counts (members, students) via the privileged Drizzle connection behind
    `getPlatformContext()`. No tenant row browsing, no billing/module toggles

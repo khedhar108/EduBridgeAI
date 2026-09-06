@@ -5,6 +5,7 @@ import { requireUser } from "@/lib/auth/get-user";
 import { listPendingRequestsForUser } from "@/lib/tenancy/domain-join";
 import { listMembershipsForUser } from "@/lib/tenancy/session-context";
 import { AuthHeader, signOutAction } from "@/features/auth";
+import { CacheClearForm } from "@/lib/query/clear-form";
 
 export default async function AwaitingInvitationPage() {
   const user = await requireUser();
@@ -42,8 +43,8 @@ export default async function AwaitingInvitationPage() {
         </div>
       ) : (
         <p className="text-sm leading-relaxed text-muted-foreground">
-          Signed in as {user.email}, but no school membership yet. Ask your
-          school admin for an invite link, or register with your official school
+          Signed in as {user.email}, but no school membership yet. Ask the
+          office to create your account, or register with your official school
           email if the school domain is already set up.
         </p>
       )}
@@ -55,11 +56,11 @@ export default async function AwaitingInvitationPage() {
         <Button asChild variant="outline" className="h-11">
           <Link href="/join-school">School email sign-up</Link>
         </Button>
-        <form action={signOutAction}>
+        <CacheClearForm action={signOutAction}>
           <Button type="submit" className="h-11">
             Sign out
           </Button>
-        </form>
+        </CacheClearForm>
       </div>
     </>
   );

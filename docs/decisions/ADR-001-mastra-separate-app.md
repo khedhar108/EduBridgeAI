@@ -31,4 +31,5 @@ Connect via `@mastra/client-js` from Next.js server routes/actions.
 ## References
 
 - [docs/architecture/ai-platform.md](../architecture/ai-platform.md)
+- [ADR-010](./ADR-010-mastra-coolify-host.md) — Coolify host, not Mastra Cloud
 - [Mastra Next.js integration guide](https://mastra.ai/blog/nextjs-integration-guide)
