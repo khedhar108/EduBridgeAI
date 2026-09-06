@@ -54,6 +54,8 @@ export default async function FeeRegisterPage({ params }: Props) {
       {canCollect ? (
         <RegisterStudentForm
           workspace={workspace}
+          schoolId={ctx.schoolId}
+          userId={ctx.userId}
           planVersions={data.versions.map((v) => ({
             id: v.id,
             label: `${v.planName} · v${v.version} · ${formatInr(v.totalAmountInr)}`,

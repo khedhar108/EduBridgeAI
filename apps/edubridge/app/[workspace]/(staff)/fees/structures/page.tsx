@@ -53,7 +53,12 @@ export default async function FeeStructuresPage({ params }: Props) {
               Edit the starter heads, then publish. That version becomes the
               live structure for new enrollments.
             </p>
-            <PublishFeePlanForm workspace={workspace} startFromDemo />
+            <PublishFeePlanForm
+              workspace={workspace}
+              schoolId={ctx.schoolId}
+              userId={ctx.userId}
+              startFromDemo
+            />
           </section>
         ) : (
           <p className="text-sm text-muted-foreground">
@@ -119,6 +124,8 @@ export default async function FeeStructuresPage({ params }: Props) {
               <h3 className="text-sm font-medium">Publish next version</h3>
               <PublishFeePlanForm
                 workspace={workspace}
+                schoolId={ctx.schoolId}
+                userId={ctx.userId}
                 planId={plan.id}
                 defaultName={plan.name}
                 defaultClassLabel={plan.classLabel ?? ""}
@@ -137,7 +144,11 @@ export default async function FeeStructuresPage({ params }: Props) {
       {plans.length > 0 && canPublish ? (
         <section className="flex flex-col gap-4 border-t border-border pt-8">
           <h2 className="text-lg font-medium">New plan</h2>
-          <PublishFeePlanForm workspace={workspace} />
+          <PublishFeePlanForm
+            workspace={workspace}
+            schoolId={ctx.schoolId}
+            userId={ctx.userId}
+          />
         </section>
       ) : null}
 

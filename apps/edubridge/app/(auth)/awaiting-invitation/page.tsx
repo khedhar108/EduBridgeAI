@@ -5,6 +5,7 @@ import { requireUser } from "@/lib/auth/get-user";
 import { listPendingRequestsForUser } from "@/lib/tenancy/domain-join";
 import { listMembershipsForUser } from "@/lib/tenancy/session-context";
 import { AuthHeader, signOutAction } from "@/features/auth";
+import { CacheClearForm } from "@/lib/query/clear-form";
 
 export default async function AwaitingInvitationPage() {
   const user = await requireUser();
@@ -55,11 +56,11 @@ export default async function AwaitingInvitationPage() {
         <Button asChild variant="outline" className="h-11">
           <Link href="/join-school">School email sign-up</Link>
         </Button>
-        <form action={signOutAction}>
+        <CacheClearForm action={signOutAction}>
           <Button type="submit" className="h-11">
             Sign out
           </Button>
-        </form>
+        </CacheClearForm>
       </div>
     </>
   );

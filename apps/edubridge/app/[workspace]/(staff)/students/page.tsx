@@ -2,7 +2,7 @@ import { SchoolStudentsPage } from "@/features/student-dashboard";
 
 type Props = {
   params: Promise<{ workspace: string }>;
-  searchParams: Promise<{ class?: string; date?: string }>;
+  searchParams: Promise<{ class?: string; date?: string; q?: string; page?: string }>;
 };
 
 export default async function StudentsPage({ params, searchParams }: Props) {
@@ -13,6 +13,8 @@ export default async function StudentsPage({ params, searchParams }: Props) {
       workspace={workspace}
       classId={query.class}
       onDate={query.date}
+      nameQuery={query.q}
+      page={query.page}
     />
   );
 }

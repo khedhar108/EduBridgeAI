@@ -60,7 +60,12 @@ export default async function FeeCollectionsPage({ params }: Props) {
       />
 
       {canCollect ? (
-        <RecordPaymentForm workspace={workspace} assignments={assignments} />
+        <RecordPaymentForm
+          workspace={workspace}
+          schoolId={ctx.schoolId}
+          userId={ctx.userId}
+          assignments={assignments}
+        />
       ) : (
         <p className="text-sm text-muted-foreground">
           Viewing collections only. Recording payments needs Collect on Control

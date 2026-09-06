@@ -6,6 +6,7 @@ type Props = {
   classes: AccessibleClass[];
   selectedClassId: string;
   onDate: string;
+  nameQuery?: string;
 };
 
 export function ClassFilterForm({
@@ -13,6 +14,7 @@ export function ClassFilterForm({
   classes,
   selectedClassId,
   onDate,
+  nameQuery,
 }: Props) {
   return (
     <form
@@ -20,6 +22,7 @@ export function ClassFilterForm({
       action={`/${workspace}/students`}
       className="flex flex-col gap-3 sm:flex-row sm:items-end"
     >
+      {nameQuery ? <input type="hidden" name="q" value={nameQuery} /> : null}
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         <label htmlFor="class" className="text-sm font-medium">
           Class

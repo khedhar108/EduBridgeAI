@@ -1,30 +1,50 @@
 "use client";
 
-import { useActionState } from "react";
 import { Button } from "@repo/ui/components/button";
 import { Input } from "@repo/ui/components/input";
 import { Spinner } from "@repo/ui/components/spinner";
 import { useActionToast } from "@repo/ui/hooks/use-action-toast";
-import {
-  recordClassActivityAction,
-  type RecordClassActivityState,
-} from "../actions/record-class-activity";
+import { QueryIsland } from "@/lib/query/island";
+import type { RecordClassActivityState } from "../actions/record-class-activity";
+import { useRecordClassActivity } from "../hooks/use-record-class-activity";
 
 const initial: RecordClassActivityState = {};
 
 type Props = {
   workspace: string;
+  schoolId?: string;
+  userId?: string;
   classId: string;
   occurredOn: string;
 };
 
-export function ClassActivityForm({ workspace, classId, occurredOn }: Props) {
-  const bound = recordClassActivityAction.bind(null, workspace);
-  const [state, formAction, pending] = useActionState(bound, initial);
+export function ClassActivityForm(props: Props) {
+  return (
+    <QueryIsland>
+      <ClassActivityFields {...props} />
+    </QueryIsland>
+  );
+}
+
+function ClassActivityFields({
+  workspace,
+  schoolId,
+  userId,
+  classId,
+  occurredOn,
+}: Props) {
+  const { mutate, isPending: pending, data: mutationResult } =
+    useRecordClassActivity(workspace, schoolId, userId);
+  const state = mutationResult ?? initial;
   useActionToast(state, "Class event posted.");
 
   return (
-    <form action={formAction} className="flex max-w-xl flex-col gap-4">
+    <form
+      action={(formData) => {
+        mutate(formData);
+      }}
+      className="flex max-w-xl flex-col gap-4"
+    >
       <input type="hidden" name="classId" value={classId} />
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-2">

@@ -50,7 +50,12 @@ export default async function ControlHubPage({ params }: Props) {
         </ul>
       </section>
 
-      <ControlHubMatrix workspace={workspace} groups={groups} />
+      <ControlHubMatrix
+        workspace={workspace}
+        schoolId={ctx.schoolId}
+        userId={ctx.userId}
+        groups={groups}
+      />
     </div>
   );
 }

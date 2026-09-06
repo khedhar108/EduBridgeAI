@@ -23,3 +23,5 @@ export type {
   FamilyFeeHint,
 } from "./types";
 export { isStudentDashboardRole, STUDENT_DASHBOARD_ROLES } from "./lib/roles";
+export { useRecordAttendance } from "./hooks/use-record-attendance";
+export { useRecordClassActivity } from "./hooks/use-record-class-activity";

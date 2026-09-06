@@ -15,8 +15,8 @@ Two dashboards, one module. Never mix sessions.
 - `/[workspace]/family/progress` — attendance % when staff have marked the register
 - `/[workspace]/family/exams` — marks by assessment type (honest empty until recorded)
 - `/[workspace]/family/events` — class-wide activities for the child’s class
-- `/[workspace]/students` — class filter, attendance grid, class events
-- `/[workspace]/students/[studentId]` — staff drill-in (same child the family hub reads)
+- `/[workspace]/students` — school directory (`DataTable`, name search + page from Postgres), then class filter, attendance grid, class events
+- `/[workspace]/students/[studentId]` — staff child record (photo/initials, family, address empty state, fees when `fees.view`, register)
 
 ## Roles
 
@@ -26,8 +26,10 @@ Two dashboards, one module. Never mix sessions.
 ## Key files
 
 - `components/family-shell.tsx` — header, parent switcher, bottom `familyModules` nav
-- `components/school-students-page.tsx` — class filter + register
-- `components/attendance-grid.tsx` — daily present / absent / late
+- `components/school-students-page.tsx` — directory, then class filter + register
+- `components/school-students-directory.tsx` — paged directory rows (`DataTable` sort only)
+- `lib/directory-list-query.ts` — name + page parse; `listDirectoryStudents` runs ILIKE in Postgres
+- `components/attendance-grid.tsx` — daily present / absent / late (`DataTable` + native status select)
 - `actions/record-attendance.ts` — upsert per pupil for the selected date
 - `queries/get-family-academic.ts` — family reads (privileged `getDb()`)
 

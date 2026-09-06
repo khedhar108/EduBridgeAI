@@ -89,6 +89,8 @@ export default async function WorkspaceHomePage({ params, searchParams }: Props)
 
           <StaffDirectory
             workspace={workspace}
+            schoolId={ctx.schoolId}
+            userId={ctx.userId}
             members={data.members}
             currentUserId={ctx.userId}
             currentRole={ctx.role}

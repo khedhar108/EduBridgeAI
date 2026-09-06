@@ -7,6 +7,7 @@ import {
 } from "@/lib/tenancy/family-session-token";
 import { ChildSwitcher } from "./child-switcher";
 import { FamilyNav } from "./family-nav";
+import { CacheClearForm } from "@/lib/query/clear-form";
 import type { FamilyNavItem, FamilyStudentSummary } from "../types";
 
 type Props = {
@@ -64,12 +65,12 @@ export function FamilyShell({
                   <Link href={`/${workspace}/family/add-child`}>Add child</Link>
                 </Button>
               ) : null}
-              <form action={signOutAction}>
+              <CacheClearForm action={signOutAction}>
                 <input type="hidden" name="workspace" value={workspace} />
                 <Button type="submit" variant="outline" className="h-11">
                   Sign out
                 </Button>
-              </form>
+              </CacheClearForm>
             </div>
           </div>
           {showSwitcher ? (

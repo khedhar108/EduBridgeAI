@@ -4,6 +4,7 @@ import { Button } from "@repo/ui/components/button";
 import { getPlatformContext } from "@/lib/access/platform-context";
 import { listSchoolsOverview } from "@/lib/access/platform-overview";
 import { signOutAction } from "@/features/auth";
+import { CacheClearForm } from "@/lib/query/clear-form";
 
 export default async function PlatformHomePage() {
   const ctx = await getPlatformContext();
@@ -23,11 +24,11 @@ export default async function PlatformHomePage() {
           <h1 className="text-3xl font-semibold tracking-tight">Console</h1>
           <p className="text-sm text-muted-foreground">{ctx.email}</p>
         </div>
-        <form action={signOutAction}>
+        <CacheClearForm action={signOutAction}>
           <Button type="submit" variant="outline" className="h-11">
             Sign out
           </Button>
-        </form>
+        </CacheClearForm>
       </header>
 
       <section className="grid gap-4 sm:grid-cols-3">

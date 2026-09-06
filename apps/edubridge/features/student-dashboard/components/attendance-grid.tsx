@@ -1,14 +1,21 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Button } from "@repo/ui/components/button";
+import {
+  createColumnHelper,
+  DataTable,
+  DataTableColumnHeader,
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+  type SortingState,
+} from "@repo/ui/components/data-table";
 import { Spinner } from "@repo/ui/components/spinner";
 import { useActionToast } from "@repo/ui/hooks/use-action-toast";
-import {
-  recordAttendanceAction,
-  type RecordAttendanceState,
-} from "../actions/record-attendance";
+import type { RecordAttendanceState } from "../actions/record-attendance";
+import { useRecordAttendance } from "../hooks/use-record-attendance";
 
 const initial: RecordAttendanceState = {};
 
@@ -28,22 +35,31 @@ type RosterRow = {
 
 type Props = {
   workspace: string;
+  schoolId?: string;
+  userId?: string;
   classId: string;
   onDate: string;
   roster: RosterRow[];
   existing: { studentId: string; status: Status }[];
 };
 
+const columnHelper = createColumnHelper<RosterRow>();
+
 export function AttendanceGrid({
   workspace,
+  schoolId,
+  userId,
   classId,
   onDate,
   roster,
   existing,
 }: Props) {
-  const bound = recordAttendanceAction.bind(null, workspace);
-  const [state, formAction, pending] = useActionState(bound, initial);
-  useActionToast(state, "Attendance saved.");
+  const { mutate, isPending, data: mutationResult } = useRecordAttendance(
+    workspace,
+    schoolId,
+    userId,
+  );
+  useActionToast(mutationResult ?? initial, "Attendance saved.");
 
   const existingByStudent = useMemo(() => {
     const map = new Map<string, Status>();
@@ -60,6 +76,7 @@ export function AttendanceGrid({
     }
     return next;
   });
+  const [sorting, setSorting] = useState<SortingState>([]);
 
   const recordsJson = JSON.stringify(
     roster.map((pupil) => ({
@@ -67,6 +84,74 @@ export function AttendanceGrid({
       status: marks[pupil.studentId] ?? "present",
     })),
   );
+
+  const columns = useMemo(
+    () => [
+      columnHelper.accessor("fullName", {
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Name" />
+        ),
+        cell: ({ row }) => (
+          <Link
+            href={`/${workspace}/students/${row.original.studentId}`}
+            className="truncate font-medium text-foreground underline-offset-4 hover:underline"
+          >
+            {row.original.fullName}
+          </Link>
+        ),
+      }),
+      columnHelper.accessor("admissionNumber", {
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Admission" />
+        ),
+        cell: ({ getValue }) => (
+          <span className="text-muted-foreground">{getValue()}</span>
+        ),
+      }),
+      columnHelper.display({
+        id: "status",
+        enableSorting: false,
+        header: "Status",
+        cell: ({ row }) => {
+          const pupil = row.original;
+          return (
+            <>
+              <label className="sr-only" htmlFor={`status-${pupil.studentId}`}>
+                Attendance for {pupil.fullName}
+              </label>
+              <select
+                id={`status-${pupil.studentId}`}
+                value={marks[pupil.studentId] ?? "present"}
+                disabled={isPending}
+                onChange={(event) => {
+                  const value = event.target.value as Status;
+                  setMarks((curr) => ({ ...curr, [pupil.studentId]: value }));
+                }}
+                className="border-input bg-background h-11 w-full rounded-md border px-3 text-sm sm:w-40"
+              >
+                {STATUS_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </>
+          );
+        },
+      }),
+    ],
+    [workspace, marks, isPending],
+  );
+
+  const table = useReactTable({
+    data: roster,
+    columns,
+    state: { sorting },
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getRowId: (row) => row.studentId,
+  });
 
   if (roster.length === 0) {
     return (
@@ -77,53 +162,23 @@ export function AttendanceGrid({
   }
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <form
+      action={(formData) => {
+        mutate(formData);
+      }}
+      className="flex flex-col gap-4"
+    >
       <input type="hidden" name="classId" value={classId} />
       <input type="hidden" name="onDate" value={onDate} />
       <input type="hidden" name="records" value={recordsJson} />
 
-      <ul className="divide-y divide-border rounded-md border border-border">
-        {roster.map((pupil) => (
-          <li
-            key={pupil.studentId}
-            className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
-          >
-            <div className="flex min-w-0 flex-col">
-              <Link
-                href={`/${workspace}/students/${pupil.studentId}`}
-                className="truncate text-sm font-medium text-foreground underline-offset-4 hover:underline"
-              >
-                {pupil.fullName}
-              </Link>
-              <span className="text-xs text-muted-foreground">
-                {pupil.admissionNumber}
-              </span>
-            </div>
-            <label className="sr-only" htmlFor={`status-${pupil.studentId}`}>
-              Attendance for {pupil.fullName}
-            </label>
-            <select
-              id={`status-${pupil.studentId}`}
-              value={marks[pupil.studentId] ?? "present"}
-              disabled={pending}
-              onChange={(event) => {
-                const value = event.target.value as Status;
-                setMarks((curr) => ({ ...curr, [pupil.studentId]: value }));
-              }}
-              className="border-input bg-background h-11 w-full rounded-md border px-3 text-sm sm:w-40"
-            >
-              {STATUS_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </li>
-        ))}
-      </ul>
+      <DataTable
+        table={table}
+        empty="No pupils are enrolled in this class yet."
+      />
 
-      <Button type="submit" disabled={pending} className="h-11 w-fit">
-        {pending ? <Spinner className="size-4" /> : null}
+      <Button type="submit" disabled={isPending} className="h-11 w-fit">
+        {isPending ? <Spinner className="size-4" /> : null}
         Save attendance
       </Button>
     </form>

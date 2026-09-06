@@ -62,6 +62,8 @@ export default async function TeamSettingsPage({ params }: Props) {
         </div>
         <PendingMembersPanel
           workspace={workspace}
+          schoolId={ctx.schoolId}
+          userId={ctx.userId}
           requests={pending.map((row) => ({
             id: row.id,
             email: row.email,

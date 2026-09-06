@@ -1,50 +1,71 @@
+import Link from "next/link";
 import { withTenant } from "@repo/db";
 import { notFound } from "next/navigation";
+import { Button } from "@repo/ui/components/button";
+import { Input } from "@repo/ui/components/input";
 import { can } from "@/lib/auth/capabilities";
 import { getSessionContext } from "@/lib/tenancy/session-context";
+import { parseDirectoryListInput, studentsPageHref } from "../lib/directory-list-query";
 import { listClassWideActivities } from "../queries/activities";
 import { listAttendanceForDate } from "../queries/attendance";
+import { listDirectoryStudents } from "../queries/list-directory-students";
 import {
   getClassById,
   listAccessibleClasses,
   listClassRoster,
 } from "../queries/list-classes";
 import { todayIst } from "../lib/today-ist";
+import { QueryIsland } from "@/lib/query/island";
 import { AttendanceGrid } from "./attendance-grid";
 import { ClassActivityForm } from "./class-activity-form";
 import { ClassFilterForm } from "./class-filter-form";
+import { SchoolStudentsDirectory } from "./school-students-directory";
 
 type Props = {
   workspace: string;
   classId?: string;
   onDate?: string;
+  nameQuery?: string;
+  page?: string;
 };
 
 export async function SchoolStudentsPage({
   workspace,
   classId,
   onDate,
+  nameQuery,
+  page: pageParam,
 }: Props) {
   const ctx = await getSessionContext(workspace);
   if (!ctx || !can(ctx, "students.view")) notFound();
 
   const date = onDate && /^\d{4}-\d{2}-\d{2}$/.test(onDate) ? onDate : todayIst();
+  const listInput = parseDirectoryListInput({ q: nameQuery, page: pageParam });
 
   const data = await withTenant(
     { sub: ctx.userId, school_id: ctx.schoolId, role: ctx.role },
     async (tx) => {
-      const accessible = await listAccessibleClasses(tx, ctx.schoolId);
+      const [accessible, directory] = await Promise.all([
+        listAccessibleClasses(tx, ctx.schoolId),
+        listDirectoryStudents(
+          tx,
+          ctx.schoolId,
+          ctx.userId,
+          ctx.role,
+          listInput,
+        ),
+      ]);
       const selectedId =
         classId && accessible.some((row) => row.id === classId)
           ? classId
           : accessible[0]?.id;
       if (!selectedId) {
-        return { kind: "empty" as const, accessible };
+        return { kind: "empty" as const, accessible, directory };
       }
 
       const selected = await getClassById(tx, ctx.schoolId, selectedId);
       if (!selected) {
-        return { kind: "empty" as const, accessible };
+        return { kind: "empty" as const, accessible, directory };
       }
       const [roster, existing, events] = await Promise.all([
         listClassRoster(tx, ctx.schoolId, selectedId),
@@ -52,7 +73,15 @@ export async function SchoolStudentsPage({
         listClassWideActivities(tx, ctx.schoolId, selectedId),
       ]);
 
-      return { kind: "ready" as const, accessible, selected, roster, existing, events };
+      return {
+        kind: "ready" as const,
+        accessible,
+        directory,
+        selected,
+        roster,
+        existing,
+        events,
+      };
     },
   );
 
@@ -61,10 +90,60 @@ export async function SchoolStudentsPage({
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-semibold tracking-tight">Students</h1>
         <p className="text-sm text-muted-foreground">
-          Pick a class, mark the day’s register, and post events the family hub
-          will read for that child. Signed in as {ctx.role.replace(/_/g, " ")}.
+          Open a child for their record. Mark the day’s register for a class
+          below. Signed in as {ctx.role.replace(/_/g, " ")}.
         </p>
       </div>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="text-lg font-medium">On roll</h2>
+        <form
+          method="get"
+          action={`/${workspace}/students`}
+          className="flex flex-col gap-3 sm:flex-row sm:items-end"
+        >
+          {data.kind === "ready" ? (
+            <input type="hidden" name="class" value={data.selected.id} />
+          ) : classId ? (
+            <input type="hidden" name="class" value={classId} />
+          ) : null}
+          <input type="hidden" name="date" value={date} />
+          <div className="flex min-w-0 flex-1 flex-col gap-2">
+            <label htmlFor="q" className="text-sm font-medium">
+              Name
+            </label>
+            <Input
+              id="q"
+              name="q"
+              type="search"
+              defaultValue={listInput.name ?? ""}
+              placeholder="Find a child"
+              className="h-11"
+            />
+          </div>
+          <Button type="submit" variant="secondary" className="h-11">
+            Find
+          </Button>
+        </form>
+        <SchoolStudentsDirectory
+          workspace={workspace}
+          students={data.directory.rows}
+          empty={
+            listInput.name
+              ? "No child with that name."
+              : "No students on roll yet."
+          }
+        />
+        <DirectoryPager
+          workspace={workspace}
+          classId={data.kind === "ready" ? data.selected.id : classId}
+          date={date}
+          q={listInput.name}
+          page={data.directory.page}
+          pageSize={data.directory.pageSize}
+          total={data.directory.total}
+        />
+      </section>
 
       {data.kind === "empty" ? (
         <p className="text-sm text-muted-foreground">
@@ -78,13 +157,11 @@ export async function SchoolStudentsPage({
             classes={data.accessible}
             selectedClassId={data.selected.id}
             onDate={date}
+            nameQuery={listInput.name}
           />
 
           <section className="grid gap-4 sm:grid-cols-3">
-            <Stat
-              label="On roll"
-              value={String(data.roster.length)}
-            />
+            <Stat label="Class roll" value={String(data.roster.length)} />
             <Stat
               label="Marked today"
               value={String(data.existing.length)}
@@ -101,13 +178,17 @@ export async function SchoolStudentsPage({
             <h2 className="text-lg font-medium">
               Attendance · {data.selected.name} {data.selected.section}
             </h2>
-            <AttendanceGrid
-              workspace={workspace}
-              classId={data.selected.id}
-              onDate={date}
-              roster={data.roster}
-              existing={data.existing}
-            />
+            <QueryIsland>
+              <AttendanceGrid
+                workspace={workspace}
+                schoolId={ctx.schoolId}
+                userId={ctx.userId}
+                classId={data.selected.id}
+                onDate={date}
+                roster={data.roster}
+                existing={data.existing}
+              />
+            </QueryIsland>
           </section>
 
           <section className="flex flex-col gap-3">
@@ -118,6 +199,8 @@ export async function SchoolStudentsPage({
             </p>
             <ClassActivityForm
               workspace={workspace}
+              schoolId={ctx.schoolId}
+              userId={ctx.userId}
               classId={data.selected.id}
               occurredOn={date}
             />
@@ -139,6 +222,56 @@ export async function SchoolStudentsPage({
           </section>
         </>
       )}
+    </div>
+  );
+}
+
+function DirectoryPager({
+  workspace,
+  classId,
+  date,
+  q,
+  page,
+  pageSize,
+  total,
+}: {
+  workspace: string;
+  classId?: string;
+  date: string;
+  q?: string;
+  page: number;
+  pageSize: number;
+  total: number;
+}) {
+  if (total <= pageSize) return null;
+  const lastPage = Math.ceil(total / pageSize);
+  const from = (page - 1) * pageSize + 1;
+  const to = Math.min(page * pageSize, total);
+  const href = (nextPage: number) =>
+    studentsPageHref(workspace, {
+      class: classId,
+      date,
+      q,
+      page: nextPage,
+    });
+
+  return (
+    <div className="flex items-center justify-between gap-3 text-sm">
+      <p className="tabular-nums text-muted-foreground">
+        {from}–{to} of {total}
+      </p>
+      <div className="flex gap-3">
+        {page > 1 ? (
+          <Link href={href(page - 1)} className="underline-offset-4 hover:underline">
+            Previous
+          </Link>
+        ) : null}
+        {page < lastPage ? (
+          <Link href={href(page + 1)} className="underline-offset-4 hover:underline">
+            Next
+          </Link>
+        ) : null}
+      </div>
     </div>
   );
 }

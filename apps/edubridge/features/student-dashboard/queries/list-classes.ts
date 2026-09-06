@@ -17,6 +17,50 @@ export type AccessibleClass = {
   academicYear: string;
 };
 
+/** Class ids this staff member may open. Admin and hub-granted roles see every class. */
+export async function listAccessibleClassIds(
+  tx: TenantTx,
+  schoolId: string,
+  userId: string,
+  role: string,
+): Promise<string[]> {
+  if (role !== "teacher" && role !== "staff") {
+    const rows = await tx
+      .select({ id: classes.id })
+      .from(classes)
+      .where(eq(classes.schoolId, schoolId));
+    return rows.map((row) => row.id);
+  }
+
+  if (role === "teacher") {
+    const rows = await tx
+      .select({ classId: classSubjects.classId })
+      .from(teacherAssignments)
+      .innerJoin(
+        classSubjects,
+        eq(classSubjects.id, teacherAssignments.classSubjectId),
+      )
+      .where(
+        and(
+          eq(teacherAssignments.schoolId, schoolId),
+          eq(teacherAssignments.teacherUserId, userId),
+        ),
+      );
+    return [...new Set(rows.map((row) => row.classId))];
+  }
+
+  const rows = await tx
+    .select({ classId: classStaffDelegations.classId })
+    .from(classStaffDelegations)
+    .where(
+      and(
+        eq(classStaffDelegations.schoolId, schoolId),
+        eq(classStaffDelegations.userId, userId),
+      ),
+    );
+  return rows.map((row) => row.classId);
+}
+
 export async function listAccessibleClasses(
   tx: TenantTx,
   schoolId: string,

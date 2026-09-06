@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "@repo/ui/components/button";
+import { CacheClearForm } from "@/lib/query/clear-form";
 import type { FamilyStudentSummary } from "../types";
 
 type Props = {
@@ -32,7 +33,7 @@ export function ChildSwitcher({
 
   return (
     <div className="flex min-w-0 items-center gap-2">
-      <form action={switchChildAction} className="min-w-0 flex-1">
+      <CacheClearForm action={switchChildAction} className="min-w-0 flex-1">
         <input type="hidden" name="workspace" value={workspace} />
         <label htmlFor="family-child" className="sr-only">
           Child
@@ -51,7 +52,7 @@ export function ChildSwitcher({
             </option>
           ))}
         </select>
-      </form>
+      </CacheClearForm>
       {addButton}
     </div>
   );
